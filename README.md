@@ -41,18 +41,25 @@ G Choppy: cut triple splitter: 1080 - 1308
 
 ### 2. **Local Project Setup**
 
-* Create a basic loginable site based on something...  badmin maybe or quick, possibly with 2FA built in
+* Create a basic loginable site based on Quick, possibly with 2FA built in
 
-** front page
+** check DB exists with DBExisteroo.php
+*** Look for config username
+*** Look for DB TABLE users
+*** DNE: create admin user password
+**
+** login page
 ** login
-** 2FA
+** 2FA ???
 ** admin page
 ** Lemur: scp_to_example.sh
 
+* Move README.md somewhere safe
+* Rewrite README.md to minimal biz
 * Save that new repo next to new-DH-whatsit repo
 
 * Keep going:
-
+* Restore README
 
 * Create a **local Git repository**
 * Initialize directory structure:
