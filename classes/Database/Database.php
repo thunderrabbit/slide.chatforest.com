@@ -12,7 +12,6 @@ class Database implements DbInterface {
     private $passwd;
     private $dbname;
     private $tz_offset = false;
-    private $persistant;
     private $affected_rows;
 
     public function __construct($host, $username, $passwd, $dbname = '', $charEncoding = 'UTF8') {
@@ -21,11 +20,6 @@ class Database implements DbInterface {
         $this->passwd = $passwd;
         $this->dbname = $dbname;
         $this->charEncoding = $charEncoding;
-        if ($this->dbname && strtolower(substr($this->dbname, 0, 2)) == "p:") {
-            $this->persistant = true;
-        } else {
-            $this->persistant = false;
-        }
     }
 
 // end __construct
