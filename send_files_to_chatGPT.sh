@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 for file in "$@"; do
-    echo "Here is the source for $file:\n"
+    echo -e "Here is the source for $file:\n"
     echo '```php'
     cat "$file"
     echo '```'
