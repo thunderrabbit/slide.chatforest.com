@@ -243,12 +243,16 @@ class Database implements DbInterface {
      */
     public function databaseExists(): bool
     {
-        // without database name so we can check if the server is reachable
-        $conn = new \mysqli(
-            hostname: $this->host,
-            username: $this->username,
-            password: $this->passwd
-        );
+        try {
+            // without database name so we can check if the server is reachable
+            $conn = new \mysqli(
+                hostname: $this->host,
+                username: $this->username,
+                password: $this->passwd
+            );
+        } catch (\mysqli_sql_exception $e) {
+            throw new \Database\MySQLiCouldNotConnectToServer("Connection failed: " . $e->getMessage(), 0, $e);
+        }
 
         if ($conn->connect_error) {
             throw new \Database\ECouldNotConnectToServer(
