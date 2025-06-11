@@ -47,17 +47,14 @@ class DBExistaroo {
     }
 
     /**
-     * Checks if the database exists.  Doesn't yet distinguish missing host vs invalid credentials.
+     * Checks if the database exists.
+     * databaseExists() will die if it cannot access the server or log in.
+     * We catch EDatabaseMissing if the database is missing.
      * @return bool True if the database exists, false otherwise.
      */
     private function dbExists(): bool {
         try {
             return $this->dbase->databaseExists();
-        } catch (\Database\MySQLiCouldNotConnectToServer $e) {
-            die("Please check the host, username, and password in your Config." . $e->getMessage());
-        } catch (\Database\ECouldNotConnectToServer $e) {
-            // I couldn't trigger this one by changing the config, so I don't know how to test it.
-            die("Could not connect to DB server. Check host and credentials." . $e->getMessage());
         } catch (\Database\EDatabaseMissing $e) {
             return false;
         } catch (\Database\EDatabaseException $e) {

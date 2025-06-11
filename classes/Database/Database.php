@@ -251,7 +251,7 @@ class Database implements DbInterface {
                 password: $this->passwd
             );
         } catch (\mysqli_sql_exception $e) {
-            throw new \Database\MySQLiCouldNotConnectToServer("Connection failed: " . $e->getMessage(), 0, $e);
+            die("Check Config because {$e->getMessage()}");
         }
 
         if ($conn->connect_error) {
