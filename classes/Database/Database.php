@@ -235,4 +235,42 @@ class Database implements DbInterface {
             return $this->executeSQL("INSERT INTO `" . trim($tablename, " `") . "` ({$vars}) VALUES ({$values}) ", $paramtypes, $record);
         }
     }
+
+    /**
+     * 11 June 2025 help Rob create new domains on DH
+     * @throws \Database\EDatabaseException
+     * @return bool
+     */
+    public function databaseExists(): bool
+    {
+        // without database name so we can check if the server is reachable
+        $conn = new \mysqli(
+            hostname: $this->host,
+            username: $this->username,
+            password: $this->passwd
+        );
+
+        if ($conn->connect_error) {
+            throw new \Database\ECouldNotConnectToServer(
+                "Connection failed while checking DB existence: {$conn->connect_error}"
+            );
+        }
+
+        $escapedDb = $conn->real_escape_string(string: $this->dbname);
+        $res = $conn->query(query: "SHOW DATABASES LIKE '$escapedDb'");
+
+        if ($res === false) {
+            throw new \Database\EDatabaseException(
+                "Failed to query for DB existence: {$conn->error}"
+            );
+        }
+
+        if ($res->num_rows === 0) {
+            throw new \Database\EDatabaseMissing(
+                "Database '{$this->dbname}' not found."
+            );
+        }
+
+        return $res->num_rows > 0;
+    }
 }

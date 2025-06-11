@@ -37,6 +37,24 @@ try {
 }
 
 $mla_database = \Database\Base::getDB($config);
+// Check if the database exists and is accessible
+$checkaroo = new \Database\DBExistaroo(
+    config: $config,
+    dbase: $mla_database,
+);
+
+$errors = $checkaroo->checkaroo();
+if (!empty($errors)) {
+    echo "<h1>Database Errors</h1>";
+    echo "<ul>";
+    foreach ($errors as $error) {
+        echo "<li>" . htmlspecialchars($error) . "</li>";
+    }
+    echo "</ul>";
+    exit;
+}
+
+$mla_database = \Database\Base::getDB($config);
 
 $is_logged_in = new \Auth\IsLoggedIn($mla_database);
 $is_logged_in->checkLogin($mla_request);
