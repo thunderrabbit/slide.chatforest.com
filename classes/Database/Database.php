@@ -1,6 +1,8 @@
 <?php
 namespace Database;
 
+// tryna include several exceptions in one file
+require_once __DIR__ . "/EDatabaseExceptions.php";
 class Database implements DbInterface {
 
     private $charEncoding = "UTF8";
