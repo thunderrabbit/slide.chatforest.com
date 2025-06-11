@@ -16,7 +16,7 @@
                     <fieldset>
                         <div class="PageRow noborder">
                             <label for="req1">Username:</label>
-                            <div class="PageInput"><input type="text" name="email" class="validate[required]" id="req1" /></div>
+                            <div class="PageInput"><input type="text" name="username" class="validate[required]" id="req1" /></div>
                             <div class="fix"></div>
                         </div>
 

@@ -36,8 +36,8 @@ class IsLoggedIn
                 $this->is_logged_in = true;
                 return true;
             }
-        } elseif(!empty($mla_request->post['email']) && !empty($mla_request->post['pass'])) {
-            $found_user_id = $this->checkPHPHashedPassword($mla_request->post['email'], $mla_request->post['pass']);
+        } elseif(!empty($mla_request->post['username']) && !empty($mla_request->post['pass'])) {
+            $found_user_id = $this->checkPHPHashedPassword($mla_request->post['username'], $mla_request->post['pass']);
             if(empty($found_user_id))
             {
                 $this->killCookie();        // bad login, so kill any cookie
@@ -71,11 +71,11 @@ class IsLoggedIn
 
 
 
-    private function getIDandPHPHashedPasswordForEmail($email)
+    private function getIDandPHPHashedPasswordForUsername($username)
     {
         // get password hash
-        $user_id_and_hash_result = $this->di_dbase->fetchResults("SELECT `user_id`, `php_pw_hash` FROM `users`
-            WHERE LOWER(`email`) = LOWER(?) LIMIT 1", "s", $email);
+        $user_id_and_hash_result = $this->di_dbase->fetchResults("SELECT `user_id`, `password_hash` FROM `users`
+            WHERE LOWER(`username`) = LOWER(?) LIMIT 1", "s", $username);
         if ($user_id_and_hash_result->numRows() > 0) {
             return $user_id_and_hash_result->toArray()[0];
         } else {
@@ -83,17 +83,17 @@ class IsLoggedIn
         }
     }
     /**
-     * Looks up hashed password for email, and checks it against the password provided
-     * @param $email
+     * Looks up hashed password for username, and checks it against the password provided
+     * @param $username
      * @param $password
      * @return bool
      */
-    private function checkPHPHashedPassword($email, $password): int
+    private function checkPHPHashedPassword($username, $password): int
     {
         // get password hash
-        $user_id_and_hash_array = $this->getIDandPHPHashedPasswordForEmail($email);
+        $user_id_and_hash_array = $this->getIDandPHPHashedPasswordForUsername($username);
         if (!empty($user_id_and_hash_array)) {
-            $hashed_password = $user_id_and_hash_array['php_pw_hash'];
+            $hashed_password = $user_id_and_hash_array['password_hash'];
             // check it
             if (password_verify($password, $hashed_password)) {
                 // password is correct, so this user_id has logged in properly
