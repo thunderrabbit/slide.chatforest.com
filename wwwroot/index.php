@@ -11,6 +11,7 @@ if($debugLevel > 0) {
 if($is_logged_in->isLoggedIn()){
 
     echo "<h1>You're logged in</h1>";
+    echo "<p><a href='/admin/'>Click here to admire admin page</a></p>";
     exit;
     // $page = new \Template(config: $config);
 

@@ -10,8 +10,11 @@
     </head>
     <body><!-- Welcome Boss! form area -->
         <div class="PageWrapper">
-            <div class="PagePanel">
+        <div class="PagePanel">
                 What's up Boss? <br />
+            </div>
+            <div class="PagePanel">
+                <a href="/logout/">Logout</a> <br />
             </div>
         </div>
         <div class="fix"></div>

@@ -9,4 +9,9 @@ if ($is_logged_in->isLoggedIn()) {
     $page->setTemplate("admin/index.tpl.php");
     $page->echoToScreen();
     exit;
+} else {
+    $page = new \Template(config: $config);
+    $page->setTemplate("login/index.tpl.php");
+    $page->echoToScreen();
+    exit;
 }
