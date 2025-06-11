@@ -12,7 +12,7 @@ class IsLoggedIn
     private bool $is_logged_in = false;
 
     private string $session_variable = 'login';   // must match the one in \UserAuthentication
-    private string $cookie_name = 'quill';
+    private string $cookie_name = 'dbmt3';
     private \Database\Database $di_dbase;
 
     public function __construct(\Database\Database $dbase)
@@ -61,7 +61,7 @@ class IsLoggedIn
         $cookie_options = array(
             'expires' => time() + (30 * 24 * 60 * 60),
             'path' => '/',
-            'domain' => "quick.robnugen.com",
+            'domain' => "db.marbletrack3.com",
             'samesite' => 'Strict' // None || Lax  || Strict
         );
         setcookie($this->cookie_name, $cookie, $cookie_options);
@@ -140,7 +140,7 @@ class IsLoggedIn
         $cookie_options = array (
           'expires' => time()-3600,
           'path' => '/',
-          'domain' => "quick.robnugen.com",
+          'domain' => "db.marbletrack3.com",
           'samesite' => 'Strict' // None || Lax  || Strict
         );
         setcookie($this->cookie_name, '', $cookie_options);
