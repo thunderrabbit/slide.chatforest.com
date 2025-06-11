@@ -44,6 +44,13 @@ $checkaroo = new \Database\DBExistaroo(
 );
 
 $errors = $checkaroo->checkaroo();
+if (!empty($errors) && $errors[0] == "YallGotAnyMoreOfThemUsers") {
+    $page = new \Template(config: $config);
+    $page->setTemplate("login/register.tpl.php");
+    $page->echoToScreen();
+    exit;
+}
+
 if (!empty($errors)) {
     echo "<h1>Database Errors</h1>";
     echo "<ul>";

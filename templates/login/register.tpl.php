@@ -3,16 +3,16 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Login</title>
-        <meta name="title" content="Login"/>
+        <title>Register</title>
+        <meta name="title" content="Register"/>
         <meta name="description" content=""/>
         <link rel="stylesheet" href="/css/styles.css">
     </head>
-    <body><!-- Login form area -->
+    <body><!-- Register form area -->
         <div class="PageWrapper">
             <div class="PagePanel">
-                <div class="head"><h5 class="iUser">Login</h5></div>
-                <form action="" id="valid" class="mainForm" method="POST">
+                <div class="head"><h5 class="iUser">Register</h5></div>
+                <form action="/login/register_admin.php" id="valid" class="mainForm" method="POST">
                     <fieldset>
                         <div class="PageRow noborder">
                             <label for="req1">Username:</label>
@@ -25,8 +25,14 @@
                             <div class="PageInput"><input type="password" name="pass" class="validate[required]" id="req2" /></div>
                             <div class="fix"></div>
                         </div>
+
                         <div class="PageRow noborder">
-                            <input type="submit" value="Log me in" class="greyishBtn submitForm" />
+                            <label for="req3">Confirm:</label>
+                            <div class="PageInput"><input type="password" name="pass_verify" class="validate[required]" id="req3" /></div>
+                            <div class="fix"></div>
+                        </div>
+                        <div class="PageRow noborder">
+                            <input type="submit" value="Register" class="greyishBtn submitForm" />
                             <div class="fix"></div>
                         </div>
                     </fieldset>

@@ -33,7 +33,7 @@ class DBExistaroo {
         }
 
         if (!$this->hasAnyUsers()) {
-            $errors[] = "Users table is empty. Admin setup required.";
+            $errors[] = "YallGotAnyMoreOfThemUsers";
         }
 
         return $errors;
