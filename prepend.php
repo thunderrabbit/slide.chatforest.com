@@ -40,10 +40,3 @@ $mla_database = \Database\Base::getDB($config);
 
 $is_logged_in = new \Auth\IsLoggedIn($mla_database);
 $is_logged_in->checkLogin($mla_request);
-
-if(!$is_logged_in->isLoggedIn()){
-    $page = new \Template(config: $config);
-    $page->setTemplate("login/index.tpl.php");
-    $page->echoToScreen();
-    exit;
-}
