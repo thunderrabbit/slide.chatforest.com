@@ -34,9 +34,9 @@ G Choppy: cut triple splitter: 1080 - 1308
 
 ### 1. **Create Subdomain and Project Base**
 
-* **Subdomain**: `https://db.marbletrack3.com`
+* ✅ **Subdomain**: `https://db.marbletrack3.com`
 * **Purpose**: A database-driven mirror of `www.marbletrack3.com`, focusing on structured data access.
-* **Hosting**: Dreamhost shared hosting
+* ✅ **Hosting**: Dreamhost shared hosting
 * **Stack**: PHP + MySQL (InnoDB engine recommended)
 
 ### 2. **Local Project Setup**
@@ -74,20 +74,6 @@ if (password_verify($_POST['setup_password'], \SetupPassword::HASH)) {
     $_SESSION['setup_verified'] = true;
 }
 ```
-
----
-
-## 🔐 But What About Those "Security Researchers"?
-
-Some bots or "researchers" may crawl public GitHub repos and email you with vague warnings like:
-
-> "Your repo exposes a bcrypt password hash. This could be a security issue. We can help!"
-
-### How to handle it:
-
-* 🧠 Know that **bcrypt hashes are not reversible**, so revealing one ≠ risk
-* ✅ Reply with “Thanks! This is intentional and not a security concern in this context.”
-* Or just ignore them — they’re usually fishing for consulting gigs
 
 ---
 
@@ -231,7 +217,6 @@ if (password_verify($_POST['password'], $stored_hash)) {
 * Delete `.setup_secret.php` after first use
 * Unset `$_SESSION['setup_verified']` once admin is created
 * Log IP or time of successful setup if you want traceability
-
 
 
 /end If users tables DNE ^^
