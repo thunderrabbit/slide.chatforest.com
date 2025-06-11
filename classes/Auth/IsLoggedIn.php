@@ -2,8 +2,6 @@
 /**
  * This file tries to simplify knowing if user is logged in.
  *
- * First check against cookie table to see if cookie is valid.
- * CREATE TABLE `plasticaddy`.`cookies` (`cookie_id` INT NOT NULL AUTO_INCREMENT , `cookie` TINYTEXT NOT NULL , `user_id` INT NOT NULL , PRIMARY KEY (`cookie_id`), UNIQUE `unique_cookie` (`cookie`(32))) ENGINE = InnoDB;
  *
  */
 namespace Auth;
