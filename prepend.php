@@ -17,13 +17,13 @@ $mla_request = new \Mlaphp\Request();
 
 function print_rob($object, $exit = true)
 {
-    echo ("<pre>");
+    echo "<pre>";
     if (is_object($object) && method_exists($object, "toArray")) {
         echo "ResultSet => " . print_r($object->toArray(), true);
     } else {
         print_r($object);
     }
-    echo ("</pre>");
+    echo "</pre>";
     if ($exit) {
         exit;
     }
