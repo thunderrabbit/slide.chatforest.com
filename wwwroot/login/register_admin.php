@@ -63,9 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 
 } else {
-    $page = new \Template(config: $config);
-    $page->setTemplate("login/index.tpl.php");
-    $page->echoToScreen();
+    header(header: "Location: /login/");
     exit;
 }
 
