@@ -7,7 +7,7 @@ class DBExistaroo {
 
     /**
      * DBExistaroo checks if the database exists and
-     * creates a table to track DB versions if needed
+     * creates a table to track DB versions if needed.
      * It's then asked to create TABLE `users` and `cookies`
      * It also checks if there are any users in the users table.
      *
@@ -88,6 +88,12 @@ class DBExistaroo {
         }
     }
 
+    private function logSchemaApplication(string $version, string $direction): void
+    {
+        $stmt = $this->conn->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
+        $stmt->bind_param('ss', $version, $direction);
+        $stmt->execute();
+    }
     private function appliedDBVersionsTableExists(): bool
     {
         $result = $this->conn->query("SHOW TABLES LIKE 'applied_DB_versions'");
@@ -98,6 +104,12 @@ class DBExistaroo {
     {
         echo "Applying bedrock schema...\n";
         $sql_path = $this->config->app_path . "/db_schemas/00_bedrock/create_schema.sql";
+        $this->applySchemaPath($sql_path);
+        $this->logSchemaApplication("00_bedrock", "up");
+        echo "Bedrock schema applied successfully.\n";
+    }
+    private function applySchemaPath(string $sql_path): void
+    {
         if (!file_exists($sql_path)) {
             throw new \Exception("Missing bedrock schema file: $sql_path");
         }
