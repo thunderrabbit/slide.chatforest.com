@@ -7,7 +7,7 @@ if ($is_logged_in->isLoggedIn()) {
     // We logged in.. yay!
     $page = new \Template(config: $config);
     $page->setTemplate("admin/index.tpl.php");
-    $page->set(name: "site_version", value: VERSION);
+    $page->set(name: "site_version", value: SENTIMENTAL_VERSION);
     $page->set(name: "username", value: $is_logged_in->getLoggedInUsername());
     $page->echoToScreen();
     exit;
