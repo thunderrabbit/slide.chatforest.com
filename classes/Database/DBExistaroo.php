@@ -5,8 +5,15 @@ namespace Database;
 class DBExistaroo {
     private \mysqli $conn;
 
+    private $automaticSchemaPrefixes = [
+        "00",
+        "01",
+    ];
+
     /**
-     * DBExistaroo checks if the database exists and if the users table is present.
+     * DBExistaroo checks if the database exists and
+     * creates a table to track DB versions if needed.
+     * It's then asked to create TABLE `users` and `cookies`
      * It also checks if there are any users in the users table.
      *
      * @param \Config $config Configuration object containing DB connection details.
@@ -37,11 +44,8 @@ class DBExistaroo {
 
         $this->connectToDB();
 
-        if (!$this->usersTableExists()) {
-            $this->createUsersTable();
-        }
-        if (!$this->cookiesTableExists()) {
-            $this->createCookiesTable();
+        if (!$this->appliedDBVersionsTableExists()) {
+            $this->applyInitialSchemas();
         }
 
         if (!$this->hasAnyUsers()) {
@@ -89,50 +93,54 @@ class DBExistaroo {
         }
     }
 
-    private function usersTableExists(): bool {
-        $result = $this->conn->query("SHOW TABLES LIKE 'users'");
+    private function logSchemaApplication(string $version, string $direction): void
+    {
+        $stmt = $this->conn->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
+        $stmt->bind_param('ss', $version, $direction);
+        $stmt->execute();
+    }
+    private function appliedDBVersionsTableExists(): bool
+    {
+        $result = $this->conn->query("SHOW TABLES LIKE 'applied_DB_versions'");
         return $result && $result->num_rows > 0;
     }
 
-    private function createUsersTable(): void {
-        $sql = <<<SQL
-CREATE TABLE users (
-    user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'user') DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-SQL;
+    private function applyInitialSchemas(): void
+    {
+        foreach ($this->automaticSchemaPrefixes as $prefix) {
+            $dir = $this->config->app_path . "/db_schemas";
+            $schema_dirs = glob("$dir/{$prefix}_*", GLOB_ONLYDIR);
 
-        $this->conn->query($sql);
+            foreach ($schema_dirs as $schema_dir) {
+                $version = basename($schema_dir);
+                $sql_files = glob("$schema_dir/create_*.sql");
+
+                foreach ($sql_files as $sql_path) {
+                    echo "Applying schema file: $sql_path<br>";
+                    $this->applySchemaPath($sql_path);
+                    $this->logSchemaApplication($version . '/' . basename($sql_path), "up");
+                    echo "Schema file " . basename($sql_path) . " applied successfully.<br>";
+                }
+            }
+        }
     }
 
-    private function cookiesTableExists(): bool {
-        $result = $this->conn->query("SHOW TABLES LIKE 'cookies'");
-        return $result && $result->num_rows > 0;
-    }
-    private function createCookiesTable(): void {
-        $sql = <<<SQL
-CREATE TABLE `cookies` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `cookie` CHAR(32) COLLATE utf8mb4_bin NOT NULL,
-  `user_id` INT UNSIGNED NOT NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_access` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `ip_address` VARBINARY(16) DEFAULT NULL,
-  `user_agent_md5` CHAR(32) COLLATE utf8mb4_bin DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `cookie` (`cookie`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `fk_cookies_user_id`
-    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-SQL;
-
-        $this->conn->query($sql);
+    private function applySchemaPath(string $sql_path): void
+    {
+        if (!file_exists($sql_path)) {
+            throw new \Exception("Missing schema file: $sql_path");
+        }
+        $sql = file_get_contents($sql_path);
+        // multi_query allows us to run multiple SQL statements at once
+        // this is useful for creating the table and inserting initial data
+        // in a single create_table.sql
+        // but as of 12 June 2025, I only have a single table per schema file
+        $this->conn->multi_query($sql);
+        // this is necessary to clear out the results of the multi-query
+        // so that we can continue without errors
+        do {
+            $this->conn->store_result(); // quietly discard each result
+        } while ($this->conn->more_results() && $this->conn->next_result());
     }
 
     private function hasAnyUsers(): bool {
