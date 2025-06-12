@@ -1,6 +1,6 @@
 <?php
 
-const VERSION = 'who is logged in?';
+const VERSION = 'I know you is logged in!';
 
 # write errors to screen
 ini_set('display_errors', 1);
