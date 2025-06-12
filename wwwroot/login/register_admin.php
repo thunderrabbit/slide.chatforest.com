@@ -10,10 +10,10 @@ $autoloader = new \Mlaphp\Autoloader();
 spl_autoload_register(array($autoloader, 'load'));
 
 $mla_request = new \Mlaphp\Request();
+$config = new \Config();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // handle form submission...
-    $config = new \Config();
     $mla_database = \Database\Base::getDB($config);
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['pass'] ?? '';
@@ -63,8 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 
 } else {
-    echo "<h1>Access Denied</h1><p>This page expects a POST request.</p>";
-    echo "<p><a href='/'>Go back</a></p>";
+    $page = new \Template(config: $config);
+    $page->setTemplate("login/index.tpl.php");
+    $page->echoToScreen();
     exit;
 }
 

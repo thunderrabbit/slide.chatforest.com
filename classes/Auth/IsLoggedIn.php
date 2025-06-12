@@ -11,21 +11,24 @@ class IsLoggedIn
 {
     private bool $is_logged_in = false;
 
-    private string $session_variable = 'login';   // must match the one in \UserAuthentication
-    private string $cookie_name = 'dbmt3';
-    private \Database\Database $di_dbase;
+    private string $session_variable = 'login';
 
-    public function __construct(\Database\Database $dbase)
-    {
-        $this->di_dbase = $dbase;
+    public function __construct(
+        private \Database\Database $di_dbase,
+        private \Config $di_config,
+    ) {
     }
 
     public function checkLogin(\Mlaphp\Request $mla_request): bool
     {
         $found_user_id = 0;
-        if(!empty($mla_request->cookie[$this->cookie_name]))
+        if(!empty($mla_request->cookie[$this->di_config->cookie_name]))
         {
-            $found_user_id = $this->getUserIdForCookieInDatabase($mla_request->cookie[$this->cookie_name]);
+            $found_user_id = $this->getUserIdForCookieInDatabase(
+                cookie: $mla_request->cookie[$this->di_config->cookie_name],
+                ip_address: $_SERVER['REMOTE_ADDR'] ?? '',
+                user_agent: $_SERVER['HTTP_USER_AGENT'] ?? ''
+            );
             if(empty($found_user_id))
             {
                 $this->killCookie();
@@ -55,16 +58,25 @@ class IsLoggedIn
 
         $record['user_id'] = $user_id;
         $record['cookie'] = $cookie;
+        $record['last_access'] = date(format: "Y-m-d H:i:s");
+        $record['user_agent_md5'] = md5($_SERVER['HTTP_USER_AGENT'] ?? ''); // md5 hash of user agent
 
-        $this->di_dbase->insertFromRecord("`cookies`", "is", $record);
+        // varbinary IP address of user
+        $record['ip_address'] = \Auth\IPBin::ipToBinary(ip: $_SERVER['REMOTE_ADDR']);
 
-        $cookie_options = array(
-            'expires' => time() + (30 * 24 * 60 * 60),
-            'path' => '/',
-            'domain' => "db.marbletrack3.com",
-            'samesite' => 'Strict' // None || Lax  || Strict
+        $this->di_dbase->insertFromRecord(
+            tablename: "`cookies`",
+            paramtypes: "issss",
+            record: $record
         );
-        setcookie($this->cookie_name, $cookie, $cookie_options);
+
+        $cookie_options = [
+            'expires' => time() + $this->di_config->cookie_lifetime, // 30 days
+            'path' => '/',
+            'domain' => $this->di_config->domain_name,
+            'samesite' => 'Strict' // None || Lax  || Strict
+        ];
+        setcookie($this->di_config->cookie_name, $cookie, $cookie_options);
     }
 
 
@@ -77,7 +89,7 @@ class IsLoggedIn
         if ($user_id_and_hash_result->numRows() > 0) {
             return $user_id_and_hash_result->toArray()[0];
         } else {
-            return array();
+            return [];
         }
     }
     /**
@@ -107,10 +119,16 @@ class IsLoggedIn
     }
 
 
-    private function getUserIdForCookieInDatabase(string $cookie): int
+    private function getUserIdForCookieInDatabase(
+        string $cookie,
+        string $ip_address,
+        string $user_agent
+    ): int
     {
+        $varbinary_ip = \Auth\IPBin::ipToBinary($ip_address);
         $cookie_result = $this->di_dbase->fetchResults("SELECT `user_id` FROM `cookies`
-            WHERE `cookie` = ? LIMIT 1", "s", $cookie);
+            WHERE `cookie` = ? AND `ip_address` = ? AND `user_agent_md5` = ?
+            LIMIT 1", "sss", $cookie, $varbinary_ip, md5($user_agent));
         if($cookie_result->numRows() > 0)
         {
             $result_as_array = $cookie_result->toArray();
@@ -137,13 +155,13 @@ class IsLoggedIn
 
     private function killCookie(): void
     {
-        $cookie_options = array (
-          'expires' => time()-3600,
-          'path' => '/',
-          'domain' => "db.marbletrack3.com",
-          'samesite' => 'Strict' // None || Lax  || Strict
-        );
-        setcookie($this->cookie_name, '', $cookie_options);
+        $cookie_options = [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'domain' => $this->di_config->domain_name,
+            'samesite' => 'Strict' // None || Lax  || Strict
+        ];
+        setcookie($this->di_config->cookie_name, '', $cookie_options);
         $this->is_logged_in = false;
     }
 
