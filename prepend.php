@@ -69,7 +69,5 @@ if (!empty($errors)) {
     exit;
 }
 
-// $mla_database = \Database\Base::getDB($config);
-
-$is_logged_in = new \Auth\IsLoggedIn($mla_database);
+$is_logged_in = new \Auth\IsLoggedIn($mla_database, $config);
 $is_logged_in->checkLogin($mla_request);

@@ -11,22 +11,21 @@ class IsLoggedIn
 {
     private bool $is_logged_in = false;
 
-    private string $session_variable = 'login';   // must match the one in \UserAuthentication
-    private string $cookie_name = 'dbmt3';
-    private \Database\Database $di_dbase;
+    private string $session_variable = 'login';
 
-    public function __construct(\Database\Database $dbase)
-    {
-        $this->di_dbase = $dbase;
+    public function __construct(
+        private \Database\Database $di_dbase,
+        private \Config $di_config,
+    ) {
     }
 
     public function checkLogin(\Mlaphp\Request $mla_request): bool
     {
         $found_user_id = 0;
-        if(!empty($mla_request->cookie[$this->cookie_name]))
+        if(!empty($mla_request->cookie[$this->di_config->cookie_name]))
         {
             $found_user_id = $this->getUserIdForCookieInDatabase(
-                cookie: $mla_request->cookie[$this->cookie_name],
+                cookie: $mla_request->cookie[$this->di_config->cookie_name],
                 ip_address: $_SERVER['REMOTE_ADDR'] ?? '',
                 user_agent: $_SERVER['HTTP_USER_AGENT'] ?? ''
             );
@@ -72,12 +71,12 @@ class IsLoggedIn
         );
 
         $cookie_options = [
-            'expires' => time() + (30 * 24 * 60 * 60),
+            'expires' => time() + $this->di_config->cookie_lifetime, // 30 days
             'path' => '/',
-            'domain' => "db.marbletrack3.com",
+            'domain' => $this->di_config->domain_name,
             'samesite' => 'Strict' // None || Lax  || Strict
         ];
-        setcookie($this->cookie_name, $cookie, $cookie_options);
+        setcookie($this->di_config->cookie_name, $cookie, $cookie_options);
     }
 
 
@@ -159,10 +158,10 @@ class IsLoggedIn
         $cookie_options = [
             'expires' => time() - 3600,
             'path' => '/',
-            'domain' => "db.marbletrack3.com",
+            'domain' => $this->di_config->domain_name,
             'samesite' => 'Strict' // None || Lax  || Strict
         ];
-        setcookie($this->cookie_name, '', $cookie_options);
+        setcookie($this->di_config->cookie_name, '', $cookie_options);
         $this->is_logged_in = false;
     }
 
