@@ -12,10 +12,12 @@
         <div class="PageWrapper">
         <div class="PagePanel">
                 What's up <?= $username ?>? <br />
-            </div>
-            <div class="PagePanel">
-                <a href="/logout/">Logout</a> <br />
-            </div>
+        </div>
+        <h1>Welcome to the MarbleTrack3 Admin Dashboard</h1>
+        <p>This page can show numbers of workers, parts, snippets, etc</p>
+        <div class="PagePanel">
+            <a href="/logout/">Logout</a> <br />
+        </div>
         </div>
         <div class="fix">
             <p>Sentimental version: <?= $site_version ?></p>
