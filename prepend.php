@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "Let's track tables..";
+const SENTIMENTAL_VERSION = "Wanna check for new tables..";
 
 # write errors to screen
 ini_set('display_errors', 1);
