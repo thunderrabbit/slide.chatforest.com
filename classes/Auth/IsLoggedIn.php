@@ -19,7 +19,7 @@ class IsLoggedIn
     ) {
     }
 
-    public function checkLogin(\Mlaphp\Request $mla_request): int
+    public function checkLogin(\Mlaphp\Request $mla_request): void
     {
         $found_user_id = 0;
         if(!empty($mla_request->cookie[$this->di_config->cookie_name]))
@@ -32,21 +32,19 @@ class IsLoggedIn
             if(empty($found_user_id))
             {
                 $this->killCookie();
-                return 0;
+                $this->who_is_logged_in = 0;
             } else {
                 $this->who_is_logged_in = $found_user_id;
-                return $this->who_is_logged_in;
             }
         } elseif(!empty($mla_request->post['username']) && !empty($mla_request->post['pass'])) {
             $found_user_id = $this->checkPHPHashedPassword($mla_request->post['username'], $mla_request->post['pass']);
             if(empty($found_user_id))
             {
                 $this->killCookie();        // bad login, so kill any cookie
-                return 0;
+                $this->who_is_logged_in = 0;
             } else {
                 $this->setAutoLoginCookie($found_user_id);
                 $this->who_is_logged_in = $found_user_id;
-                return $this->who_is_logged_in;
             }
         }
         return 0;
