@@ -11,8 +11,7 @@ class IsLoggedIn
 {
     private int $who_is_logged_in = 0;
 
-    private string $session_variable = 'login';
-
+    private string $loggedInUsername = 'YUNOset?'; // default value, should be overwritten if user is logged in
     public function __construct(
         private \Database\Database $di_dbase,
         private \Config $di_config,
@@ -47,9 +46,28 @@ class IsLoggedIn
                 $this->who_is_logged_in = $found_user_id;
             }
         }
-        return 0;
+        // set the session variable for username
+        $this->setUsernameOfLoggedInID($this->who_is_logged_in);
     }
 
+    private function setUsernameOfLoggedInID(int $user_id): void
+    {
+        if ($user_id <= 0) {
+            return;
+        }
+        // set the session variable for username
+        $username_result = $this->di_dbase->fetchResults("SELECT `username` FROM `users`
+            WHERE `user_id` = ? LIMIT 1", "i", $user_id);
+        if ($username_result->numRows() > 0) {
+            $username_result->next();
+            $this->loggedInUsername = $username_result->data['username'] ?? 'ummmmmm wtf';
+        }
+    }
+
+    public function getLoggedInUsername(): string
+    {
+        return $this->loggedInUsername;
+    }
     private function setAutoLoginCookie(int $user_id):void
     {
         $cookie = \Utilities::randomString(32);
