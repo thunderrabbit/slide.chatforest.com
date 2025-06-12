@@ -9,17 +9,16 @@ namespace Auth;
 
 class IsLoggedIn
 {
-    private bool $is_logged_in = false;
+    private int $who_is_logged_in = 0;
 
-    private string $session_variable = 'login';
-
+    private string $loggedInUsername = 'YUNOset?'; // default value, should be overwritten if user is logged in
     public function __construct(
         private \Database\Database $di_dbase,
         private \Config $di_config,
     ) {
     }
 
-    public function checkLogin(\Mlaphp\Request $mla_request): bool
+    public function checkLogin(\Mlaphp\Request $mla_request): void
     {
         $found_user_id = 0;
         if(!empty($mla_request->cookie[$this->di_config->cookie_name]))
@@ -32,26 +31,43 @@ class IsLoggedIn
             if(empty($found_user_id))
             {
                 $this->killCookie();
-                return false;
+                $this->who_is_logged_in = 0;
             } else {
-                $this->is_logged_in = true;
-                return true;
+                $this->who_is_logged_in = $found_user_id;
             }
         } elseif(!empty($mla_request->post['username']) && !empty($mla_request->post['pass'])) {
             $found_user_id = $this->checkPHPHashedPassword($mla_request->post['username'], $mla_request->post['pass']);
             if(empty($found_user_id))
             {
                 $this->killCookie();        // bad login, so kill any cookie
-                return false;
+                $this->who_is_logged_in = 0;
             } else {
                 $this->setAutoLoginCookie($found_user_id);
-                $this->is_logged_in = true;
-                return true;
+                $this->who_is_logged_in = $found_user_id;
             }
         }
-        return false;
+        // set the session variable for username
+        $this->setUsernameOfLoggedInID($this->who_is_logged_in);
     }
 
+    private function setUsernameOfLoggedInID(int $user_id): void
+    {
+        if ($user_id <= 0) {
+            return;
+        }
+        // set the session variable for username
+        $username_result = $this->di_dbase->fetchResults("SELECT `username` FROM `users`
+            WHERE `user_id` = ? LIMIT 1", "i", $user_id);
+        if ($username_result->numRows() > 0) {
+            $username_result->next();
+            $this->loggedInUsername = $username_result->data['username'] ?? 'ummmmmm wtf';
+        }
+    }
+
+    public function getLoggedInUsername(): string
+    {
+        return $this->loggedInUsername;
+    }
     private function setAutoLoginCookie(int $user_id):void
     {
         $cookie = \Utilities::randomString(32);
@@ -141,12 +157,18 @@ class IsLoggedIn
     }
     public function isLoggedIn(): bool
     {
-        return $this->is_logged_in;
+        return $this->who_is_logged_in > 0;
     }
+
+    public function loggedInID(): int
+    {
+        return $this->who_is_logged_in;
+    }
+
 
     public function logout(): void
     {
-        $this->is_logged_in = false;
+        $this->who_is_logged_in = 0;
         $this->killCookie();
         session_destroy();
         session_start();
@@ -162,7 +184,7 @@ class IsLoggedIn
             'samesite' => 'Strict' // None || Lax  || Strict
         ];
         setcookie($this->di_config->cookie_name, '', $cookie_options);
-        $this->is_logged_in = false;
+        $this->who_is_logged_in = 0;
     }
 
 }
