@@ -5,6 +5,11 @@ namespace Database;
 class DBExistaroo {
     private \mysqli $conn;
 
+    private $automaticSchemaPrefixes = [
+        "00",
+        "01",
+    ];
+
     /**
      * DBExistaroo checks if the database exists and
      * creates a table to track DB versions if needed.
@@ -40,7 +45,7 @@ class DBExistaroo {
         $this->connectToDB();
 
         if (!$this->appliedDBVersionsTableExists()) {
-            $this->applyBedrockSchema();
+            $this->applyInitialSchemas();
         }
 
         if (!$this->hasAnyUsers()) {
@@ -100,18 +105,30 @@ class DBExistaroo {
         return $result && $result->num_rows > 0;
     }
 
-    private function applyBedrockSchema(): void
+    private function applyInitialSchemas(): void
     {
-        echo "Applying bedrock schema...\n";
-        $sql_path = $this->config->app_path . "/db_schemas/00_bedrock/create_schema.sql";
-        $this->applySchemaPath($sql_path);
-        $this->logSchemaApplication("00_bedrock", "up");
-        echo "Bedrock schema applied successfully.\n";
+        foreach ($this->automaticSchemaPrefixes as $prefix) {
+            $dir = $this->config->app_path . "/db_schemas";
+            $schema_dirs = glob("$dir/{$prefix}_*", GLOB_ONLYDIR);
+
+            foreach ($schema_dirs as $schema_dir) {
+                $version = basename($schema_dir);
+                $sql_files = glob("$schema_dir/create_*.sql");
+
+                foreach ($sql_files as $sql_path) {
+                    echo "Applying schema file: $sql_path<br>";
+                    $this->applySchemaPath($sql_path);
+                    $this->logSchemaApplication($version . '/' . basename($sql_path), "up");
+                    echo "Schema file " . basename($sql_path) . " applied successfully.<br>";
+                }
+            }
+        }
     }
+
     private function applySchemaPath(string $sql_path): void
     {
         if (!file_exists($sql_path)) {
-            throw new \Exception("Missing bedrock schema file: $sql_path");
+            throw new \Exception("Missing schema file: $sql_path");
         }
         $sql = file_get_contents($sql_path);
         // multi_query allows us to run multiple SQL statements at once
