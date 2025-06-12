@@ -9,7 +9,7 @@ namespace Auth;
 
 class IsLoggedIn
 {
-    private bool $is_logged_in = false;
+    private int $who_is_logged_in = 0;
 
     private string $session_variable = 'login';
 
@@ -19,7 +19,7 @@ class IsLoggedIn
     ) {
     }
 
-    public function checkLogin(\Mlaphp\Request $mla_request): bool
+    public function checkLogin(\Mlaphp\Request $mla_request): int
     {
         $found_user_id = 0;
         if(!empty($mla_request->cookie[$this->di_config->cookie_name]))
@@ -32,24 +32,24 @@ class IsLoggedIn
             if(empty($found_user_id))
             {
                 $this->killCookie();
-                return false;
+                return 0;
             } else {
-                $this->is_logged_in = true;
-                return true;
+                $this->who_is_logged_in = $found_user_id;
+                return $this->who_is_logged_in;
             }
         } elseif(!empty($mla_request->post['username']) && !empty($mla_request->post['pass'])) {
             $found_user_id = $this->checkPHPHashedPassword($mla_request->post['username'], $mla_request->post['pass']);
             if(empty($found_user_id))
             {
                 $this->killCookie();        // bad login, so kill any cookie
-                return false;
+                return 0;
             } else {
                 $this->setAutoLoginCookie($found_user_id);
-                $this->is_logged_in = true;
-                return true;
+                $this->who_is_logged_in = $found_user_id;
+                return $this->who_is_logged_in;
             }
         }
-        return false;
+        return 0;
     }
 
     private function setAutoLoginCookie(int $user_id):void
@@ -141,12 +141,18 @@ class IsLoggedIn
     }
     public function isLoggedIn(): bool
     {
-        return $this->is_logged_in;
+        return $this->who_is_logged_in > 0;
     }
+
+    public function loggedInID(): int
+    {
+        return $this->who_is_logged_in;
+    }
+
 
     public function logout(): void
     {
-        $this->is_logged_in = false;
+        $this->who_is_logged_in = 0;
         $this->killCookie();
         session_destroy();
         session_start();
@@ -162,7 +168,7 @@ class IsLoggedIn
             'samesite' => 'Strict' // None || Lax  || Strict
         ];
         setcookie($this->di_config->cookie_name, '', $cookie_options);
-        $this->is_logged_in = false;
+        $this->who_is_logged_in = 0;
     }
 
 }
