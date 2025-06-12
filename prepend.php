@@ -1,6 +1,6 @@
 <?php
 
-const VERSION = 'start';
+const SENTIMENTAL_VERSION = 'I know you is logged in!';
 
 # write errors to screen
 ini_set('display_errors', 1);
@@ -17,13 +17,13 @@ $mla_request = new \Mlaphp\Request();
 
 function print_rob($object, $exit = true)
 {
-    echo ("<pre>");
+    echo "<pre>";
     if (is_object($object) && method_exists($object, "toArray")) {
         echo "ResultSet => " . print_r($object->toArray(), true);
     } else {
         print_r($object);
     }
-    echo ("</pre>");
+    echo "</pre>";
     if ($exit) {
         exit;
     }
@@ -44,6 +44,21 @@ $checkaroo = new \Database\DBExistaroo(
 );
 
 $errors = $checkaroo->checkaroo();
+
+$uri_path = $_SERVER['REQUEST_URI'] ?? '';
+
+if (
+    !empty($errors)
+    && $errors[0] == "YallGotAnyMoreOfThemUsers"
+    && $uri_path != "/login/register_admin.php"
+) {
+    $page = new \Template(config: $config);
+    $page->setTemplate("login/register.tpl.php");
+    $page->echoToScreen();
+    exit;
+}
+
+
 if (!empty($errors)) {
     echo "<h1>Database Errors</h1>";
     echo "<ul>";
@@ -54,7 +69,5 @@ if (!empty($errors)) {
     exit;
 }
 
-$mla_database = \Database\Base::getDB($config);
-
-$is_logged_in = new \Auth\IsLoggedIn($mla_database);
+$is_logged_in = new \Auth\IsLoggedIn($mla_database, $config);
 $is_logged_in->checkLogin($mla_request);

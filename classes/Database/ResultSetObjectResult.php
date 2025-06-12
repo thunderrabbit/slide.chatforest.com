@@ -14,7 +14,7 @@ class ResultSetObjectResult extends ResultSetObject {
 
     /* OVERIDE WITH A FASTER VERSION FOR NON-PREPARED STAMENTS Advance to the next row */
 
-    public function next() {
+    public function next(): void {
         $ret = $this->result->fetch_assoc();
         if ($ret) {
             $this->currentRowNum++;

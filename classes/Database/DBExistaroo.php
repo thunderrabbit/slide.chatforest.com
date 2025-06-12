@@ -3,6 +3,15 @@
 namespace Database;
 
 class DBExistaroo {
+    private \mysqli $conn;
+
+    /**
+     * DBExistaroo checks if the database exists and if the users table is present.
+     * It also checks if there are any users in the users table.
+     *
+     * @param \Config $config Configuration object containing DB connection details.
+     * @param \Database\Database $dbase Database object for checking database existence.
+     */
     public function __construct(
         private \Config $config,
         private \Database\Database $dbase,
@@ -13,7 +22,11 @@ class DBExistaroo {
         $errors = [];
 
         if (!$this->configIsValid()) {
-            $errors[] = "Config missing one or more DB values.";
+            $errors[] = "Config missing one or more DB values:";
+            $errors[] = "dbHost";
+            $errors[] = "dbUser";
+            $errors[] = "dbPass";
+            $errors[] = "dbName";
             return $errors;
         }
 
@@ -27,9 +40,12 @@ class DBExistaroo {
         if (!$this->usersTableExists()) {
             $this->createUsersTable();
         }
+        if (!$this->cookiesTableExists()) {
+            $this->createCookiesTable();
+        }
 
         if (!$this->hasAnyUsers()) {
-            $errors[] = "Users table is empty. Admin setup required.";
+            $errors[] = "YallGotAnyMoreOfThemUsers";
         }
 
         return $errors;
@@ -43,15 +59,14 @@ class DBExistaroo {
     }
 
     /**
-     * This seems circular, but I don't know how to make more sense of it.
-     *
+     * Checks if the database exists.
+     * databaseExists() will die if it cannot access the server or log in.
+     * We catch EDatabaseMissing if the database is missing.
      * @return bool True if the database exists, false otherwise.
      */
     private function dbExists(): bool {
         try {
             return $this->dbase->databaseExists();
-        } catch (\Database\ECouldNotConnectToServer $e) {
-            throw new \Exception("Could not connect to DB server. Check host and credentials.");
         } catch (\Database\EDatabaseMissing $e) {
             return false;
         } catch (\Database\EDatabaseException $e) {
@@ -82,12 +97,39 @@ class DBExistaroo {
     private function createUsersTable(): void {
         $sql = <<<SQL
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'user') DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SQL;
+
+        $this->conn->query($sql);
+    }
+
+    private function cookiesTableExists(): bool {
+        $result = $this->conn->query("SHOW TABLES LIKE 'cookies'");
+        return $result && $result->num_rows > 0;
+    }
+    private function createCookiesTable(): void {
+        $sql = <<<SQL
+CREATE TABLE `cookies` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `cookie` CHAR(32) COLLATE utf8mb4_bin NOT NULL,
+  `user_id` INT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_access` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `ip_address` VARBINARY(16) DEFAULT NULL,
+  `user_agent_md5` CHAR(32) COLLATE utf8mb4_bin DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cookie` (`cookie`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `fk_cookies_user_id`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 SQL;
 
         $this->conn->query($sql);

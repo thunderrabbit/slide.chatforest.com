@@ -11,13 +11,10 @@ if($debugLevel > 0) {
 if($is_logged_in->isLoggedIn()){
 
     echo "<h1>You're logged in</h1>";
+    echo "<p><a href='/admin/'>Click here to admire admin page</a></p>";
     exit;
-    // $page = new \Template(config: $config);
-
-    // $page->setTemplate(template_file: "admin/index.tpl.php");
-    // $page->echoToScreen();
 } else {
-    echo "<h1>Welcome to Marble Track 3</h1>";
+    echo "<h1>Welcome to This Here Brand New Web Site</h1>";
     echo "<p><a href='/login/'>Click here to log in</a></p>";
     exit;
 }
