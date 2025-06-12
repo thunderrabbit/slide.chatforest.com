@@ -6,7 +6,9 @@ class DBExistaroo {
     private \mysqli $conn;
 
     /**
-     * DBExistaroo checks if the database exists and if the users table is present.
+     * DBExistaroo checks if the database exists and
+     * creates a table to track DB versions if needed
+     * It's then asked to create TABLE `users` and `cookies`
      * It also checks if there are any users in the users table.
      *
      * @param \Config $config Configuration object containing DB connection details.
@@ -36,6 +38,10 @@ class DBExistaroo {
         }
 
         $this->connectToDB();
+
+        if (!$this->appliedDBVersionsTableExists()) {
+            $this->applyBedrockSchema();
+        }
 
         if (!$this->hasAnyUsers()) {
             $errors[] = "YallGotAnyMoreOfThemUsers";
@@ -80,6 +86,32 @@ class DBExistaroo {
         if ($this->conn->connect_error) {
             throw new \Exception("Connection to DB failed: " . $this->conn->connect_error);
         }
+    }
+
+    private function appliedDBVersionsTableExists(): bool
+    {
+        $result = $this->conn->query("SHOW TABLES LIKE 'applied_DB_versions'");
+        return $result && $result->num_rows > 0;
+    }
+
+    private function applyBedrockSchema(): void
+    {
+        echo "Applying bedrock schema...\n";
+        $sql_path = $this->config->app_path . "/db_schemas/00_bedrock/create_schema.sql";
+        if (!file_exists($sql_path)) {
+            throw new \Exception("Missing bedrock schema file: $sql_path");
+        }
+        $sql = file_get_contents($sql_path);
+        // multi_query allows us to run multiple SQL statements at once
+        // this is useful for creating the table and inserting initial data
+        // in a single create_table.sql
+        // but as of 12 June 2025, I only have a single table per schema file
+        $this->conn->multi_query($sql);
+        // this is necessary to clear out the results of the multi-query
+        // so that we can continue without errors
+        do {
+            $this->conn->store_result(); // quietly discard each result
+        } while ($this->conn->more_results() && $this->conn->next_result());
     }
 
     private function hasAnyUsers(): bool {
