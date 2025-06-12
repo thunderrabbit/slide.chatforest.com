@@ -3,15 +3,15 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Welcome Boss!</title>
-        <meta name="title" content="Welcome Boss!"/>
+        <title>Welcome <?= $username ?>!</title>
+        <meta name="title" content="Welcome <?= $username ?>!"/>
         <meta name="description" content=""/>
         <link rel="stylesheet" href="/css/styles.css">
     </head>
-    <body><!-- Welcome Boss! form area -->
+    <body><!-- Welcome <?= $username ?>! form area -->
         <div class="PageWrapper">
         <div class="PagePanel">
-                What's up Boss? <br />
+                What's up <?= $username ?>? <br />
             </div>
             <div class="PagePanel">
                 <a href="/logout/">Logout</a> <br />
