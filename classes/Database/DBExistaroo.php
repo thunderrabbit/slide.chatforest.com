@@ -37,13 +37,6 @@ class DBExistaroo {
 
         $this->connectToDB();
 
-        if (!$this->usersTableExists()) {
-            $this->createUsersTable();
-        }
-        if (!$this->cookiesTableExists()) {
-            $this->createCookiesTable();
-        }
-
         if (!$this->hasAnyUsers()) {
             $errors[] = "YallGotAnyMoreOfThemUsers";
         }
@@ -87,52 +80,6 @@ class DBExistaroo {
         if ($this->conn->connect_error) {
             throw new \Exception("Connection to DB failed: " . $this->conn->connect_error);
         }
-    }
-
-    private function usersTableExists(): bool {
-        $result = $this->conn->query("SHOW TABLES LIKE 'users'");
-        return $result && $result->num_rows > 0;
-    }
-
-    private function createUsersTable(): void {
-        $sql = <<<SQL
-CREATE TABLE users (
-    user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'user') DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-SQL;
-
-        $this->conn->query($sql);
-    }
-
-    private function cookiesTableExists(): bool {
-        $result = $this->conn->query("SHOW TABLES LIKE 'cookies'");
-        return $result && $result->num_rows > 0;
-    }
-    private function createCookiesTable(): void {
-        $sql = <<<SQL
-CREATE TABLE `cookies` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `cookie` CHAR(32) COLLATE utf8mb4_bin NOT NULL,
-  `user_id` INT UNSIGNED NOT NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_access` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `ip_address` VARBINARY(16) DEFAULT NULL,
-  `user_agent_md5` CHAR(32) COLLATE utf8mb4_bin DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `cookie` (`cookie`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `fk_cookies_user_id`
-    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-SQL;
-
-        $this->conn->query($sql);
     }
 
     private function hasAnyUsers(): bool {
