@@ -17,6 +17,8 @@
                 <a href="/logout/">Logout</a> <br />
             </div>
         </div>
-        <div class="fix"></div>
+        <div class="fix">
+            <p>Sentimental version: <?= $site_version ?></p>
+        </div>
     </body>
 </html>

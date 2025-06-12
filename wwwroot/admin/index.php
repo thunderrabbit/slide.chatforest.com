@@ -7,6 +7,7 @@ if ($is_logged_in->isLoggedIn()) {
     // We logged in.. yay!
     $page = new \Template(config: $config);
     $page->setTemplate("admin/index.tpl.php");
+    $page->set(name: "site_version", value: VERSION);
     $page->echoToScreen();
     exit;
 } else {
