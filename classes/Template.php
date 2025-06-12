@@ -28,11 +28,23 @@ class Template{
         $this->vars[$name] = $value;
     }
 
-    public function echoToScreen() {
-        echo $this->loadTemplate();// Return the contents
+    public function echoToScreen(): void {
+        echo $this->loadTemplate(); // Display the contents directly to the page
     }
 
-     protected function loadTemplate() {
+    /**
+     * Hand over the rendered template, mate.
+     * I'm gonna give it to this guy over here.
+     *
+     * This function is used to return the rendered template as a string.
+     * It is used to get the inner content of what will be sent to a base template.
+     * @return bool|string
+     */
+    public function grabTheGoods(): string {
+        return $this->loadTemplate();
+    }
+
+    protected function loadTemplate(): string {
         $charEncode = "UTF-8";
         extract($this->vars);          	// Extract the vars to local namespace
 
@@ -46,6 +58,10 @@ class Template{
 
         $ob_result = ob_get_clean();
 
+        // if $ob_result is false, return an error message
+        if (empty($ob_result)) {
+            return "Error loading template: {$this->template_location}";
+        }
 
         return $ob_result;
     }

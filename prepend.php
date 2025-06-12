@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "Let's spruce it up a bit";
+const SENTIMENTAL_VERSION = "Put a frame on it";
 
 # write errors to screen
 ini_set('display_errors', 1);
