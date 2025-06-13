@@ -15,7 +15,7 @@ if ($is_logged_in->isLoggedIn()) {
 
     $layout = new \Template(config: $config);
     $layout->setTemplate("layout/admin_base.tpl.php");
-    $layout->set("page_title", "Workers");
+    $layout->set("page_title", "Dashboard");
     $layout->set("page_content", $inner);
     $layout->echoToScreen();
     exit;
