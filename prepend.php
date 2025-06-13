@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "Definitely Ready to apply pending migrations!";
+const SENTIMENTAL_VERSION = "We have migrations!";
 
 # write errors to screen
 ini_set('display_errors', 1);

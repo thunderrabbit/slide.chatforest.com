@@ -127,6 +127,11 @@ class DBExistaroo {
 
     private function applySchemaPath(string $sql_path): void
     {
+        // $sql_path cannot be empty
+        if (empty($sql_path)) {
+            throw new \Exception("Schema path cannot be empty.");
+        }
+        // $sql_path must be a valid file path
         if (!file_exists($sql_path)) {
             throw new \Exception("Missing schema file: $sql_path");
         }
@@ -185,6 +190,13 @@ class DBExistaroo {
             $versions[] = $row['applied_version'];
         }
         return $versions;
+    }
+
+    public function applyMigration(string $versionWithFile): void {
+        $path = \Utilities::getSchemaFilePath($this->config->app_path, $versionWithFile);
+
+        $this->applySchemaPath($path);
+        $this->logSchemaApplication($versionWithFile, "up");
     }
 
 }
