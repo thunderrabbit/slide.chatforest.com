@@ -95,6 +95,7 @@ class DBExistaroo {
 
     private function logSchemaApplication(string $version, string $direction): void
     {
+        $direction = "up"; // use PHPMyAdmin to drop migrations
         $stmt = $this->conn->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
         $stmt->bind_param('ss', $version, $direction);
         $stmt->execute();
@@ -198,5 +199,16 @@ class DBExistaroo {
         $this->applySchemaPath($path);
         $this->logSchemaApplication($versionWithFile, "up");
     }
+
+    /**
+     * Use PHPMyAdmin to drop migrations
+     * I'm not going to write code to drop migrations.
+     *
+     * But if I did, I think the simplest way would be to:
+     * 1. Not "log" drops in TABLE `applied_DB_versions` with logSchemaApplication
+     * 2. allow only the most recent row to be dropped from TABLE `applied_DB_versions`.
+     *
+     * Otherwise, we need to parse a log of all the adds, drops, adds, drops, etc which is probably too annoying.
+     */
 
 }
