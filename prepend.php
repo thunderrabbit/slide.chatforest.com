@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "Wanna check for new tables..";
+const SENTIMENTAL_VERSION = "Please move migration script to its own file.";
 
 # write errors to screen
 ini_set('display_errors', 1);
