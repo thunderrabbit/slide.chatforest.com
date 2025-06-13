@@ -187,4 +187,26 @@ class DBExistaroo {
         return $versions;
     }
 
+    public function applyMigration(string $versionWithFile): void {
+        if (empty($versionWithFile)) {
+            throw new \Exception("Migration version with file cannot be empty.");
+        }
+        // remove .. and ensure $path is a valid ubuntu path
+        $versionWithFile = trim($versionWithFile);
+        if (strpos($versionWithFile, '..') !== false) {
+            throw new \Exception("Invalid migration version with file: $versionWithFile");
+        }
+        $path = $this->config->app_path . "/db_schemas/" . $versionWithFile;
+        // ensure the path is a valid file
+        if (!preg_match('/^[a-zA-Z0-9_\/-]+\.sql$/', $path)) {
+            throw new \Exception("Invalid migration file name: $path");
+        }
+        if (!file_exists($path)) {
+            throw new \Exception("Migration file not found: $versionWithFile");
+        }
+
+        $this->applySchemaPath($path);
+        $this->logSchemaApplication($versionWithFile, "up");
+    }
+
 }
