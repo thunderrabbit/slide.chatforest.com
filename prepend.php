@@ -38,12 +38,12 @@ try {
 
 $mla_database = \Database\Base::getDB($config);
 // Check if the database exists and is accessible
-$checkaroo = new \Database\DBExistaroo(
+$dbExistaroo = new \Database\DBExistaroo(
     config: $config,
     dbase: $mla_database,
 );
 
-$errors = $checkaroo->checkaroo();
+$errors = $dbExistaroo->checkaroo();
 
 $uri_path = $_SERVER['REQUEST_URI'] ?? '';
 
