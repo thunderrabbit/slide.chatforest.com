@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "Wanna check for new tables..";
+const SENTIMENTAL_VERSION = "We have migrations!";
 
 # write errors to screen
 ini_set('display_errors', 1);
@@ -38,12 +38,12 @@ try {
 
 $mla_database = \Database\Base::getDB($config);
 // Check if the database exists and is accessible
-$checkaroo = new \Database\DBExistaroo(
+$dbExistaroo = new \Database\DBExistaroo(
     config: $config,
     dbase: $mla_database,
 );
 
-$errors = $checkaroo->checkaroo();
+$errors = $dbExistaroo->checkaroo();
 
 $uri_path = $_SERVER['REQUEST_URI'] ?? '';
 

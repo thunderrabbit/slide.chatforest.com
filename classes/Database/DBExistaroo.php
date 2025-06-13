@@ -95,6 +95,7 @@ class DBExistaroo {
 
     private function logSchemaApplication(string $version, string $direction): void
     {
+        $direction = "up"; // use PHPMyAdmin to drop migrations
         $stmt = $this->conn->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
         $stmt->bind_param('ss', $version, $direction);
         $stmt->execute();
@@ -127,6 +128,11 @@ class DBExistaroo {
 
     private function applySchemaPath(string $sql_path): void
     {
+        // $sql_path cannot be empty
+        if (empty($sql_path)) {
+            throw new \Exception("Schema path cannot be empty.");
+        }
+        // $sql_path must be a valid file path
         if (!file_exists($sql_path)) {
             throw new \Exception("Missing schema file: $sql_path");
         }
@@ -147,4 +153,62 @@ class DBExistaroo {
         $result = $this->conn->query("SELECT 1 FROM users LIMIT 1");
         return $result && $result->num_rows > 0;
     }
+
+    public function getPendingMigrations(): array {
+        $pending = [];
+        $applied = $this->getAppliedVersions();
+        $base_dir = $this->config->app_path . "/db_schemas";
+
+        foreach (["00", "01", "02", "03", "04"] as $prefix) {
+            // Get all schema directories that match the prefix
+            $schema_dirs = glob("$base_dir/{$prefix}_*", GLOB_ONLYDIR);
+
+            foreach ($schema_dirs as $schema_dir) {
+                $version = basename($schema_dir);   // directory name in $base_dir, e.g. "02_workers"
+                // print_rob($version, false);
+                $create_files = glob("$schema_dir/create_*.sql");
+
+                foreach ($create_files as $file) {
+                    $key = "$version/" . basename($file);
+                    if (!in_array($key, $applied)) {
+                        $pending[] = $key;
+                        // echo "Pending migration found: $key<br>";
+                    } else {
+                        // echo "Skipping already applied migration: $key<br>";
+                    }
+                }
+            }
+        }
+
+        return $pending;
+    }
+
+    private function getAppliedVersions(): array {
+        $versions = [];
+        $result = $this->conn->query("SELECT applied_version FROM applied_DB_versions");
+
+        while ($row = $result->fetch_assoc()) {
+            $versions[] = $row['applied_version'];
+        }
+        return $versions;
+    }
+
+    public function applyMigration(string $versionWithFile): void {
+        $path = \Utilities::getSchemaFilePath($this->config->app_path, $versionWithFile);
+
+        $this->applySchemaPath($path);
+        $this->logSchemaApplication($versionWithFile, "up");
+    }
+
+    /**
+     * Use PHPMyAdmin to drop migrations
+     * I'm not going to write code to drop migrations.
+     *
+     * But if I did, I think the simplest way would be to:
+     * 1. Not "log" drops in TABLE `applied_DB_versions` with logSchemaApplication
+     * 2. allow only the most recent row to be dropped from TABLE `applied_DB_versions`.
+     *
+     * Otherwise, we need to parse a log of all the adds, drops, adds, drops, etc which is probably too annoying.
+     */
+
 }
