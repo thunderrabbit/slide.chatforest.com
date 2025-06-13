@@ -8,6 +8,10 @@ if ($is_logged_in->isLoggedIn()) {
     $page->setTemplate("admin/index.tpl.php");
     $page->set(name: "site_version", value: SENTIMENTAL_VERSION);
     $page->set(name: "username", value: $is_logged_in->getLoggedInUsername());
+
+    $pending = $dbExistaroo->getPendingMigrations();
+    $page->set(name: "pending_migrations", value: $pending);
+    $page->set(name: "has_pending_migrations", value: !empty($pending));
     $inner = $page->grabTheGoods();
 
     $layout = new \Template(config: $config);
