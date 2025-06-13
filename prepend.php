@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "Please move migration script to its own file.";
+const SENTIMENTAL_VERSION = "Ready to apply pending migrations!";
 
 # write errors to screen
 ini_set('display_errors', 1);
