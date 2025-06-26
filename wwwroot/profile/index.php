@@ -36,39 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If no validation errors, proceed with password change
     if (empty($errors)) {
         try {
-            // Get current user's username to verify current password
-            $username = $is_logged_in->getLoggedInUsername();
             $user_id = $is_logged_in->loggedInID();
             
-            // Get current password hash from database
-            $user_result = $mla_database->fetchResults(
-                "SELECT `password_hash` FROM `users` WHERE `user_id` = ? LIMIT 1", 
-                "i", 
-                $user_id
-            );
+            // Use PasswordRepository to handle password change
+            $passwordRepository = new \Database\PasswordRepository($mla_database);
+            $result = $passwordRepository->changePassword($user_id, $current_password, $new_password);
             
-            if ($user_result->numRows() > 0) {
-                $user_data = $user_result->toArray()[0];
-                
-                // Verify current password
-                if (password_verify($current_password, $user_data['password_hash'])) {
-                    // Hash new password
-                    $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-                    
-                    // Update password in database
-                    $mla_database->executeSQL(
-                        "UPDATE `users` SET `password_hash` = ? WHERE `user_id` = ?",
-                        "si",
-                        $new_password_hash,
-                        $user_id
-                    );
-                    
-                    $success_message = "Password changed successfully!";
-                } else {
-                    $errors[] = "Current password is incorrect.";
-                }
+            if ($result['success']) {
+                $success_message = $result['message'];
             } else {
-                $errors[] = "User not found.";
+                $errors[] = $result['message'];
             }
         } catch (\Exception $e) {
             $errors[] = "An error occurred while changing password: " . $e->getMessage();
