@@ -3,11 +3,11 @@ namespace Database;
 
 class PasswordRepository
 {
-    private $database;
+    private $pdo;
 
-    public function __construct(\Database\DatabasePDO $database)
+    public function __construct(\PDO $pdo)
     {
-        $this->database = $database;
+        $this->pdo = $pdo;
     }
 
     /**
@@ -18,15 +18,12 @@ class PasswordRepository
      */
     public function getPasswordHashByUserId(int $user_id): ?string
     {
-        $result = $this->database->fetchResults(
-            "SELECT `password_hash` FROM `users` WHERE `user_id` = ? LIMIT 1", 
-            "i", 
-            $user_id
-        );
+        $stmt = $this->pdo->prepare("SELECT `password_hash` FROM `users` WHERE `user_id` = ? LIMIT 1");
+        $stmt->execute([$user_id]);
+        $result = $stmt->fetchAll();
         
-        if ($result->numRows() > 0) {
-            $user_data = $result->toArray()[0];
-            return $user_data['password_hash'];
+        if (count($result) > 0) {
+            return $result[0]['password_hash'];
         }
         
         return null;
@@ -41,12 +38,8 @@ class PasswordRepository
      */
     public function updatePasswordHash(int $user_id, string $new_password_hash): bool
     {
-        $this->database->executeSQL(
-            "UPDATE `users` SET `password_hash` = ? WHERE `user_id` = ?",
-            "si",
-            $new_password_hash,
-            $user_id
-        );
+        $stmt = $this->pdo->prepare("UPDATE `users` SET `password_hash` = ? WHERE `user_id` = ?");
+        $stmt->execute([$new_password_hash, $user_id]);
         
         return true;
     }

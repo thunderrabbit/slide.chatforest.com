@@ -13,7 +13,7 @@ class IsLoggedIn
 
     private string $loggedInUsername = 'YUNOset?'; // default value, should be overwritten if user is logged in
     public function __construct(
-        private \Database\DatabasePDO $di_dbase,
+        private \PDO $di_pdo,
         private \Config $di_config,
     ) {
     }
@@ -56,11 +56,12 @@ class IsLoggedIn
             return;
         }
         // set the session variable for username
-        $username_result = $this->di_dbase->fetchResults("SELECT `username` FROM `users`
-            WHERE `user_id` = ? LIMIT 1", "i", $user_id);
-        if ($username_result->numRows() > 0) {
-            $username_result->next();
-            $this->loggedInUsername = $username_result->data['username'] ?? 'ummmmmm wtf';
+        $stmt = $this->di_pdo->prepare("SELECT `username` FROM `users` WHERE `user_id` = ? LIMIT 1");
+        $stmt->execute([$user_id]);
+        $result = $stmt->fetchAll();
+        
+        if (count($result) > 0) {
+            $this->loggedInUsername = $result[0]['username'] ?? 'ummmmmm wtf';
         }
     }
 
@@ -72,19 +73,17 @@ class IsLoggedIn
     {
         $cookie = \Utilities::randomString(32);
 
-        $record['user_id'] = $user_id;
-        $record['cookie'] = $cookie;
-        $record['last_access'] = date(format: "Y-m-d H:i:s");
-        $record['user_agent_md5'] = md5($_SERVER['HTTP_USER_AGENT'] ?? ''); // md5 hash of user agent
+        $record = [
+            'user_id' => $user_id,
+            'cookie' => $cookie,
+            'last_access' => date(format: "Y-m-d H:i:s"),
+            'user_agent_md5' => md5($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'ip_address' => \Auth\IPBin::ipToBinary(ip: $_SERVER['REMOTE_ADDR'])
+        ];
 
-        // varbinary IP address of user
-        $record['ip_address'] = \Auth\IPBin::ipToBinary(ip: $_SERVER['REMOTE_ADDR']);
-
-        $this->di_dbase->insertFromRecord(
-            tablename: "`cookies`",
-            paramtypes: "issss",
-            record: $record
-        );
+        // Insert using native PDO
+        $stmt = $this->di_pdo->prepare("INSERT INTO `cookies` (`user_id`, `cookie`, `last_access`, `user_agent_md5`, `ip_address`) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute(array_values($record));
 
         $cookie_options = [
             'expires' => time() + $this->di_config->cookie_lifetime, // 30 days
@@ -100,10 +99,12 @@ class IsLoggedIn
     private function getIDandPHPHashedPasswordForUsername($username)
     {
         // get password hash
-        $user_id_and_hash_result = $this->di_dbase->fetchResults("SELECT `user_id`, `password_hash` FROM `users`
-            WHERE LOWER(`username`) = LOWER(?) LIMIT 1", "s", $username);
-        if ($user_id_and_hash_result->numRows() > 0) {
-            return $user_id_and_hash_result->toArray()[0];
+        $stmt = $this->di_pdo->prepare("SELECT `user_id`, `password_hash` FROM `users` WHERE LOWER(`username`) = LOWER(?) LIMIT 1");
+        $stmt->execute([$username]);
+        $result = $stmt->fetchAll();
+        
+        if (count($result) > 0) {
+            return $result[0];
         } else {
             return [];
         }
@@ -142,13 +143,13 @@ class IsLoggedIn
     ): int
     {
         $varbinary_ip = \Auth\IPBin::ipToBinary($ip_address);
-        $cookie_result = $this->di_dbase->fetchResults("SELECT `user_id` FROM `cookies`
-            WHERE `cookie` = ? AND `ip_address` = ? AND `user_agent_md5` = ?
-            LIMIT 1", "sss", $cookie, $varbinary_ip, md5($user_agent));
-        if($cookie_result->numRows() > 0)
+        $stmt = $this->di_pdo->prepare("SELECT `user_id` FROM `cookies` WHERE `cookie` = ? AND `ip_address` = ? AND `user_agent_md5` = ? LIMIT 1");
+        $stmt->execute([$cookie, $varbinary_ip, md5($user_agent)]);
+        $result = $stmt->fetchAll();
+        
+        if(count($result) > 0)
         {
-            $result_as_array = $cookie_result->toArray();
-            return $result_as_array[0]['user_id'];
+            return $result[0]['user_id'];
         }
         else
         {
