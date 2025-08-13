@@ -5,7 +5,7 @@ class PasswordRepository
 {
     private $database;
 
-    public function __construct(\Database\Database $database)
+    public function __construct(\Database\DatabasePDO $database)
     {
         $this->database = $database;
     }

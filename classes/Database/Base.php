@@ -11,7 +11,7 @@ class Base{
     private static function initDB(\Config $config){
         /** START - Database **/
         if(empty(self::$db)){
-            self::$db = new \Database\Database($config->dbHost,
+            self::$db = new \Database\DatabasePDO($config->dbHost,
                                             $config->dbUser,
                                             $config->dbPass,
                                             $config->dbName,
@@ -20,7 +20,7 @@ class Base{
         /** END - Database **/
     }
 
-    public static function getDB(\Config $config) : \Database\Database
+    public static function getDB(\Config $config) : \Database\DatabasePDO
     {
         self::initDB($config);
         return self::$db;

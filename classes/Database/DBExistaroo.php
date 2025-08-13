@@ -17,11 +17,11 @@ class DBExistaroo {
      * It also checks if there are any users in the users table.
      *
      * @param \Config $config Configuration object containing DB connection details.
-     * @param \Database\Database $dbase Database object for checking database existence.
+     * @param \Database\DatabasePDO $dbase Database object for checking database existence.
      */
     public function __construct(
         private \Config $config,
-        private \Database\Database $dbase,
+        private \Database\DatabasePDO $dbase,
     ){
     }
 
