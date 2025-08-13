@@ -267,4 +267,37 @@ class DatabasePDO implements DbInterface {
             throw new \Database\EDatabaseException($e->getMessage());
         }
     }
+
+    /**
+     * Execute multiple SQL statements from a string (for schema migrations)
+     * Splits on semicolons and executes each statement separately
+     */
+    public function executeMultipleSQL(string $sql): void {
+        $this->connect();
+        
+        // Split SQL into individual statements
+        $statements = array_filter(
+            array_map('trim', explode(';', $sql)),
+            function($stmt) { return !empty($stmt); }
+        );
+        
+        foreach ($statements as $statement) {
+            if (!empty($statement)) {
+                try {
+                    $this->dbObj->exec($statement);
+                } catch (\PDOException $e) {
+                    throw new \Database\EDatabaseException("Error executing statement: $statement. Error: " . $e->getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the underlying PDO connection for advanced operations
+     * Use sparingly - prefer using the abstracted methods
+     */
+    public function getPDOConnection(): \PDO {
+        $this->connect();
+        return $this->dbObj;
+    }
 }

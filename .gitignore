@@ -1,3 +1,4 @@
 .plandex/
 .aider*
 scp_files_to_dh.sh
+classes/Config.php

@@ -3,7 +3,6 @@
 namespace Database;
 
 class DBExistaroo {
-    private \mysqli $conn;
 
     private $automaticSchemaPrefixes = [
         "00",
@@ -42,7 +41,8 @@ class DBExistaroo {
             return $errors;
         }
 
-        $this->connectToDB();
+        // Ensure database connection is active
+        $this->dbase->connect();
 
         if (!$this->appliedDBVersionsTableExists()) {
             $this->applyInitialSchemas();
@@ -80,30 +80,20 @@ class DBExistaroo {
 
 
 
-    private function connectToDB(): void {
-        $this->conn = new \mysqli(
-            $this->config->dbHost,
-            $this->config->dbUser,
-            $this->config->dbPass,
-            $this->config->dbName
-        );
-
-        if ($this->conn->connect_error) {
-            throw new \Exception("Connection to DB failed: " . $this->conn->connect_error);
-        }
-    }
-
     private function logSchemaApplication(string $version, string $direction): void
     {
         $direction = "up"; // use PHPMyAdmin to drop migrations
-        $stmt = $this->conn->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
-        $stmt->bind_param('ss', $version, $direction);
-        $stmt->execute();
+        $this->dbase->executeSQL(
+            "INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)",
+            "ss",
+            $version,
+            $direction
+        );
     }
     private function appliedDBVersionsTableExists(): bool
     {
-        $result = $this->conn->query("SHOW TABLES LIKE 'applied_DB_versions'");
-        return $result && $result->num_rows > 0;
+        $results = $this->dbase->fetchResults("SHOW TABLES LIKE 'applied_DB_versions'");
+        return count($results->toArray()) > 0;
     }
 
     private function applyInitialSchemas(): void
@@ -137,21 +127,14 @@ class DBExistaroo {
             throw new \Exception("Missing schema file: $sql_path");
         }
         $sql = file_get_contents($sql_path);
-        // multi_query allows us to run multiple SQL statements at once
-        // this is useful for creating the table and inserting initial data
-        // in a single create_table.sql
-        // but as of 12 June 2025, I only have a single table per schema file
-        $this->conn->multi_query($sql);
-        // this is necessary to clear out the results of the multi-query
-        // so that we can continue without errors
-        do {
-            $this->conn->store_result(); // quietly discard each result
-        } while ($this->conn->more_results() && $this->conn->next_result());
+        
+        // Use the new PDO method to execute multiple SQL statements
+        $this->dbase->executeMultipleSQL($sql);
     }
 
     private function hasAnyUsers(): bool {
-        $result = $this->conn->query("SELECT 1 FROM users LIMIT 1");
-        return $result && $result->num_rows > 0;
+        $results = $this->dbase->fetchResults("SELECT 1 FROM users LIMIT 1");
+        return count($results->toArray()) > 0;
     }
 
     public function getPendingMigrations(): array {
@@ -185,9 +168,9 @@ class DBExistaroo {
 
     private function getAppliedVersions(): array {
         $versions = [];
-        $result = $this->conn->query("SELECT applied_version FROM applied_DB_versions");
+        $results = $this->dbase->fetchResults("SELECT applied_version FROM applied_DB_versions");
 
-        while ($row = $result->fetch_assoc()) {
+        foreach ($results as $row) {
             $versions[] = $row['applied_version'];
         }
         return $versions;
