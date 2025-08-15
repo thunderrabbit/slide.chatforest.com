@@ -1,6 +1,8 @@
 <?php
 
-include_once "/home/dh_fbrdk3/db.marbletrack3.com/prepend.php";
+# Extract DreamHost project root: /home/username/domain.com
+preg_match('#^(/home/[^/]+/[^/]+)#', __DIR__, $matches);
+include_once $matches[1] . '/prepend.php';
 
 header("Content-Type: application/json");
 

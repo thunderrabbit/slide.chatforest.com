@@ -4,7 +4,9 @@
 // We do *not* include prepend.php because
 // it would cause a circular dependency
 
-include_once '/home/dh_fbrdk3/db.marbletrack3.com/classes/Mlaphp/Autoloader.php';
+# Extract DreamHost project root: /home/username/domain.com
+preg_match('#^(/home/[^/]+/[^/]+)#', __DIR__, $matches);
+include_once $matches[1] . '/classes/Mlaphp/Autoloader.php';
 // create autoloader instance and register the method with SPL
 $autoloader = new \Mlaphp\Autoloader();
 spl_autoload_register(array($autoloader, 'load'));
