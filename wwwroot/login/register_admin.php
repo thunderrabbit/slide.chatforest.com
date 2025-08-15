@@ -14,7 +14,7 @@ $config = new \Config();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // handle form submission...
-    $mla_database = \Database\Base::getDB($config);
+    $mla_database = \Database\Base::getPDO($config);
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['pass'] ?? '';
     $password_confirm = $_POST['pass_verify'] ?? '';
@@ -42,22 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         echo "<h1>Creating Admin User...</h1>";
-        $mla_database->insertFromRecord(
-            "users",
-            "sss",
-            [
-                "username" => $username,
-                "password_hash" => $hash,
-                "role" => "admin"
-            ]
-        );
+        $stmt = $mla_database->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $hash, "admin"]);
 
         echo "<h1>Admin Created</h1>";
         echo "<p>You can now <a href='/login'>log in</a> with your admin credentials.</p>";
-    } catch (\Database\EDuplicateKey $e) {
-        echo "<h1>Error</h1><p>User already exists. Try a different username.</p>";
-    } catch (\Throwable $e) {
-        echo "<h1>Unexpected Error</h1><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+    } catch (\PDOException $e) {
+        if ($e->getCode() == '23000') { // Duplicate key error
+            echo "<h1>Error</h1><p>User already exists. Try a different username.</p>";
+        } else {
+            echo "<h1>Unexpected Error</h1><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+        }
     }
 
     exit;

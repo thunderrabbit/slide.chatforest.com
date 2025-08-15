@@ -36,11 +36,11 @@ try {
     exit;
 }
 
-$mla_database = \Database\Base::getDB($config);
+$mla_database = \Database\Base::getPDO($config);
 // Check if the database exists and is accessible
 $dbExistaroo = new \Database\DBExistaroo(
     config: $config,
-    dbase: $mla_database,
+    pdo: $mla_database,
 );
 
 $errors = $dbExistaroo->checkaroo();

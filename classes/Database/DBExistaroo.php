@@ -3,7 +3,6 @@
 namespace Database;
 
 class DBExistaroo {
-    private \mysqli $conn;
 
     private $automaticSchemaPrefixes = [
         "00",
@@ -17,11 +16,11 @@ class DBExistaroo {
      * It also checks if there are any users in the users table.
      *
      * @param \Config $config Configuration object containing DB connection details.
-     * @param \Database\Database $dbase Database object for checking database existence.
+     * @param \PDO $pdo Native PDO database connection.
      */
     public function __construct(
         private \Config $config,
-        private \Database\Database $dbase,
+        private \PDO $pdo,
     ){
     }
 
@@ -42,8 +41,6 @@ class DBExistaroo {
             return $errors;
         }
 
-        $this->connectToDB();
-
         if (!$this->appliedDBVersionsTableExists()) {
             $this->applyInitialSchemas();
         }
@@ -63,14 +60,14 @@ class DBExistaroo {
     }
 
     /**
-     * Checks if the database exists.
+     * Checks if the database exists using native PDO.
      * databaseExists() will die if it cannot access the server or log in.
      * We catch EDatabaseMissing if the database is missing.
      * @return bool True if the database exists, false otherwise.
      */
     private function dbExists(): bool {
         try {
-            return $this->dbase->databaseExists();
+            return \Database\Base::databaseExists($this->config);
         } catch (\Database\EDatabaseMissing $e) {
             return false;
         } catch (\Database\EDatabaseException $e) {
@@ -80,30 +77,18 @@ class DBExistaroo {
 
 
 
-    private function connectToDB(): void {
-        $this->conn = new \mysqli(
-            $this->config->dbHost,
-            $this->config->dbUser,
-            $this->config->dbPass,
-            $this->config->dbName
-        );
-
-        if ($this->conn->connect_error) {
-            throw new \Exception("Connection to DB failed: " . $this->conn->connect_error);
-        }
-    }
-
     private function logSchemaApplication(string $version, string $direction): void
     {
         $direction = "up"; // use PHPMyAdmin to drop migrations
-        $stmt = $this->conn->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
-        $stmt->bind_param('ss', $version, $direction);
-        $stmt->execute();
+        $stmt = $this->pdo->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
+        $stmt->execute([$version, $direction]);
     }
+
     private function appliedDBVersionsTableExists(): bool
     {
-        $result = $this->conn->query("SHOW TABLES LIKE 'applied_DB_versions'");
-        return $result && $result->num_rows > 0;
+        $stmt = $this->pdo->prepare("SHOW TABLES LIKE 'applied_DB_versions'");
+        $stmt->execute();
+        return count($stmt->fetchAll()) > 0;
     }
 
     private function applyInitialSchemas(): void
@@ -137,21 +122,15 @@ class DBExistaroo {
             throw new \Exception("Missing schema file: $sql_path");
         }
         $sql = file_get_contents($sql_path);
-        // multi_query allows us to run multiple SQL statements at once
-        // this is useful for creating the table and inserting initial data
-        // in a single create_table.sql
-        // but as of 12 June 2025, I only have a single table per schema file
-        $this->conn->multi_query($sql);
-        // this is necessary to clear out the results of the multi-query
-        // so that we can continue without errors
-        do {
-            $this->conn->store_result(); // quietly discard each result
-        } while ($this->conn->more_results() && $this->conn->next_result());
+
+        // Use native PDO to execute multiple SQL statements
+        \Database\Base::executeMultipleSQL($this->pdo, $sql);
     }
 
     private function hasAnyUsers(): bool {
-        $result = $this->conn->query("SELECT 1 FROM users LIMIT 1");
-        return $result && $result->num_rows > 0;
+        $stmt = $this->pdo->prepare("SELECT 1 FROM users LIMIT 1");
+        $stmt->execute();
+        return count($stmt->fetchAll()) > 0;
     }
 
     public function getPendingMigrations(): array {
@@ -185,9 +164,11 @@ class DBExistaroo {
 
     private function getAppliedVersions(): array {
         $versions = [];
-        $result = $this->conn->query("SELECT applied_version FROM applied_DB_versions");
+        $stmt = $this->pdo->prepare("SELECT applied_version FROM applied_DB_versions");
+        $stmt->execute();
+        $results = $stmt->fetchAll();
 
-        while ($row = $result->fetch_assoc()) {
+        foreach ($results as $row) {
             $versions[] = $row['applied_version'];
         }
         return $versions;
