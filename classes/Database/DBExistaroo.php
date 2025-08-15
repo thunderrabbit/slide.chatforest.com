@@ -83,7 +83,7 @@ class DBExistaroo {
         $stmt = $this->pdo->prepare("INSERT INTO applied_DB_versions (applied_version, direction) VALUES (?, ?)");
         $stmt->execute([$version, $direction]);
     }
-    
+
     private function appliedDBVersionsTableExists(): bool
     {
         $stmt = $this->pdo->prepare("SHOW TABLES LIKE 'applied_DB_versions'");
@@ -122,7 +122,7 @@ class DBExistaroo {
             throw new \Exception("Missing schema file: $sql_path");
         }
         $sql = file_get_contents($sql_path);
-        
+
         // Use native PDO to execute multiple SQL statements
         \Database\Base::executeMultipleSQL($this->pdo, $sql);
     }

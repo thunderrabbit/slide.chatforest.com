@@ -59,7 +59,7 @@ class IsLoggedIn
         $stmt = $this->di_pdo->prepare("SELECT `username` FROM `users` WHERE `user_id` = ? LIMIT 1");
         $stmt->execute([$user_id]);
         $result = $stmt->fetchAll();
-        
+
         if (count($result) > 0) {
             $this->loggedInUsername = $result[0]['username'] ?? 'ummmmmm wtf';
         }
@@ -102,7 +102,7 @@ class IsLoggedIn
         $stmt = $this->di_pdo->prepare("SELECT `user_id`, `password_hash` FROM `users` WHERE LOWER(`username`) = LOWER(?) LIMIT 1");
         $stmt->execute([$username]);
         $result = $stmt->fetchAll();
-        
+
         if (count($result) > 0) {
             return $result[0];
         } else {
@@ -146,7 +146,7 @@ class IsLoggedIn
         $stmt = $this->di_pdo->prepare("SELECT `user_id` FROM `cookies` WHERE `cookie` = ? AND `ip_address` = ? AND `user_agent_md5` = ? LIMIT 1");
         $stmt->execute([$cookie, $varbinary_ip, md5($user_agent)]);
         $result = $stmt->fetchAll();
-        
+
         if(count($result) > 0)
         {
             return $result[0]['user_id'];

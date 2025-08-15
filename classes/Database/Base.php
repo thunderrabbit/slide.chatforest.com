@@ -24,7 +24,7 @@ class Base{
 
             try {
                 self::$pdo = new \PDO($dsn, $config->dbUser, $config->dbPass, $options);
-                
+
                 // Set timezone
                 $now = new \DateTime();
                 $mins = $now->getOffset() / 60;
@@ -34,7 +34,7 @@ class Base{
                 $mins -= $hrs * 60;
                 $offset = sprintf('%+d:%02d', $hrs*$sgn, $mins);
                 self::$pdo->exec("SET time_zone='$offset'");
-                
+
             } catch (\PDOException $e) {
                 // Try once more with a sleep (mimic original behavior)
                 sleep(1);
@@ -73,7 +73,7 @@ class Base{
             $options = [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             ];
-            
+
             $conn = new \PDO($dsn, $config->dbUser, $config->dbPass, $options);
         } catch (\PDOException $e) {
             throw new \Database\ECouldNotConnectToServer("Check Config because " . $e->getMessage());
@@ -83,11 +83,11 @@ class Base{
             $stmt = $conn->prepare("SHOW DATABASES LIKE ?");
             $stmt->execute([$config->dbName]);
             $result = $stmt->fetchAll();
-            
+
             if (count($result) === 0) {
                 throw new \Database\EDatabaseMissing("Database '{$config->dbName}' not found.");
             }
-            
+
             return count($result) > 0;
         } catch (\PDOException $e) {
             throw new \Database\EDatabaseException("Failed to query for DB existence: " . $e->getMessage());
@@ -104,7 +104,7 @@ class Base{
             array_map('trim', explode(';', $sql)),
             function($stmt) { return !empty($stmt); }
         );
-        
+
         foreach ($statements as $statement) {
             if (!empty($statement)) {
                 try {

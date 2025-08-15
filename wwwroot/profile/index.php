@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $current_password = $_POST['current_password'] ?? '';
     $new_password = $_POST['new_password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
-    
+
     // Validate input
     $errors = [];
     if (empty($current_password)) {
@@ -32,16 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($new_password !== $confirm_password) {
         $errors[] = "New passwords do not match.";
     }
-    
+
     // If no validation errors, proceed with password change
     if (empty($errors)) {
         try {
             $user_id = $is_logged_in->loggedInID();
-            
+
             // Use PasswordRepository to handle password change
             $passwordRepository = new \Database\PasswordRepository($mla_database);
             $result = $passwordRepository->changePassword($user_id, $current_password, $new_password);
-            
+
             if ($result['success']) {
                 $success_message = $result['message'];
             } else {
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "An error occurred while changing password: " . $e->getMessage();
         }
     }
-    
+
     // Set error message if there are errors
     if (!empty($errors)) {
         // HTML escape each error message individually, then join with <br>
