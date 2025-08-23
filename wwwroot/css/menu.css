@@ -1,0 +1,38 @@
+.NavBar {
+    font-family: system-ui, sans-serif;
+}
+
+.NavBar .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.NavBar .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #ffffff;
+    border: 1px solid #cde5f6;
+    padding: 0.5em 0;
+    white-space: nowrap;
+    z-index: 100;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.NavBar .dropdown-menu a {
+    display: block;
+    padding: 0.25em 1em;
+    text-decoration: none;
+    color: #0366a8;
+}
+
+.NavBar .dropdown-menu a:hover {
+    background: #f3faff;
+    text-decoration: underline;
+}
+
+.NavBar .dropdown:hover .dropdown-menu {
+    display: block;
+}
