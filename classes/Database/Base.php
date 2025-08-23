@@ -1,7 +1,7 @@
 <?php
 namespace Database;
 
-const CONFIG_DATABASE_OUTPUT_ENCODING = "UTF8";
+const CONFIG_DATABASE_OUTPUT_ENCODING = "utf8mb4";
 
 class Base{
     private static $pdo;
