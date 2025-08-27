@@ -13,7 +13,7 @@ if($debugLevel > 0) {
 if($is_logged_in->isLoggedIn()){
     // Logged in - show main site homepage
     $page = new \Template(config: $config);
-    $page->setTemplate("layout/admin_base.tpl.php");
+    $page->setTemplate("layout/base.tpl.php");
     $page->set("page_title", "Slide Chat Forest");
     $page->set("username", $is_logged_in->getLoggedInUsername());
     $page->set("site_version", SENTIMENTAL_VERSION);
