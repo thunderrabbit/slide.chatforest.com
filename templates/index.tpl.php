@@ -139,7 +139,7 @@
     }
 
     if (path.length>0){
-      ctx.lineWidth = Math.max(6*dpi, Math.floor(cell*0.22));
+      ctx.lineWidth = Math.max(6*dpi, Math.floor(cell*0.8));
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.strokeStyle = '#5aa6ff';
@@ -152,7 +152,7 @@
 
       if (showNumbers){
         ctx.fillStyle = '#0b0c0f';
-        ctx.font = `${Math.max(10, Math.floor(cell*0.26)) * dpi}px ui-sans-serif`;
+        ctx.font = `${Math.max(8, Math.floor(cell*0.16)) * dpi}px ui-sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         for(let i=0;i<path.length;i++){
