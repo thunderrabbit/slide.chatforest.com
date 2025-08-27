@@ -168,13 +168,22 @@
 
     for (let i = 0; i < N * N; i++) {
       solution.push({r, c});
-      const nr = r + dr, nc = c + dc;
 
+      // Calculate next position
+      let nr = r + dr, nc = c + dc;
+
+      // If next position is out of bounds or already visited, turn right
       if (!inBounds(nr, nc) || solution.some(p => p.r === nr && p.c === nc)) {
         [dr, dc] = [-dc, dr]; // Turn right
+        nr = r + dr;
+        nc = c + dc;
       }
-      r += dr;
-      c += dc;
+
+      // Update position only if we're not at the last cell
+      if (i < N * N - 1) {
+        r = nr;
+        c = nc;
+      }
     }
     return solution;
   }
@@ -193,8 +202,11 @@
     // Place numbers at regular intervals along the solution path
     for (let i = 0; i < solutionPath.length; i += hintSpacing) {
       const cell = solutionPath[i];
-      numberHints.set(key(cell.r, cell.c), hintNumber);
-      hintNumber++;
+      // Safety check: ensure cell is within bounds
+      if (inBounds(cell.r, cell.c)) {
+        numberHints.set(key(cell.r, cell.c), hintNumber);
+        hintNumber++;
+      }
     }
 
     // Create set of solution edges (edges used in the solution path)
