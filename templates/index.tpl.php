@@ -16,6 +16,12 @@
         </select></label>
         <button id="clearBtn" title="Long‑press also clears">Clear</button>
         <button id="undoBtn">Undo</button>
+        <button id="puzzleBtn">New Puzzle</button>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
         <label><input type="checkbox" id="showNumbers" checked /> # step</label>
       </div>
     </header>
@@ -46,6 +52,12 @@
   let drawing = false;
   let anchors = new Map(); // no anchors by default
   let showNumbers = true;
+
+  // Puzzle generation state
+  let barriers = new Set(); // cells that are blocked
+  let numberHints = new Map(); // key r,c -> number
+  let solutionPath = []; // the valid solution
+  let puzzleMode = false; // toggle between practice and puzzle mode
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -79,9 +91,138 @@
 
   function px(r,c){ return { x: origin.x + c*cell + cell/2, y: origin.y + r*cell + cell/2 } }
 
+  // --- Puzzle Generation ---
+  function generateHamiltonianPath(){
+    // Generate a random Hamiltonian path (visits every cell exactly once)
+    const visited = new Set();
+    const solution = [];
+    const totalCells = N * N;
+
+    // Start from a random cell
+    let current = {r: Math.floor(Math.random() * N), c: Math.floor(Math.random() * N)};
+    solution.push(current);
+    visited.add(key(current.r, current.c));
+
+    // Backtracking algorithm to find Hamiltonian path
+    function backtrack() {
+      if (solution.length === totalCells) return true;
+
+      // Try neighbors in random order
+      const directions = [{r:-1,c:0}, {r:1,c:0}, {r:0,c:-1}, {r:0,c:1}];
+      shuffleArray(directions);
+
+      for (const dir of directions) {
+        const next = {r: current.r + dir.r, c: current.c + dir.c};
+        const nextKey = key(next.r, next.c);
+
+        if (inBounds(next.r, next.c) && !visited.has(nextKey)) {
+          visited.add(nextKey);
+          solution.push(next);
+          const prevCurrent = current;
+          current = next;
+
+          if (backtrack()) return true;
+
+          // Backtrack
+          current = prevCurrent;
+          solution.pop();
+          visited.delete(nextKey);
+        }
+      }
+      return false;
+    }
+
+    if (backtrack()) {
+      return solution;
+    }
+
+    // Fallback: simple spiral pattern if backtracking fails
+    return generateSpiralPath();
+  }
+
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function generateSpiralPath() {
+    // Simple spiral fallback
+    const solution = [];
+    let r = 0, c = 0;
+    let dr = 0, dc = 1;
+
+    for (let i = 0; i < N * N; i++) {
+      solution.push({r, c});
+      const nr = r + dr, nc = c + dc;
+
+      if (!inBounds(nr, nc) || solution.some(p => p.r === nr && p.c === nc)) {
+        [dr, dc] = [-dc, dr]; // Turn right
+      }
+      r += dr;
+      c += dc;
+    }
+    return solution;
+  }
+
+  function generatePuzzle(difficulty = 'medium') {
+    barriers.clear();
+    numberHints.clear();
+
+    // Generate solution path
+    solutionPath = generateHamiltonianPath();
+
+    // Place number hints based on difficulty
+    const hintFrequency = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
+    for (let i = 0; i < solutionPath.length; i += hintFrequency) {
+      const cell = solutionPath[i];
+      numberHints.set(key(cell.r, cell.c), i + 1);
+    }
+
+    // Add barriers (avoid blocking solution path)
+    const barrierCount = Math.floor(N * N * (difficulty === 'easy' ? 0.1 : difficulty === 'medium' ? 0.15 : 0.2));
+    let attempts = 0;
+    while (barriers.size < barrierCount && attempts < 100) {
+      const r = Math.floor(Math.random() * N);
+      const c = Math.floor(Math.random() * N);
+      const cellKey = key(r, c);
+
+      // Don't block solution path or hint cells
+      if (!solutionPath.some(p => p.r === r && p.c === c) && !numberHints.has(cellKey)) {
+        barriers.add(cellKey);
+      }
+      attempts++;
+    }
+
+    // Add some decoy numbers
+    const decoyCount = Math.floor(N * N * 0.05);
+    attempts = 0;
+    while (attempts < decoyCount * 3) {
+      const r = Math.floor(Math.random() * N);
+      const c = Math.floor(Math.random() * N);
+      const cellKey = key(r, c);
+
+      if (!numberHints.has(cellKey) && !barriers.has(cellKey)) {
+        // Random number that doesn't match solution
+        const wrongNum = Math.floor(Math.random() * (N * N)) + 1;
+        numberHints.set(cellKey, wrongNum);
+        attempts++;
+      }
+      attempts++;
+    }
+
+    puzzleMode = true;
+  }
+
   function clearAll(){
     path = [];
     occupied.clear();
+    if (!puzzleMode) {
+      barriers.clear();
+      numberHints.clear();
+      solutionPath = [];
+    }
     draw();
   }
 
@@ -95,6 +236,10 @@
   function tryAddCell(r,c){
     if(!inBounds(r,c)) return;
     const k = key(r,c);
+
+    // Check for barriers
+    if (barriers.has(k)) return;
+
     if (path.length===0){
       path.push({r,c});
       occupied.add(k);
@@ -119,8 +264,25 @@
     draw();
 
     if (path.length === N*N){
-      flash('#1dd1a1');
+      if (puzzleMode) {
+        // Check if solution is correct
+        if (checkSolution()) {
+          flash('#1dd1a1'); // Success green
+        } else {
+          flash('#ff6b6b'); // Error red
+        }
+      } else {
+        flash('#1dd1a1');
+      }
     }
+  }
+
+  function checkSolution() {
+    if (path.length !== solutionPath.length) return false;
+    for (let i = 0; i < path.length; i++) {
+      if (!equal(path[i], solutionPath[i])) return false;
+    }
+    return true;
   }
 
   // --- Rendering ---
@@ -136,6 +298,25 @@
         const x = origin.x + c*cell, y = origin.y + r*cell;
         ctx.strokeRect(x, y, cell, cell);
       }
+    }
+
+    // Draw barriers
+    ctx.fillStyle = '#ff6b6b';
+    for (const barrierKey of barriers) {
+      const [r, c] = barrierKey.split(',').map(Number);
+      const x = origin.x + c*cell, y = origin.y + r*cell;
+      ctx.fillRect(x + 2, y + 2, cell - 4, cell - 4);
+    }
+
+    // Draw number hints
+    ctx.fillStyle = '#ffb556';
+    ctx.font = `${Math.max(12, Math.floor(cell*0.25)) * dpi}px ui-sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const [cellKey, number] of numberHints) {
+      const [r, c] = cellKey.split(',').map(Number);
+      const {x, y} = px(r, c);
+      ctx.fillText(number.toString(), x, y);
     }
 
     if (path.length>0){
@@ -252,6 +433,12 @@
     resize();
   });
   document.getElementById('showNumbers').addEventListener('change', (e)=>{ showNumbers = e.target.checked; draw(); });
+  document.getElementById('puzzleBtn').addEventListener('click', ()=>{
+    const difficulty = document.getElementById('difficulty').value;
+    generatePuzzle(difficulty);
+    clearAll();
+    draw();
+  });
 
   seedAnchors();
   resize();
