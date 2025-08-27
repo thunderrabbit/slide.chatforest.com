@@ -17,6 +17,7 @@
         <button id="clearBtn" title="Long‑press also clears">Clear</button>
         <button id="undoBtn">Undo</button>
         <button id="puzzleBtn">New Puzzle</button>
+        <button id="solutionBtn">Show Solution</button>
         <select id="difficulty">
           <option value="easy">Easy</option>
           <option value="medium" selected>Medium</option>
@@ -59,6 +60,7 @@
   let solutionPath = []; // the valid solution
   let puzzleMode = false; // toggle between practice and puzzle mode
   let nextRequiredNumber = 1; // the next number that must be reached in sequence
+  let showingSolution = false; // whether to display the solution path
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -126,12 +128,12 @@
     const totalCells = N * N;
 
     // Start from a random cell
-    let current = {r: Math.floor(Math.random() * N), c: Math.floor(Math.random() * N)};
-    solution.push(current);
-    visited.add(key(current.r, current.c));
+    const start = {r: Math.floor(Math.random() * N), c: Math.floor(Math.random() * N)};
+    solution.push(start);
+    visited.add(key(start.r, start.c));
 
-    // Backtracking algorithm to find Hamiltonian path
-    function backtrack() {
+    // Recursive backtracking algorithm
+    function backtrack(currentPos) {
       if (solution.length === totalCells) return true;
 
       // Try neighbors in random order
@@ -139,19 +141,16 @@
       shuffleArray(directions);
 
       for (const dir of directions) {
-        const next = {r: current.r + dir.r, c: current.c + dir.c};
+        const next = {r: currentPos.r + dir.r, c: currentPos.c + dir.c};
         const nextKey = key(next.r, next.c);
 
         if (inBounds(next.r, next.c) && !visited.has(nextKey)) {
           visited.add(nextKey);
           solution.push(next);
-          const prevCurrent = current;
-          current = next;
 
-          if (backtrack()) return true;
+          if (backtrack(next)) return true;
 
-          // Backtrack
-          current = prevCurrent;
+          // Backtrack - remove the cell we just added
           solution.pop();
           visited.delete(nextKey);
         }
@@ -159,7 +158,7 @@
       return false;
     }
 
-    if (backtrack()) {
+    if (backtrack(start)) {
       return solution;
     }
 
@@ -202,13 +201,56 @@
     return solution;
   }
 
+  function validateSolutionPath(path) {
+    // Check that path visits exactly N*N cells
+    if (path.length !== N * N) return false;
+
+    // Check that all cells are within bounds
+    for (const cell of path) {
+      if (!inBounds(cell.r, cell.c)) return false;
+    }
+
+    // Check that each cell is visited exactly once
+    const visited = new Set();
+    for (const cell of path) {
+      const cellKey = key(cell.r, cell.c);
+      if (visited.has(cellKey)) return false; // Duplicate cell
+      visited.add(cellKey);
+    }
+
+    // Check that consecutive cells are adjacent
+    for (let i = 1; i < path.length; i++) {
+      const prev = path[i-1];
+      const curr = path[i];
+      if (!neighbors(prev, curr)) return false; // Not adjacent
+    }
+
+    return true;
+  }
+
   function generatePuzzle(difficulty = 'medium') {
     edgeBarriers.clear();
     numberHints.clear();
     nextRequiredNumber = 1; // Reset sequence tracker for new puzzle
+    showingSolution = false; // Hide solution for new puzzle
 
-    // Generate solution path
-    solutionPath = generateHamiltonianPath();
+    // Generate solution path with validation
+    let attempts = 0;
+    do {
+      solutionPath = generateHamiltonianPath();
+      attempts++;
+      if (attempts > 10) {
+        // Force use spiral if backtracking keeps failing
+        solutionPath = generateSpiralPath();
+        break;
+      }
+    } while (!validateSolutionPath(solutionPath));
+
+    // Double-check we have a valid solution
+    if (!validateSolutionPath(solutionPath)) {
+      console.error("Failed to generate valid solution path");
+      return;
+    }
 
     // Place consecutive number hints spaced out along the solution path
     const hintSpacing = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
@@ -235,8 +277,8 @@
 
     // Add edge barriers (don't block solution path edges)
     const barrierCount = Math.floor((N * N - 1) * (difficulty === 'easy' ? 0.1 : difficulty === 'medium' ? 0.15 : 0.2));
-    let attempts = 0;
-    while (edgeBarriers.size < barrierCount && attempts < 200) {
+    let barrierAttempts = 0;
+    while (edgeBarriers.size < barrierCount && barrierAttempts < 200) {
       // Pick random adjacent cells
       const r1 = Math.floor(Math.random() * N);
       const c1 = Math.floor(Math.random() * N);
@@ -258,7 +300,7 @@
           edgeBarriers.add(edgeId);
         }
       }
-      attempts++;
+      barrierAttempts++;
     }
 
     puzzleMode = true;
@@ -268,11 +310,18 @@
     path = [];
     occupied.clear();
     nextRequiredNumber = 1; // Reset sequence tracker
+    showingSolution = false; // Hide solution when clearing
     if (!puzzleMode) {
       edgeBarriers.clear();
       numberHints.clear();
       solutionPath = [];
     }
+    draw();
+  }
+
+  function toggleSolution() {
+    if (!puzzleMode || solutionPath.length === 0) return; // Only works in puzzle mode
+    showingSolution = !showingSolution;
     draw();
   }
 
@@ -410,27 +459,14 @@
       ctx.stroke();
     }
 
-    // Draw number hints with accessibility indication
+    // Draw number hints (all look the same - no visual hints about accessibility)
+    ctx.fillStyle = '#ffb556';
     ctx.font = `${Math.max(12, Math.floor(cell*0.25)) * dpi}px ui-sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const [cellKey, number] of numberHints) {
       const [r, c] = cellKey.split(',').map(Number);
       const {x, y} = px(r, c);
-
-      // Color based on accessibility
-      const isAccessible = isNumberedCellAccessible(r, c);
-      ctx.fillStyle = isAccessible ? '#ffb556' : '#666666'; // Orange for accessible, gray for locked
-
-      // Draw background circle for locked numbers
-      if (!isAccessible) {
-        ctx.beginPath();
-        ctx.fillStyle = '#333333';
-        ctx.arc(x, y, Math.max(8, cell*0.2), 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = '#666666';
-      }
-
       ctx.fillText(number.toString(), x, y);
     }
 
@@ -464,6 +500,22 @@
       ctx.lineWidth = 3*dpi;
       ctx.arc(pxy.x, pxy.y, Math.max(10*dpi, cell*0.18), 0, Math.PI*2);
       ctx.stroke();
+    }
+
+    // Draw solution path if enabled
+    if (showingSolution && solutionPath.length > 0) {
+      ctx.lineWidth = Math.max(3*dpi, Math.floor(cell*0.4));
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; // Semi-transparent white
+      ctx.setLineDash([5*dpi, 5*dpi]); // Dashed line
+      ctx.beginPath();
+      for(let i=0;i<solutionPath.length;i++){
+        const {x,y} = px(solutionPath[i].r, solutionPath[i].c);
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset line dash
     }
 
     ctx.restore();
@@ -554,6 +606,7 @@
     clearAll();
     draw();
   });
+  document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
 
   seedAnchors();
   resize();
