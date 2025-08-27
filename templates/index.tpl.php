@@ -197,9 +197,10 @@
 
     // Place consecutive number hints spaced out along the solution path
     const hintSpacing = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
-    let hintNumber = 1;
 
-    // Place numbers at regular intervals along the solution path
+    // Place consecutive numbers (1, 2, 3, 4, 5, 6...) at spaced intervals along the solution path
+    // The numbers are consecutive but appear at different positions along the Hamiltonian path
+    let hintNumber = 1;
     for (let i = 0; i < solutionPath.length; i += hintSpacing) {
       const cell = solutionPath[i];
       // Safety check: ensure cell is within bounds
