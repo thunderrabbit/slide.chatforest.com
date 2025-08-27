@@ -128,9 +128,18 @@ class DBExistaroo {
     }
 
     private function hasAnyUsers(): bool {
-        $stmt = $this->pdo->prepare("SELECT 1 FROM users LIMIT 1");
-        $stmt->execute();
-        return count($stmt->fetchAll()) > 0;
+        try {
+            $stmt = $this->pdo->prepare("SELECT 1 FROM users LIMIT 1");
+            $stmt->execute();
+            return count($stmt->fetchAll()) > 0;
+        } catch (\PDOException $e) {
+            // If users table doesn't exist, return false (no users)
+            if ($e->getCode() == '42S02') { // Table doesn't exist
+                return false;
+            }
+            // Re-throw other PDO exceptions
+            throw $e;
+        }
     }
 
     public function getPendingMigrations(): array {
