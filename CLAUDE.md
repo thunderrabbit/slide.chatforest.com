@@ -85,3 +85,29 @@ This leverages DreamHost's consistent `/home/username/domain.com/` path structur
 - Manual migration application via admin interface (`/admin/migrate_tables.php`)
 - Schema files must follow `create_*.sql` naming convention
 - Each schema directory represents a version (e.g., `00_bedrock/`, `01_gumdrop_cloud/`)
+
+## Common Development Tasks
+
+### Local Development
+- No build, test, or lint commands - pure PHP development
+- PHP errors displayed on screen via `prepend.php` configuration
+- Debug mode: Add `?debug=1` to any URL for additional debugging output
+- Use `print_rob($variable)` function for debugging (similar to `var_dump` but formatted)
+
+### File Deployment
+- **Note**: `scp_files_to_dh.sh` is gitignored and must be created locally
+- Script should monitor file changes and deploy to DreamHost via SCP
+- Target format: `barefoot_rob@drc:/home/username/domain.com/`
+- Alternative: Manual file sync to DreamHost
+
+### Database Operations
+- Visit `/admin/migrate_tables.php` to manually apply pending migrations
+- Database schemas automatically applied for prefixes "00" and "01"
+- First-time setup creates admin user automatically (or redirects to `/login/register_admin.php`)
+
+## Error Handling and Debugging
+
+- Application bootstrap in `prepend.php:46` performs database existence checks
+- Missing users table triggers admin registration flow (`prepend.php:48-59`)
+- All PHP errors displayed to screen during development (`prepend.php:5-8`)
+- Template system supports debug context via `?debug=1` parameter
