@@ -41,6 +41,12 @@ class DBExistaroo {
             return $errors;
         }
 
+        if (!$this->domainMatches()) {
+            $errors[] = "Domain mismatch: Current domain does not match configured domain '{$this->config->domain_name}'.";
+            echo "Go fix the value of domain name in classes/Config.php (and probably app_path as well).";
+            return $errors;
+        }
+
         if (!$this->appliedDBVersionsTableExists()) {
             $this->applyInitialSchemas();
         }
@@ -57,6 +63,11 @@ class DBExistaroo {
             && !empty($this->config->dbUser)
             && !empty($this->config->dbPass)
             && !empty($this->config->dbName);
+    }
+
+    private function domainMatches(): bool {
+        $currentDomain = $_SERVER['HTTP_HOST'] ?? '';
+        return $currentDomain === $this->config->domain_name;
     }
 
     /**
