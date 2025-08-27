@@ -58,6 +58,7 @@
   let numberHints = new Map(); // key r,c -> number
   let solutionPath = []; // the valid solution
   let puzzleMode = false; // toggle between practice and puzzle mode
+  let nextRequiredNumber = 1; // the next number that must be reached in sequence
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -102,6 +103,19 @@
 
   function isEdgeBlocked(r1, c1, r2, c2) {
     return edgeBarriers.has(edgeKey(r1, c1, r2, c2));
+  }
+
+  function isNumberedCellAccessible(r, c) {
+    if (!puzzleMode) return true; // In practice mode, all cells accessible
+
+    const cellKey = key(r, c);
+    const cellNumber = numberHints.get(cellKey);
+
+    // If this cell doesn't have a number, it's accessible
+    if (!cellNumber) return true;
+
+    // Number 1 is always accessible, other numbers only if previous was reached
+    return cellNumber <= nextRequiredNumber;
   }
 
   // --- Puzzle Generation ---
@@ -191,6 +205,7 @@
   function generatePuzzle(difficulty = 'medium') {
     edgeBarriers.clear();
     numberHints.clear();
+    nextRequiredNumber = 1; // Reset sequence tracker for new puzzle
 
     // Generate solution path
     solutionPath = generateHamiltonianPath();
@@ -252,6 +267,7 @@
   function clearAll(){
     path = [];
     occupied.clear();
+    nextRequiredNumber = 1; // Reset sequence tracker
     if (!puzzleMode) {
       edgeBarriers.clear();
       numberHints.clear();
@@ -263,7 +279,15 @@
   function undo(){
     if (path.length===0) return;
     const last = path.pop();
-    occupied.delete(key(last.r,last.c));
+    const lastKey = key(last.r, last.c);
+    occupied.delete(lastKey);
+
+    // If we're undoing a numbered cell, we might need to adjust next required number
+    const cellNumber = numberHints.get(lastKey);
+    if (cellNumber && cellNumber === nextRequiredNumber - 1) {
+      nextRequiredNumber--;
+    }
+
     draw();
   }
 
@@ -272,8 +296,18 @@
     const k = key(r,c);
 
     if (path.length===0){
+      // Check if first cell is accessible (only matters for numbered cells)
+      if (!isNumberedCellAccessible(r, c)) return;
+
       path.push({r,c});
       occupied.add(k);
+
+      // If first cell has a number, update the next required number
+      const cellNumber = numberHints.get(k);
+      if (cellNumber && cellNumber === nextRequiredNumber) {
+        nextRequiredNumber++;
+      }
+
       haptic();
       clearLongPress();
       draw();
@@ -291,8 +325,18 @@
     // Check for edge barriers between previous cell and this cell
     if (isEdgeBlocked(prev.r, prev.c, r, c)) return;
 
+    // Check if numbered cell is accessible in sequence
+    if (!isNumberedCellAccessible(r, c)) return;
+
     path.push({r,c});
     occupied.add(k);
+
+    // If this cell has a number, update the next required number
+    const cellNumber = numberHints.get(k);
+    if (cellNumber && cellNumber === nextRequiredNumber) {
+      nextRequiredNumber++;
+    }
+
     haptic();
     clearLongPress();
     draw();
@@ -366,14 +410,27 @@
       ctx.stroke();
     }
 
-    // Draw number hints
-    ctx.fillStyle = '#ffb556';
+    // Draw number hints with accessibility indication
     ctx.font = `${Math.max(12, Math.floor(cell*0.25)) * dpi}px ui-sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const [cellKey, number] of numberHints) {
       const [r, c] = cellKey.split(',').map(Number);
       const {x, y} = px(r, c);
+
+      // Color based on accessibility
+      const isAccessible = isNumberedCellAccessible(r, c);
+      ctx.fillStyle = isAccessible ? '#ffb556' : '#666666'; // Orange for accessible, gray for locked
+
+      // Draw background circle for locked numbers
+      if (!isAccessible) {
+        ctx.beginPath();
+        ctx.fillStyle = '#333333';
+        ctx.arc(x, y, Math.max(8, cell*0.2), 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#666666';
+      }
+
       ctx.fillText(number.toString(), x, y);
     }
 
