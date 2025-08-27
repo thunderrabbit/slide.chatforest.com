@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a minimalist PHP web application framework designed for DreamHost deployment. It's a custom template-based site with admin dashboard functionality, database migration system, and user authentication using cookies stored in the database.
+This is a minimalist PHP web application framework designed for DreamHost deployment. It's a custom template-based site with admin dashboard functionality, database migration system, and user authentication using cookies stored in the database. The current implementation includes a Slide Practice puzzle game as the main application feature.
 
 ## Key Architecture
 
@@ -111,3 +111,51 @@ This leverages DreamHost's consistent `/home/username/domain.com/` path structur
 - Missing users table triggers admin registration flow (`prepend.php:48-59`)
 - All PHP errors displayed to screen during development (`prepend.php:5-8`)
 - Template system supports debug context via `?debug=1` parameter
+
+## Slide Practice Game
+
+The main application feature is a puzzle game implemented in `templates/index.tpl.php` with supporting CSS in `wwwroot/css/slide-practice.css`.
+
+### Game Features
+
+- **Canvas-based HTML5 game** with touch and mouse support
+- **Hamiltonian path puzzle generation** using recursive backtracking algorithm
+- **Sequential number access system** - players must visit numbered cells in order (1, 2, 3, etc.)
+- **Edge-based barrier system** - walls block passages between grid cells
+- **Solution visualization** - "Show Solution" button reveals complete path with dashed overlay
+- **Difficulty levels** - Easy (6x6), Medium (8x8), Hard (10x10) with variable hint counts
+- **Flexible number placement** - variable number of numbered cells along solution path
+
+### Technical Implementation
+
+#### Puzzle Generation (`templates/index.tpl.php`)
+
+Key functions:
+- `generateHamiltonianPath(grid, startX, startY)` - Creates valid solution path using backtracking
+- `generatePuzzle()` - Main puzzle creation with barriers and number placement  
+- `validateSolutionPath(path, gridSize)` - Ensures solution integrity
+- `isNumberedCellAccessible(x, y)` - Sequential access control
+
+#### Game Logic
+
+- **Path validation**: Ensures all cells visited exactly once in valid sequence
+- **Barrier generation**: Edge barriers placed randomly without blocking solution
+- **Number placement**: Start gets 1, end gets highest number, random distribution in between
+- **Win condition**: Player reaches final numbered cell in correct sequence
+
+#### Rendering System
+
+- Canvas-based 2D rendering with cell/wall/number layers
+- Touch-friendly interface with drag-based movement
+- Real-time path validation and visual feedback
+- Solution overlay with toggle functionality
+
+### Development History
+
+Notable fixes and improvements:
+- Fixed PDO exception handling in `DBExistaroo.php:131` for missing users table
+- Corrected domain paths from MarbleTrack3 to slide.chatforest.com
+- Resolved Hamiltonian path generation bugs (variable scope, bounds checking)
+- Implemented sequential number access with state tracking
+- Added solution visualization system
+- Created flexible number placement (non-rigid spacing)
