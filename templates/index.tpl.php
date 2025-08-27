@@ -54,7 +54,7 @@
   let showNumbers = true;
 
   // Puzzle generation state
-  let barriers = new Set(); // cells that are blocked
+  let edgeBarriers = new Set(); // edges that are blocked (format: "r1,c1|r2,c2")
   let numberHints = new Map(); // key r,c -> number
   let solutionPath = []; // the valid solution
   let puzzleMode = false; // toggle between practice and puzzle mode
@@ -90,6 +90,19 @@
   }
 
   function px(r,c){ return { x: origin.x + c*cell + cell/2, y: origin.y + r*cell + cell/2 } }
+
+  // Edge barrier helper functions
+  function edgeKey(r1, c1, r2, c2) {
+    // Normalize edge key so (1,1)-(1,2) is same as (1,2)-(1,1)
+    if (r1 > r2 || (r1 === r2 && c1 > c2)) {
+      [r1, c1, r2, c2] = [r2, c2, r1, c1];
+    }
+    return `${r1},${c1}|${r2},${c2}`;
+  }
+
+  function isEdgeBlocked(r1, c1, r2, c2) {
+    return edgeBarriers.has(edgeKey(r1, c1, r2, c2));
+  }
 
   // --- Puzzle Generation ---
   function generateHamiltonianPath(){
@@ -167,47 +180,55 @@
   }
 
   function generatePuzzle(difficulty = 'medium') {
-    barriers.clear();
+    edgeBarriers.clear();
     numberHints.clear();
 
     // Generate solution path
     solutionPath = generateHamiltonianPath();
 
-    // Place number hints based on difficulty
-    const hintFrequency = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
-    for (let i = 0; i < solutionPath.length; i += hintFrequency) {
+    // Place consecutive number hints spaced out along the solution path
+    const hintSpacing = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
+    let hintNumber = 1;
+
+    // Place numbers at regular intervals along the solution path
+    for (let i = 0; i < solutionPath.length; i += hintSpacing) {
       const cell = solutionPath[i];
-      numberHints.set(key(cell.r, cell.c), i + 1);
+      numberHints.set(key(cell.r, cell.c), hintNumber);
+      hintNumber++;
     }
 
-    // Add barriers (avoid blocking solution path)
-    const barrierCount = Math.floor(N * N * (difficulty === 'easy' ? 0.1 : difficulty === 'medium' ? 0.15 : 0.2));
+    // Create set of solution edges (edges used in the solution path)
+    const solutionEdges = new Set();
+    for (let i = 0; i < solutionPath.length - 1; i++) {
+      const curr = solutionPath[i];
+      const next = solutionPath[i + 1];
+      solutionEdges.add(edgeKey(curr.r, curr.c, next.r, next.c));
+    }
+
+    // Add edge barriers (don't block solution path edges)
+    const barrierCount = Math.floor((N * N - 1) * (difficulty === 'easy' ? 0.1 : difficulty === 'medium' ? 0.15 : 0.2));
     let attempts = 0;
-    while (barriers.size < barrierCount && attempts < 100) {
-      const r = Math.floor(Math.random() * N);
-      const c = Math.floor(Math.random() * N);
-      const cellKey = key(r, c);
+    while (edgeBarriers.size < barrierCount && attempts < 200) {
+      // Pick random adjacent cells
+      const r1 = Math.floor(Math.random() * N);
+      const c1 = Math.floor(Math.random() * N);
 
-      // Don't block solution path or hint cells
-      if (!solutionPath.some(p => p.r === r && p.c === c) && !numberHints.has(cellKey)) {
-        barriers.add(cellKey);
-      }
-      attempts++;
-    }
+      // Pick a random direction (horizontal or vertical)
+      const directions = [];
+      if (r1 > 0) directions.push({r: r1-1, c: c1}); // up
+      if (r1 < N-1) directions.push({r: r1+1, c: c1}); // down
+      if (c1 > 0) directions.push({r: r1, c: c1-1}); // left
+      if (c1 < N-1) directions.push({r: r1, c: c1+1}); // right
 
-    // Add some decoy numbers
-    const decoyCount = Math.floor(N * N * 0.05);
-    attempts = 0;
-    while (attempts < decoyCount * 3) {
-      const r = Math.floor(Math.random() * N);
-      const c = Math.floor(Math.random() * N);
-      const cellKey = key(r, c);
+      if (directions.length > 0) {
+        const neighbor = directions[Math.floor(Math.random() * directions.length)];
+        const r2 = neighbor.r, c2 = neighbor.c;
+        const edgeId = edgeKey(r1, c1, r2, c2);
 
-      if (!numberHints.has(cellKey) && !barriers.has(cellKey)) {
-        // Random number that doesn't match solution
-        const wrongNum = Math.floor(Math.random() * (N * N)) + 1;
-        numberHints.set(cellKey, wrongNum);
-        attempts++;
+        // Don't block solution path edges
+        if (!solutionEdges.has(edgeId)) {
+          edgeBarriers.add(edgeId);
+        }
       }
       attempts++;
     }
@@ -219,7 +240,7 @@
     path = [];
     occupied.clear();
     if (!puzzleMode) {
-      barriers.clear();
+      edgeBarriers.clear();
       numberHints.clear();
       solutionPath = [];
     }
@@ -237,9 +258,6 @@
     if(!inBounds(r,c)) return;
     const k = key(r,c);
 
-    // Check for barriers
-    if (barriers.has(k)) return;
-
     if (path.length===0){
       path.push({r,c});
       occupied.add(k);
@@ -256,6 +274,9 @@
     }
     if (!neighbors(prev,{r,c})) return;
     if (occupied.has(k)) return;
+
+    // Check for edge barriers between previous cell and this cell
+    if (isEdgeBlocked(prev.r, prev.c, r, c)) return;
 
     path.push({r,c});
     occupied.add(k);
@@ -300,12 +321,25 @@
       }
     }
 
-    // Draw barriers
-    ctx.fillStyle = '#ff6b6b';
-    for (const barrierKey of barriers) {
-      const [r, c] = barrierKey.split(',').map(Number);
-      const x = origin.x + c*cell, y = origin.y + r*cell;
-      ctx.fillRect(x + 2, y + 2, cell - 4, cell - 4);
+    // Draw edge barriers
+    ctx.strokeStyle = '#ff6b6b';
+    ctx.lineWidth = Math.max(4*dpi, cell*0.1);
+    for (const edgeKey of edgeBarriers) {
+      const [cell1, cell2] = edgeKey.split('|');
+      const [r1, c1] = cell1.split(',').map(Number);
+      const [r2, c2] = cell2.split(',').map(Number);
+
+      // Calculate barrier position (center of edge between cells)
+      const x1 = origin.x + c1*cell + cell/2;
+      const y1 = origin.y + r1*cell + cell/2;
+      const x2 = origin.x + c2*cell + cell/2;
+      const y2 = origin.y + r2*cell + cell/2;
+
+      // Draw thick line between cells
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
     }
 
     // Draw number hints
