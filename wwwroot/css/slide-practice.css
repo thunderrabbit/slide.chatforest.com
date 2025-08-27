@@ -1,0 +1,85 @@
+/* Slide Practice Game Styles */
+:root {
+    --bg: #0b0c0f;
+    --fg: #e6e8ee;
+    --muted:#8a90a0;
+    --accent:#5aa6ff;
+    --good:#43c07a;
+    --warn:#ffb556;
+}
+
+.slide-practice {
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.slide-practice .wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 60vh;
+}
+
+.slide-practice header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #1b1f2a;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.slide-practice h1 {
+    font-size: 16px;
+    margin: 0;
+    color: var(--fg);
+    font-weight: 600;
+}
+
+.slide-practice .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.slide-practice button,
+.slide-practice select {
+    background: #111522;
+    color: var(--fg);
+    border: 1px solid #272d3c;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.slide-practice button:active {
+    transform: translateY(1px);
+}
+
+.slide-practice .hint {
+    color: var(--muted);
+    font-size: 12px;
+    padding: 6px 16px;
+}
+
+.slide-practice .stage {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+}
+
+.slide-practice canvas {
+    background: #0f1320;
+    border: 1px solid #1e2433;
+    border-radius: 14px;
+    touch-action: none;
+}
+
+.slide-practice footer {
+    padding: 10px 16px;
+    color: var(--muted);
+    font-size: 12px;
+}
