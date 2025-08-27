@@ -252,14 +252,30 @@
       return;
     }
 
-    // Place consecutive number hints spaced out along the solution path
-    const hintSpacing = difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 8;
+    // Place number hints at random positions along the solution path
+    // Number of hints varies by difficulty but can be flexible
+    const minHints = difficulty === 'easy' ? 6 : difficulty === 'medium' ? 4 : 3;
+    const maxHints = Math.floor(solutionPath.length / 3); // At most 1/3 of cells
+    const hintCount = Math.max(minHints, Math.min(maxHints, Math.floor(Math.random() * 4) + minHints));
 
-    // Place consecutive numbers (1, 2, 3, 4, 5, 6...) at spaced intervals along the solution path
-    // The numbers are consecutive but appear at different positions along the Hamiltonian path
+    // Always include position 0 (start) and final position (end)
+    const hintPositions = [0, solutionPath.length - 1];
+
+    // Add random positions in between
+    while (hintPositions.length < hintCount) {
+      const randomPos = Math.floor(Math.random() * (solutionPath.length - 2)) + 1; // Exclude 0 and final
+      if (!hintPositions.includes(randomPos)) {
+        hintPositions.push(randomPos);
+      }
+    }
+
+    // Sort positions to ensure correct numbering order
+    hintPositions.sort((a, b) => a - b);
+
+    // Place consecutive numbers at these positions
     let hintNumber = 1;
-    for (let i = 0; i < solutionPath.length; i += hintSpacing) {
-      const cell = solutionPath[i];
+    for (const position of hintPositions) {
+      const cell = solutionPath[position];
       // Safety check: ensure cell is within bounds
       if (inBounds(cell.r, cell.c)) {
         numberHints.set(key(cell.r, cell.c), hintNumber);
