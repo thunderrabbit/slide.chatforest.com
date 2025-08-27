@@ -11,12 +11,24 @@ if($debugLevel > 0) {
 }
 
 if($is_logged_in->isLoggedIn()){
+    // Logged in - show main site homepage
+    $page = new \Template(config: $config);
+    $page->setTemplate("layout/admin_base.tpl.php");
+    $page->set("page_title", "Slide Chat Forest");
+    $page->set("username", $is_logged_in->getLoggedInUsername());
+    $page->set("site_version", SENTIMENTAL_VERSION);
 
-    echo "<h1>You're logged in</h1>";
-    echo "<p><a href='/admin/'>Click here to admire admin page</a></p>";
+    // Get the inner content
+    $inner_page = new \Template(config: $config);
+    $inner_page->setTemplate("index.tpl.php");
+    $inner_page->set("username", $is_logged_in->getLoggedInUsername());
+    $inner_page->set("site_version", SENTIMENTAL_VERSION);
+    $page->set("page_content", $inner_page->grabTheGoods());
+
+    $page->echoToScreen();
     exit;
 } else {
-    echo "<h1>Welcome to This Here Brand New Web Site</h1>";
+    echo "<h1>Slide on in!</h1>";
     echo "<p><a href='/login/'>Click here to log in</a></p>";
     exit;
 }
