@@ -321,24 +321,35 @@
       }
     }
 
-    // Draw edge barriers
+    // Draw edge barriers as walls
     ctx.strokeStyle = '#ff6b6b';
-    ctx.lineWidth = Math.max(4*dpi, cell*0.1);
+    ctx.lineWidth = Math.max(4*dpi, cell*0.15);
     for (const edgeKey of edgeBarriers) {
       const [cell1, cell2] = edgeKey.split('|');
       const [r1, c1] = cell1.split(',').map(Number);
       const [r2, c2] = cell2.split(',').map(Number);
 
-      // Calculate barrier position (center of edge between cells)
-      const x1 = origin.x + c1*cell + cell/2;
-      const y1 = origin.y + r1*cell + cell/2;
-      const x2 = origin.x + c2*cell + cell/2;
-      const y2 = origin.y + r2*cell + cell/2;
+      // Calculate wall position along the shared edge between cells
+      let wallX1, wallY1, wallX2, wallY2;
 
-      // Draw thick line between cells
+      if (r1 === r2) {
+        // Horizontal edge (wall runs vertically)
+        const wallX = origin.x + Math.max(c1, c2) * cell;
+        wallX1 = wallX2 = wallX;
+        wallY1 = origin.y + r1 * cell + 2;
+        wallY2 = origin.y + r1 * cell + cell - 2;
+      } else {
+        // Vertical edge (wall runs horizontally)
+        const wallY = origin.y + Math.max(r1, r2) * cell;
+        wallY1 = wallY2 = wallY;
+        wallX1 = origin.x + c1 * cell + 2;
+        wallX2 = origin.x + c1 * cell + cell - 2;
+      }
+
+      // Draw wall
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
+      ctx.moveTo(wallX1, wallY1);
+      ctx.lineTo(wallX2, wallY2);
       ctx.stroke();
     }
 
