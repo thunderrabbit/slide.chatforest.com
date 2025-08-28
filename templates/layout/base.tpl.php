@@ -13,7 +13,7 @@
     <div class="NavBar">
         <a href="/">Slide Practice</a> |
 <?php if(empty($username)): ?>
-        <a href="/login/register_admin.php">Sign Up</a> |
+        <a href="/login/register.php">Sign Up</a> |
         <a href="/login/">Login</a>
 <?php else: // if(empty($username)): ?>
         <a href="/profile/"><?= $username ?></a> |

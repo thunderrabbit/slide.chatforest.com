@@ -132,7 +132,7 @@ The main application feature is a puzzle game implemented in `templates/index.tp
 
 Key functions:
 - `generateHamiltonianPath(grid, startX, startY)` - Creates valid solution path using backtracking
-- `generatePuzzle()` - Main puzzle creation with barriers and number placement  
+- `generatePuzzle()` - Main puzzle creation with barriers and number placement
 - `validateSolutionPath(path, gridSize)` - Ensures solution integrity
 - `isNumberedCellAccessible(x, y)` - Sequential access control
 
