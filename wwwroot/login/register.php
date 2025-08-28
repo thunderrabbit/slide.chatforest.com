@@ -28,6 +28,8 @@ $dbExistaroo = new \Database\DBExistaroo(
     pdo: $mla_database,
 );
 
+$creating_admin_user = !$dbExistaroo->firstUserExistBool();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // handle form submission...
     $mla_database = \Database\Base::getPDO($config);
@@ -57,8 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
     try {
+        $role = $creating_admin_user ? "admin" : "user";
         $stmt = $mla_database->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
-        $stmt->execute([$username, $hash, $creating_admin_user ? "admin" : ""]);
+        $stmt->execute([$username, $hash, $role]);
 
         echo "<p>User created!  Please <a href='/login'>log in</a> with your new credentials.</p>";
     } catch (\PDOException $e) {
