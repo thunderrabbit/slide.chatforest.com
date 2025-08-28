@@ -12,7 +12,7 @@
         <div class="PageWrapper">
             <div class="PagePanel">
                 <div class="head"><h5 class="iUser">Register</h5></div>
-                <form action="/login/register_admin.php" id="valid" class="mainForm" method="POST">
+                <form action="" id="valid" class="mainForm" method="POST">
                     <fieldset>
                         <div class="PageRow noborder">
                             <label for="req1">Username:</label>

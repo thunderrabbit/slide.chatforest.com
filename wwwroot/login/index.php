@@ -7,7 +7,7 @@ include_once $matches[1] . '/prepend.php';
 
 if ($is_logged_in->isLoggedIn()) {
     // We logged in.. yay!
-    header(header: "Location: /admin/");
+    header(header: "Location: /");
     exit;
 } else {
     if(!$is_logged_in->isLoggedIn()){

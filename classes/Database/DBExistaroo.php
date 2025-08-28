@@ -113,10 +113,8 @@ class DBExistaroo {
                 $sql_files = glob("$schema_dir/create_*.sql");
 
                 foreach ($sql_files as $sql_path) {
-                    echo "Applying schema file: $sql_path<br>";
                     $this->applySchemaPath($sql_path);
                     $this->logSchemaApplication($version . '/' . basename($sql_path), "up");
-                    echo "Schema file " . basename($sql_path) . " applied successfully.<br>";
                 }
             }
         }
@@ -151,6 +149,10 @@ class DBExistaroo {
             // Re-throw other PDO exceptions
             throw $e;
         }
+    }
+
+    public function firstUserExistBool(): bool {
+        return $this->hasAnyUsers();
     }
 
     public function getPendingMigrations(): array {

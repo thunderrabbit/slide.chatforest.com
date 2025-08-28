@@ -52,9 +52,7 @@ if (
     && $errors[0] == "YallGotAnyMoreOfThemUsers"
     && $uri_path != "/login/register_admin.php"
 ) {
-    $page = new \Template(config: $config);
-    $page->setTemplate("login/register.tpl.php");
-    $page->echoToScreen();
+    header(header: "Location: /login/register_admin.php");
     exit;
 }
 

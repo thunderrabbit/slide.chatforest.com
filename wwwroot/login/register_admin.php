@@ -14,6 +14,20 @@ spl_autoload_register(array($autoloader, 'load'));
 $mla_request = new \Mlaphp\Request();
 $config = new \Config();
 
+try {
+    $config = new \Config();
+} catch (\Exception $e) {
+    echo "Couldn't create Config cause " . $e->getMessage();
+    exit;
+}
+
+$mla_database = \Database\Base::getPDO($config);
+// Check if the database exists and is accessible
+$dbExistaroo = new \Database\DBExistaroo(
+    config: $config,
+    pdo: $mla_database,
+);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // handle form submission...
     $mla_database = \Database\Base::getPDO($config);
@@ -43,12 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
     try {
-        echo "<h1>Creating Admin User...</h1>";
         $stmt = $mla_database->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
-        $stmt->execute([$username, $hash, "admin"]);
+        $stmt->execute([$username, $hash, $creating_admin_user ? "admin" : ""]);
 
-        echo "<h1>Admin Created</h1>";
-        echo "<p>You can now <a href='/login'>log in</a> with your admin credentials.</p>";
+        echo "<p>User created!  Please <a href='/login'>log in</a> with your new credentials.</p>";
     } catch (\PDOException $e) {
         if ($e->getCode() == '23000') { // Duplicate key error
             echo "<h1>Error</h1><p>User already exists. Try a different username.</p>";
@@ -60,7 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 
 } else {
-    header(header: "Location: /login/");
+    $page = new \Template(config: $config);
+    $page->setTemplate("login/register.tpl.php");
+    $page->echoToScreen();
     exit;
 }
 
