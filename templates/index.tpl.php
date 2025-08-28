@@ -475,17 +475,6 @@
       ctx.stroke();
     }
 
-    // Draw number hints (all look the same - no visual hints about accessibility)
-    ctx.fillStyle = '#ffb556';
-    ctx.font = `${Math.max(12, Math.floor(cell*0.25)) * dpi}px ui-sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (const [cellKey, number] of numberHints) {
-      const [r, c] = cellKey.split(',').map(Number);
-      const {x, y} = px(r, c);
-      ctx.fillText(number.toString(), x, y);
-    }
-
     if (path.length>0){
       ctx.lineWidth = Math.max(6*dpi, Math.floor(cell*0.8));
       ctx.lineCap = 'round';
@@ -532,6 +521,17 @@
       }
       ctx.stroke();
       ctx.setLineDash([]); // Reset line dash
+    }
+
+    // Draw number hints on top (all look the same - no visual hints about accessibility)
+    ctx.fillStyle = '#ffb556';
+    ctx.font = `${Math.max(12, Math.floor(cell*0.25)) * dpi}px ui-sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const [cellKey, number] of numberHints) {
+      const [r, c] = cellKey.split(',').map(Number);
+      const {x, y} = px(r, c);
+      ctx.fillText(number.toString(), x, y);
     }
 
     ctx.restore();
