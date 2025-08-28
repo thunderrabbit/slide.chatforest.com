@@ -123,7 +123,7 @@ The main application feature is a puzzle game implemented in `templates/index.tp
 - **Sequential number access system** - players must visit numbered cells in order (1, 2, 3, etc.)
 - **Edge-based barrier system** - walls block passages between grid cells
 - **Solution visualization** - "Show Solution" button reveals complete path with dashed overlay
-- **Difficulty levels** - Easy (6x6), Medium (8x8), Hard (10x10) with variable hint counts
+- **Difficulty levels** - Easy (5x5), Medium (6x6)
 - **Flexible number placement** - variable number of numbered cells along solution path
 
 ### Technical Implementation
