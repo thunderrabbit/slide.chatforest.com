@@ -16,7 +16,6 @@
           <option value="medium" selected>Medium</option>
           <option value="hard">Hard</option>
         </select>
-        <label><input type="checkbox" id="showNumbers" checked /> # step</label>
       </div>
     </header>
 
@@ -43,7 +42,6 @@
   let occupied = new Set(); // key r,c
   let drawing = false;
   let anchors = new Map(); // no anchors by default
-  let showNumbers = true;
 
   // Puzzle generation state
   let edgeBarriers = new Set(); // edges that are blocked (format: "r1,c1|r2,c2")
@@ -478,17 +476,6 @@
       }
       ctx.stroke();
 
-      if (showNumbers){
-        ctx.fillStyle = '#0b0c0f';
-        ctx.font = `${Math.max(8, Math.floor(cell*0.16)) * dpi}px ui-sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        for(let i=0;i<path.length;i++){
-          const {x,y} = px(path[i].r, path[i].c);
-          ctx.fillText((i+1).toString(), x, y);
-        }
-      }
-
       const cur = path[path.length-1];
       const pxy = px(cur.r, cur.c);
       ctx.beginPath();
@@ -606,7 +593,6 @@
     clearAll();
     resize();
   });
-  document.getElementById('showNumbers').addEventListener('change', (e)=>{ showNumbers = e.target.checked; draw(); });
   document.getElementById('puzzleBtn').addEventListener('click', ()=>{
     const difficulty = document.getElementById('difficulty').value;
     generatePuzzle(difficulty);
