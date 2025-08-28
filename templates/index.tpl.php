@@ -1,22 +1,22 @@
 <div class="PagePanel slide-practice">
   <div class="wrap">
     <header>
-      <div class="controls">
+      <div class="top_controls">
         <label>Grid: <select id="gridSize">
           <option value="5" selected>5×5</option>
           <option value="6">6×6</option>
           <option value="8">8×8</option>
         </select></label>
-        <button id="clearBtn" title="Long‑press also clears">Clear</button>
-        <button id="undoBtn">Undo</button>
-        <button id="puzzleBtn">New Puzzle</button>
-        <button id="solutionBtn">Show Solution</button>
         <select id="difficulty">
           <option value="easy">Easy</option>
           <option value="medium" selected>Medium</option>
           <option value="hard">Hard</option>
         </select>
       </div>
+      <div class="lower_controls">
+          <button id="puzzleBtn">New</button>
+          <button id="solutionBtn">Solve</button>
+        </div>
     </header>
 
     <div class="hint">Drag one finger to draw; slide back to erase (backtrack). Long‑press anywhere to clear.</div>
@@ -585,8 +585,6 @@
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
 
-  document.getElementById('clearBtn').addEventListener('click', ()=>{ clearAll(); flash('#4d6aff'); });
-  document.getElementById('undoBtn').addEventListener('click', undo);
   document.getElementById('gridSize').addEventListener('change', (e)=>{
     N = parseInt(e.target.value,10);
     seedAnchors();
