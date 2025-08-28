@@ -310,6 +310,62 @@
     puzzleMode = true;
   }
 
+  function savePuzzle(difficulty) {
+    // Convert edgeBarriers Set to array for JSON
+    const barriers = [];
+    edgeBarriers.forEach(edgeId => {
+      const [cell1, cell2] = edgeId.split('|');
+      const [r1, c1] = cell1.split(',').map(Number);
+      const [r2, c2] = cell2.split(',').map(Number);
+
+      // Determine if it's vertical or horizontal
+      const isVertical = c1 === c2;
+      barriers.push({
+        x1: c1, y1: r1,
+        x2: c2, y2: r2,
+        type: isVertical ? 'vertical' : 'horizontal'
+      });
+    });
+
+    // Convert numberHints Map to object
+    const numbered_positions = {};
+    numberHints.forEach((number, cellKey) => {
+      const [r, c] = cellKey.split(',').map(Number);
+      numbered_positions[number] = {x: c, y: r};
+    });
+
+    // Convert solution path
+    const solution_path = solutionPath.map(cell => ({x: cell.c, y: cell.r}));
+
+    const puzzleData = {
+      grid_size: N,
+      barriers: barriers,
+      numbered_positions: numbered_positions,
+      solution_path: solution_path,
+      difficulty: difficulty
+    };
+
+    // Send to server
+    fetch('/save_puzzle.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(puzzleData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('Puzzle saved with ID:', data.puzzle_id);
+      } else {
+        console.error('Failed to save puzzle:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error saving puzzle:', error);
+    });
+  }
+
   function clearAll(){
     path = [];
     occupied.clear();
@@ -595,6 +651,7 @@
     generatePuzzle(difficulty);
     clearAll();
     draw();
+    savePuzzle(difficulty);
   });
   document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
 
