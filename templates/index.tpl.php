@@ -15,6 +15,9 @@
       <div class="lower_controls">
           <button id="puzzleBtn">New</button>
           <button id="solutionBtn">Solve</button>
+          <?php if(isset($puzzle_id) && $puzzle_id): ?>
+          <span class="puzzle-info">Puzzle #<?= $puzzle_id ?></span>
+          <?php endif; ?>
         </div>
     </header>
 
@@ -49,6 +52,10 @@
   let puzzleMode = false; // toggle between practice and puzzle mode
   let nextRequiredNumber = 1; // the next number that must be reached in sequence
   let showingSolution = false; // whether to display the solution path
+
+  // Puzzle data from server (for loading existing puzzles)
+  const puzzleData = <?= isset($puzzle_data) ? $puzzle_data : 'null' ?>;
+  const puzzleId = <?= isset($puzzle_id) && $puzzle_id ? $puzzle_id : 'null' ?>;
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -106,6 +113,47 @@
 
     // Number 1 is always accessible, other numbers only if previous was reached
     return cellNumber <= nextRequiredNumber;
+  }
+
+  function loadPuzzleData(data) {
+    if (!data) {
+      // No puzzle data - start with empty puzzle mode
+      puzzleMode = false;
+      return;
+    }
+
+    // Set grid size
+    N = data.grid_size;
+    document.getElementById('gridSize').value = N.toString();
+    document.getElementById('difficulty').value = data.difficulty || 'medium';
+
+    // Clear existing data
+    edgeBarriers.clear();
+    numberHints.clear();
+
+    // Load barriers
+    if (data.barriers) {
+      data.barriers.forEach(barrier => {
+        const edgeId = edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
+        edgeBarriers.add(edgeId);
+      });
+    }
+
+    // Load numbered positions
+    if (data.numbered_positions) {
+      Object.entries(data.numbered_positions).forEach(([number, pos]) => {
+        numberHints.set(key(pos.y, pos.x), parseInt(number));
+      });
+    }
+
+    // Load solution path
+    if (data.solution_path) {
+      solutionPath = data.solution_path.map(pos => ({r: pos.y, c: pos.x}));
+    }
+
+    puzzleMode = true;
+    nextRequiredNumber = 1;
+    showingSolution = false;
   }
 
   // --- Puzzle Generation ---
@@ -647,15 +695,25 @@
     resize();
   });
   document.getElementById('puzzleBtn').addEventListener('click', ()=>{
-    const difficulty = document.getElementById('difficulty').value;
-    generatePuzzle(difficulty);
-    clearAll();
-    draw();
-    savePuzzle(difficulty);
+    if (puzzleId) {
+      // If viewing a loaded puzzle, redirect to main page for new puzzle generation
+      window.location.href = '/';
+    } else {
+      // If on main page, generate new puzzle
+      const difficulty = document.getElementById('difficulty').value;
+      generatePuzzle(difficulty);
+      clearAll();
+      draw();
+      savePuzzle(difficulty);
+    }
   });
   document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
 
   seedAnchors();
+
+  // Load puzzle data if available (for existing puzzle URLs)
+  loadPuzzleData(puzzleData);
+
   resize();
   window.addEventListener('resize', resize);
 })();

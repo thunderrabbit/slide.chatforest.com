@@ -50,6 +50,12 @@
     align-items: center;
 }
 
+.puzzle-info {
+    color: var(--muted);
+    font-size: 14px;
+    font-style: italic;
+}
+
 .slide-practice .lower_controls {
     display: flex;
     gap: 8px;
