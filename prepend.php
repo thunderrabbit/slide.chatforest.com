@@ -50,9 +50,9 @@ $uri_path = $_SERVER['REQUEST_URI'] ?? '';
 if (
     !empty($errors)
     && $errors[0] == "YallGotAnyMoreOfThemUsers"
-    && $uri_path != "/login/register_admin.php"
+    && $uri_path != "/login/register.php"
 ) {
-    header(header: "Location: /login/register_admin.php");
+    header(header: "Location: /login/register.php");
     exit;
 }
 

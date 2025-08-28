@@ -47,7 +47,7 @@ This is a minimalist PHP web application framework designed for DreamHost deploy
 ### Authentication Flow
 
 - Session-based with database-stored cookies
-- First-time setup redirects to admin user creation unless visiting `/login/register_admin.php`
+- First-time setup redirects to admin user creation unless visiting `/login/register.php`
 - IP address tracking via `Auth\IPBin` class
 - Login state managed by `Auth\IsLoggedIn` class
 
@@ -103,7 +103,7 @@ This leverages DreamHost's consistent `/home/username/domain.com/` path structur
 ### Database Operations
 - Visit `/admin/migrate_tables.php` to manually apply pending migrations
 - Database schemas automatically applied for prefixes "00" and "01"
-- First-time setup creates admin user automatically (or redirects to `/login/register_admin.php`)
+- First-time setup creates admin user automatically (or redirects to `/login/register.php`)
 
 ## Error Handling and Debugging
 
