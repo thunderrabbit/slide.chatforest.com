@@ -7,5 +7,5 @@ include_once $matches[1] . '/prepend.php';
 
 $is_logged_in->logout();
 // We logged out.. yay!
-header(header: "Location: /login/");
+header(header: "Location: /");
 exit;
