@@ -10,25 +10,27 @@ if($debugLevel > 0) {
     echo "<pre>Debug Level: $debugLevel</pre>";
 }
 
+$page = new \Template(config: $config);
+$page->setTemplate("layout/base.tpl.php");
+$page->set("page_title", "Slide Practice - Free Puzzle Game");
+$page->set("site_version", SENTIMENTAL_VERSION);
+
+
+// Get the inner content
+$inner_page = new \Template(config: $config);
+$inner_page->setTemplate("index.tpl.php");
+$inner_page->set("site_version", SENTIMENTAL_VERSION);
+
+
 if($is_logged_in->isLoggedIn()){
-    // Logged in - show main site homepage
-    $page = new \Template(config: $config);
-    $page->setTemplate("layout/base.tpl.php");
-    $page->set("page_title", "Slide Chat Forest");
     $page->set("username", $is_logged_in->getLoggedInUsername());
-    $page->set("site_version", SENTIMENTAL_VERSION);
-
-    // Get the inner content
-    $inner_page = new \Template(config: $config);
-    $inner_page->setTemplate("index.tpl.php");
     $inner_page->set("username", $is_logged_in->getLoggedInUsername());
-    $inner_page->set("site_version", SENTIMENTAL_VERSION);
-    $page->set("page_content", $inner_page->grabTheGoods());
-
-    $page->echoToScreen();
-    exit;
 } else {
-    echo "<h1>Slide on in!</h1>";
-    echo "<p><a href='/login/'>Click here to log in</a></p>";
-    exit;
+    $page->set("username", "");
+    $inner_page->set("username", "");
 }
+
+$page->set("page_content", $inner_page->grabTheGoods());
+
+$page->echoToScreen();
+exit;
