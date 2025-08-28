@@ -1,13 +1,6 @@
-<div class="PagePanel">
-    Welcome back, <?= $username ?>!
-</div>
-
-<h1>Slide Chat Forest</h1>
-
 <div class="PagePanel slide-practice">
   <div class="wrap">
     <header>
-      <h1>Slide Practice</h1>
       <div class="controls">
         <label>Grid: <select id="gridSize">
           <option value="5" selected>5×5</option>
@@ -33,10 +26,8 @@
       <canvas id="board" width="800" height="800" aria-label="Slide grid"></canvas>
     </div>
 
-    <footer>
-      Simplified: no anchors, no auto‑reset. Draw freely with snap‑to‑cell and backtrack.
-    </footer>
   </div>
+</div>
 
 <script>
 (function(){
@@ -629,12 +620,3 @@
   window.addEventListener('resize', resize);
 })();
 </script>
-</div>
-
-<div class="PagePanel">
-    <h2>Site Status</h2>
-    <p>Everything is running smoothly.</p>
-    <?php if (isset($site_version)): ?>
-        <p><small>Version: <?= $site_version ?></small></p>
-    <?php endif; ?>
-</div>
