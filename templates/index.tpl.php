@@ -16,7 +16,7 @@
           <button id="puzzleBtn">New</button>
           <button id="solutionBtn">Solve</button>
           <?php if(isset($puzzle_id) && $puzzle_id): ?>
-          <span class="puzzle-info">Puzzle #<?= $puzzle_id ?></span>
+          <a href="/puzzle/<?= $puzzle_id ?>" class="puzzle-info">Puzzle #<?= $puzzle_id ?></a>
           <?php endif; ?>
         </div>
     </header>
@@ -405,6 +405,8 @@
     .then(data => {
       if (data.success) {
         console.log('Puzzle saved with ID:', data.puzzle_id);
+        // Show the puzzle number in the UI
+        showPuzzleNumber(data.puzzle_id);
       } else {
         console.error('Failed to save puzzle:', data.error);
       }
@@ -412,6 +414,22 @@
     .catch(error => {
       console.error('Error saving puzzle:', error);
     });
+  }
+
+  function showPuzzleNumber(puzzleId) {
+    // Find the lower_controls div and add/update puzzle info
+    const lowerControls = document.querySelector('.lower_controls');
+    let puzzleInfo = lowerControls.querySelector('.puzzle-info');
+
+    if (!puzzleInfo) {
+      // Create puzzle info link if it doesn't exist
+      puzzleInfo = document.createElement('a');
+      puzzleInfo.className = 'puzzle-info';
+      lowerControls.appendChild(puzzleInfo);
+    }
+
+    puzzleInfo.href = `/puzzle/${puzzleId}`;
+    puzzleInfo.textContent = `Puzzle #${puzzleId}`;
   }
 
   function clearAll(){
