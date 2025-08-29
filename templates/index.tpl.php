@@ -732,6 +732,15 @@
   // Load puzzle data if available (for existing puzzle URLs)
   loadPuzzleData(puzzleData);
 
+  // If no puzzle data, automatically generate a new puzzle
+  if (!puzzleData) {
+    const difficulty = document.getElementById('difficulty').value;
+    generatePuzzle(difficulty);
+    clearAll();
+    draw();
+    savePuzzle(difficulty);
+  }
+
   resize();
   window.addEventListener('resize', resize);
 })();
