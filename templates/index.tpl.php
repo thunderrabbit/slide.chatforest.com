@@ -28,7 +28,7 @@
     </div>
 
     <div class="leaderboard-section">
-      <h3><?php echo $username ? 'Your Best Times' : 'Your Times (Local)'; ?></h3>
+      <h3>Global Leaderboard</h3>
       <div id="user-times"></div>
     </div>
 
@@ -583,7 +583,7 @@
         .then(data => {
           if (data.success) {
             console.log('Solve time recorded:', solveTimeMs + 'ms');
-            loadUserTimes(); // Refresh times after recording
+            loadGlobalTimes(); // Refresh times after recording
           } else {
             console.error('Failed to record solve time:', data.error);
           }
@@ -592,23 +592,35 @@
           console.error('Error recording solve time:', error);
         });
     } else {
-      // Anonymous user: save to localStorage
+      // Anonymous user: save to localStorage and refresh displays
       saveAnonymousTime(puzzleData.puzzle_id, solveTimeMs);
       loadAnonymousTimes();
+      loadGlobalTimes();
     }
   }
 
-  function loadUserTimes() {
+  function loadGlobalTimes() {
     if (!puzzleData || !puzzleData.puzzle_id) return;
 
-    const username = '<?= $username ?>';
-    if (!username) return;
-
     fetch(`/get_user_times.php?puzzle_id=${puzzleData.puzzle_id}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          displayUserTimes(data.times);
+      .then(response => {
+        if (!response.ok) {
+          console.log('User times request failed:', response.status);
+          return;
+        }
+        return response.text();
+      })
+      .then(text => {
+        if (!text) return;
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            displayGlobalTimes(data.times, data.current_user_id);
+          } else {
+            console.log('User times error:', data.error);
+          }
+        } catch (e) {
+          console.error('Invalid JSON response from get_user_times.php:', text);
         }
       })
       .catch(error => {
@@ -616,7 +628,7 @@
       });
   }
 
-  function displayUserTimes(times) {
+  function displayGlobalTimes(times, currentUserId) {
     const container = document.getElementById('user-times');
     if (!container) return;
 
@@ -628,9 +640,13 @@
     const timesList = times.map((time, index) => {
       const seconds = (time.solve_time_ms / 1000).toFixed(2);
       const date = new Date(time.completed_at).toLocaleDateString();
-      return `<div class="time-entry">
+      const isCurrentUser = currentUserId && parseInt(time.user_id) === currentUserId;
+      const entryClass = isCurrentUser ? 'time-entry current-user' : 'time-entry';
+      
+      return `<div class="${entryClass}">
         <span class="rank">#${index + 1}</span>
         <span class="time">${seconds}s</span>
+        <span class="username">${time.username}</span>
         <span class="date">${date}</span>
       </div>`;
     }).join('');
@@ -889,14 +905,9 @@
   // Load puzzle data if available (for existing puzzle URLs)
   loadPuzzleData(puzzleData);
 
-  // Load user times for existing puzzles
+  // Load global leaderboard for existing puzzles
   if (puzzleData) {
-    const username = '<?= $username ?>';
-    if (username) {
-      loadUserTimes();
-    } else {
-      loadAnonymousTimes();
-    }
+    loadGlobalTimes();
   }
 
   // If no puzzle data, automatically generate a new puzzle

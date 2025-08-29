@@ -145,10 +145,25 @@
     font-family: ui-monospace, Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
 }
 
+.slide-practice .time-entry .username {
+    color: var(--fg);
+    font-weight: 500;
+    flex: 1;
+}
+
 .slide-practice .time-entry .date {
     color: var(--muted);
     font-size: 12px;
-    margin-left: auto;
+}
+
+.slide-practice .time-entry.current-user {
+    background: rgba(90, 166, 255, 0.15);
+    border-color: var(--accent);
+}
+
+.slide-practice .time-entry.current-user .username {
+    color: var(--accent);
+    font-weight: 600;
 }
 
 .slide-practice .no-times {

@@ -12,30 +12,28 @@ if (!isset($_GET['puzzle_id'])) {
     exit;
 }
 
-if (!$is_logged_in->isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(["error" => "User not logged in"]);
-    exit;
-}
+// Allow both logged-in and anonymous users to see global leaderboard
 
 try {
     $puzzle_id = intval($_GET['puzzle_id']);
-    $user_id = $is_logged_in->getLoggedInUserId();
+    $current_user_id = $is_logged_in->isLoggedIn() ? $is_logged_in->loggedInID() : null;
 
-    // Get user's best times for this puzzle, ordered by solve time (fastest first)
-    $query = "SELECT solve_time_ms, completed_at
-              FROM solve_times
-              WHERE puzzle_id = ? AND user_id = ?
-              ORDER BY solve_time_ms ASC
+    // Get global leaderboard for this puzzle with usernames
+    $query = "SELECT st.solve_time_ms, st.completed_at, st.user_id, u.username
+              FROM solve_times st
+              JOIN users u ON st.user_id = u.user_id
+              WHERE st.puzzle_id = ?
+              ORDER BY st.solve_time_ms ASC
               LIMIT 10";
 
     $stmt = $mla_database->prepare($query);
-    $stmt->execute([$puzzle_id, $user_id]);
+    $stmt->execute([$puzzle_id]);
     $times = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         "success" => true,
-        "times" => $times
+        "times" => $times,
+        "current_user_id" => $current_user_id
     ]);
 
 } catch (\Exception $e) {

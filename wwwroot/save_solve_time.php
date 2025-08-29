@@ -31,7 +31,7 @@ foreach ($required_fields as $field) {
 }
 
 try {
-    $user_id = $is_logged_in->getLoggedInUserId();
+    $user_id = $is_logged_in->loggedInID();
 
     // Prepare the solve time data
     $solve_data = [
