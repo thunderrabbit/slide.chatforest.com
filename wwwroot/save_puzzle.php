@@ -25,11 +25,12 @@ foreach ($required_fields as $field) {
 
 try {
     $puzzleManager = new PuzzleManager($mla_database);
-    $puzzleId = $puzzleManager->savePuzzle($input);
+    $puzzleResult = $puzzleManager->savePuzzle($input);
 
     echo json_encode([
         "success" => true,
-        "puzzle_id" => $puzzleId
+        "puzzle_id" => $puzzleResult['id'],
+        "puzzle_code" => $puzzleResult['puzzle_code']
     ]);
 
 } catch (\Exception $e) {
