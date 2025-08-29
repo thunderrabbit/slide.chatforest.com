@@ -29,7 +29,7 @@ try {
 
     echo json_encode([
         "success" => true,
-        "puzzle_id" => $puzzleResult['id'],
+        "puzzle_id" => $puzzleResult['puzzle_id'],
         "puzzle_code" => $puzzleResult['puzzle_code']
     ]);
 

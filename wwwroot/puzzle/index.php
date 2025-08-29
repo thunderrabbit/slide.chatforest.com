@@ -34,14 +34,14 @@ if($debugLevel > 0) {
 
 $page = new \Template(config: $config);
 $page->setTemplate("layout/base.tpl.php");
-$page->set("page_title", $puzzle_data ? "Puzzle #{$puzzle_data['id']} - Slide Practice" : "Slide Practice - Free Puzzle Game");
+$page->set("page_title", $puzzle_data ? "Puzzle #{$puzzle_data['puzzle_id']} - Slide Practice" : "Slide Practice - Free Puzzle Game");
 $page->set("site_version", SENTIMENTAL_VERSION);
 
 // Get the inner content
 $inner_page = new \Template(config: $config);
 $inner_page->setTemplate("index.tpl.php");
 $inner_page->set("site_version", SENTIMENTAL_VERSION);
-$inner_page->set("puzzle_id", $puzzle_data['id'] ?? null);
+$inner_page->set("puzzle_id", $puzzle_data['puzzle_id'] ?? null);
 $inner_page->set("puzzle_code", $puzzle_data['puzzle_code'] ?? null);
 $inner_page->set("puzzle_data", $puzzle_data ? json_encode($puzzle_data) : 'null');
 
