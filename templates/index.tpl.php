@@ -1000,7 +1000,7 @@
       container.innerHTML = `
         <p class="no-times">No times recorded yet for this puzzle.</p>
         <div class="register-prompt">
-          <p>🏆 <a href="/login/register.php">Create an account</a> to permanently save your solve times and compete on global leaderboards!</p>
+          <p>🏆 <a href="/login/register.php">Create an account</a> or <a href="/login/">Log in</a> to permanently save your solve times and compete on global leaderboards!</p>
         </div>
       `;
       return;
@@ -1019,7 +1019,7 @@
     container.innerHTML = `
       <div class="times-list">${timesList}</div>
       <div class="register-prompt">
-        <p>🏆 <a href="/login/register.php">Create an account</a> to permanently save your solve times and compete on global leaderboards!</p>
+        <p>🏆 <a href="/login/register.php">Create an account</a> or <a href="/login/">Log in</a> to permanently save your solve times and compete on global leaderboards!</p>
       </div>
     `;
   }
