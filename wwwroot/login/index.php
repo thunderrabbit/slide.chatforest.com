@@ -6,8 +6,15 @@ preg_match('#^(/home/[^/]+/[^/]+)#', __DIR__, $matches);
 include_once $matches[1] . '/prepend.php';
 
 if ($is_logged_in->isLoggedIn()) {
-    // We logged in.. yay!
-    header(header: "Location: /");
+    // We logged in.. yay! Check for last played puzzle
+    echo "<script>
+        const lastPuzzle = localStorage.getItem('lastPlayedPuzzle');
+        if (lastPuzzle) {
+            window.location.href = '/puzzle/' + lastPuzzle + '?returning=1';
+        } else {
+            window.location.href = '/?returning=1';
+        }
+    </script>";
     exit;
 } else {
     if(!$is_logged_in->isLoggedIn()){

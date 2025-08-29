@@ -63,7 +63,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $mla_database->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
         $stmt->execute([$username, $hash, $role]);
 
-        echo "<p>User created!  Please <a href='/login'>log in</a> with your new credentials.</p>";
+        // Auto-login the newly created user
+        $is_logged_in = new \Auth\IsLoggedIn($mla_database, $config);
+
+        // Simulate a login request with the new credentials
+        $login_request = new \Mlaphp\Request();
+        $login_request->post['username'] = $username;
+        $login_request->post['pass'] = $password;
+
+        $is_logged_in->checkLogin($login_request);
+
+        if ($is_logged_in->isLoggedIn()) {
+            // Check if user has a last played puzzle to return to
+            echo "<script>
+                const lastPuzzle = localStorage.getItem('lastPlayedPuzzle');
+                if (lastPuzzle) {
+                    window.location.href = '/puzzle/' + lastPuzzle + '?newuser=1';
+                } else {
+                    window.location.href = '/?newuser=1';
+                }
+            </script>";
+        } else {
+            echo "<p>User created but auto-login failed. Please <a href='/login'>log in</a> with your new credentials.</p>";
+        }
     } catch (\PDOException $e) {
         if ($e->getCode() == '23000') { // Duplicate key error
             echo "<h1>Error</h1><p>User already exists. Try a different username.</p>";

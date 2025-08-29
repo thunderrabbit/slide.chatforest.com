@@ -141,6 +141,11 @@
       return;
     }
 
+    // Store last played puzzle for potential restoration after login/registration
+    if (data.puzzle_code) {
+      localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
+    }
+
     // Set grid size
     N = data.grid_size;
     document.getElementById('gridSize').value = N.toString();
@@ -424,6 +429,8 @@
     .then(data => {
       if (data.success) {
         console.log('Puzzle saved with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
+        // Store last played puzzle
+        localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
         // Show the puzzle code in the UI
         showPuzzleCode(data.puzzle_id, data.puzzle_code);
       } else {
@@ -661,6 +668,56 @@
     }).join('');
 
     container.innerHTML = `<div class="times-list">${timesList}</div>`;
+  }
+
+  function migrateAnonymousTimes() {
+    // Find all localStorage puzzle times and migrate them
+    const keysToMigrate = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('slide_times_')) {
+        keysToMigrate.push(key);
+      }
+    }
+
+    if (keysToMigrate.length === 0) return;
+
+    console.log(`Migrating ${keysToMigrate.length} puzzle times to account...`);
+
+    keysToMigrate.forEach(key => {
+      const puzzleId = key.replace('slide_times_', '');
+      const times = JSON.parse(localStorage.getItem(key) || '[]');
+
+      times.forEach(time => {
+        // Save each time to the database
+        fetch('/save_solve_time.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            puzzle_id: parseInt(puzzleId),
+            solve_time_ms: time.solve_time_ms
+          })
+        }).then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              console.log(`Migrated time ${time.solve_time_ms}ms for puzzle ${puzzleId}`);
+            }
+          })
+          .catch(error => {
+            console.error('Error migrating time:', error);
+          });
+      });
+
+      // Clear the localStorage key after migration
+      localStorage.removeItem(key);
+    });
+
+    // Refresh the global leaderboard after migration
+    setTimeout(() => {
+      loadGlobalTimes();
+    }, 1000); // Wait a second for all migrations to complete
   }
 
   function saveAnonymousTime(puzzleId, solveTimeMs) {
@@ -914,9 +971,23 @@
   // Load puzzle data if available (for existing puzzle URLs)
   loadPuzzleData(puzzleData);
 
+  // Check if user just registered or logged in and trigger migration
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = '<?= $username ?>';
+
+  if (username && (urlParams.has('newuser') || urlParams.has('returning'))) {
+    // User just logged in or registered, migrate their localStorage times
+    migrateAnonymousTimes();
+
+    // Clean up the URL parameter
+    if (urlParams.has('newuser') || urlParams.has('returning')) {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }
+
   // Load leaderboards for existing puzzles
   if (puzzleData) {
-    const username = '<?= $username ?>';
     if (!username) {
       loadAnonymousTimes(); // Load local times for anonymous users
     }
