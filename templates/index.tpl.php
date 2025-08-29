@@ -16,7 +16,21 @@
           <button id="puzzleBtn">New</button>
           <button id="solutionBtn">Solve</button>
           <?php if(isset($puzzle_id) && $puzzle_id && isset($puzzle_code) && $puzzle_code): ?>
-          <a href="/puzzle/<?= $puzzle_code ?>" class="puzzle-info">Puzzle #<?= $puzzle_id ?></a>
+          <div class="puzzle-nav">
+            <?php if(isset($prev_puzzle_code) && $prev_puzzle_code): ?>
+            <a href="/puzzle/<?= $prev_puzzle_code ?>" class="puzzle-nav-btn prev" title="Previous puzzle">← Prev</a>
+            <?php else: ?>
+            <span class="puzzle-nav-btn prev disabled">-----</span>
+            <?php endif; ?>
+
+            <a href="/puzzle/<?= $puzzle_code ?>" class="puzzle-info" title="Current puzzle">Puzzle #<?= $puzzle_id ?></a>
+
+            <?php if(isset($next_puzzle_code) && $next_puzzle_code): ?>
+            <a href="/puzzle/<?= $next_puzzle_code ?>" class="puzzle-nav-btn next" title="Next puzzle">Next →</a>
+            <?php else: ?>
+            <span class="puzzle-nav-btn next disabled">-----</span>
+            <?php endif; ?>
+          </div>
           <?php endif; ?>
         </div>
     </header>

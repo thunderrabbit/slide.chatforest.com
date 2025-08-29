@@ -45,6 +45,35 @@ $inner_page->set("puzzle_id", $puzzle_data['puzzle_id'] ?? null);
 $inner_page->set("puzzle_code", $puzzle_data['puzzle_code'] ?? null);
 $inner_page->set("puzzle_data", $puzzle_data ? json_encode($puzzle_data) : 'null');
 
+// Get adjacent puzzles for navigation
+$prev_puzzle_code = null;
+$next_puzzle_code = null;
+
+if ($puzzle_data) {
+    try {
+        // Get previous puzzle (highest puzzle_id less than current)
+        $stmt = $mla_database->prepare("SELECT puzzle_code FROM puzzles WHERE puzzle_id < ? ORDER BY puzzle_id DESC LIMIT 1");
+        $stmt->execute([$puzzle_data['puzzle_id']]);
+        $prev_result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($prev_result) {
+            $prev_puzzle_code = $prev_result['puzzle_code'];
+        }
+
+        // Get next puzzle (lowest puzzle_id greater than current)
+        $stmt = $mla_database->prepare("SELECT puzzle_code FROM puzzles WHERE puzzle_id > ? ORDER BY puzzle_id ASC LIMIT 1");
+        $stmt->execute([$puzzle_data['puzzle_id']]);
+        $next_result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($next_result) {
+            $next_puzzle_code = $next_result['puzzle_code'];
+        }
+    } catch (\Exception $e) {
+        error_log("Error loading adjacent puzzles: " . $e->getMessage());
+    }
+}
+
+$inner_page->set("prev_puzzle_code", $prev_puzzle_code);
+$inner_page->set("next_puzzle_code", $next_puzzle_code);
+
 if($is_logged_in->isLoggedIn()){
     $page->set("username", $is_logged_in->getLoggedInUsername());
     $inner_page->set("username", $is_logged_in->getLoggedInUsername());

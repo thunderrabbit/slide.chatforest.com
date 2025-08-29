@@ -208,3 +208,47 @@
 .slide-practice .register-prompt a:hover {
     text-decoration: underline;
 }
+
+/* Puzzle Navigation */
+.slide-practice .puzzle-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.slide-practice .puzzle-nav-btn {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    min-width: 50px;
+    text-align: center;
+}
+
+.slide-practice .puzzle-nav-btn:hover {
+    color: var(--accent);
+    background: rgba(90, 166, 255, 0.1);
+}
+
+.slide-practice .puzzle-nav-btn:active {
+    transform: translateY(1px);
+}
+
+.slide-practice .puzzle-nav-btn.disabled {
+    color: #3a3f4a;
+    cursor: default;
+    pointer-events: none;
+}
+
+.slide-practice .puzzle-info {
+    color: var(--fg);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 4px 8px;
+}
+
+.slide-practice .puzzle-info:hover {
+    color: var(--accent);
+}
