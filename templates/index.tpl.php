@@ -90,6 +90,7 @@
   let puzzleStartTime = null;
   let puzzleSolved = false;
   let solveTimeRecorded = false;
+  let puzzleAlreadySolvedByUser = false; // Track if user already solved this puzzle
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -193,6 +194,9 @@
     puzzleMode = true;
     nextRequiredNumber = 1;
     showingSolution = false;
+
+    // Check if user already solved this puzzle (logged-in or anonymous)
+    checkIfAlreadySolved();
   }
 
   // --- Puzzle Generation ---
@@ -539,10 +543,12 @@
     const k = key(r,c);
 
     if (path.length===0){
-      // Start timing when first cell is clicked
-      if (puzzleMode && !puzzleSolved) {
+      // Start timing when first cell is clicked (only if user hasn't solved this before)
+      if (puzzleMode && !puzzleSolved && !puzzleAlreadySolvedByUser) {
         puzzleStartTime = Date.now();
         console.log('⏰ Started timing at:', puzzleStartTime);
+      } else if (puzzleAlreadySolvedByUser) {
+        console.log('⏰ Not starting timer - user already solved this puzzle');
       }
 
       // Check if first cell is accessible (only matters for numbered cells)
@@ -602,23 +608,32 @@
         if (solutionCorrect) {
           puzzleSolved = true;
           flash('#1dd1a1'); // Success green
-          console.log('🎉 PUZZLE SOLVED!');
 
-          // Record solve time if under 60 seconds (only once per solve)
-          if (puzzleStartTime && !solveTimeRecorded) {
-            const solveTimeMs = Date.now() - puzzleStartTime;
-            console.log('⏱️ Puzzle solved! Time:', solveTimeMs + 'ms');
-            if (solveTimeMs < 60000) { // Under 60 seconds
-              console.log('⏱️ Time under 60s, calling recordSolveTime');
-              recordSolveTime(solveTimeMs);
-              solveTimeRecorded = true; // Prevent duplicate recordings
-            } else {
-              console.log('⏱️ Time over 60s, not recording');
-            }
-          } else if (solveTimeRecorded) {
-            console.log('⏱️ Time already recorded for this solve');
+          if (puzzleAlreadySolvedByUser) {
+            console.log('🎉 PUZZLE COMPLETED AGAIN! (But time not recorded - already solved before)');
+            // Show completion message but no timing
+            showCompletionMessage('🎉 Solved again! Your first solve time still counts.');
           } else {
-            console.log('⏱️ No puzzleStartTime, cannot record');
+            console.log('🎉 PUZZLE SOLVED FOR FIRST TIME!');
+
+            // Record solve time if under 60 seconds (only once per solve)
+            if (puzzleStartTime && !solveTimeRecorded) {
+              const solveTimeMs = Date.now() - puzzleStartTime;
+              console.log('⏱️ Puzzle solved! Time:', solveTimeMs + 'ms');
+              if (solveTimeMs < 60000) { // Under 60 seconds
+                console.log('⏱️ Time under 60s, calling recordSolveTime');
+                recordSolveTime(solveTimeMs);
+                solveTimeRecorded = true; // Prevent duplicate recordings
+              } else {
+                console.log('⏱️ Time over 60s, not recording');
+                showCompletionMessage('🎉 Solved! (Time over 60s - not recorded)');
+              }
+            } else if (solveTimeRecorded) {
+              console.log('⏱️ Time already recorded for this solve');
+            } else {
+              console.log('⏱️ No puzzleStartTime, cannot record');
+              showCompletionMessage('🎉 Solved!');
+            }
           }
         } else {
           console.log('❌ Solution incorrect');
@@ -627,6 +642,78 @@
       } else {
         flash('#1dd1a1');
       }
+    }
+  }
+
+  function checkIfAlreadySolved() {
+    if (!puzzleData || !puzzleData.puzzle_id) return;
+
+    const username = '<?= $username ?>';
+
+    if (username) {
+      // Logged-in user: check database
+      fetch(`/check_solved.php?puzzle_id=${puzzleData.puzzle_id}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.solved) {
+            puzzleAlreadySolvedByUser = true;
+            console.log('✅ Logged-in user already solved this puzzle in', data.solve_time_ms + 'ms');
+
+            // Update UI to show it's already solved
+            updateSolvedUI(data.solve_time_ms, data.completed_at);
+          } else {
+            puzzleAlreadySolvedByUser = false;
+            console.log('🆕 Logged-in user has not solved this puzzle yet');
+          }
+        })
+        .catch(error => {
+          console.error('Error checking solve status:', error);
+          puzzleAlreadySolvedByUser = false;
+        });
+    } else {
+      // Anonymous user: check localStorage
+      const key = `slide_times_${puzzleData.puzzle_id}`;
+      const times = JSON.parse(localStorage.getItem(key) || '[]');
+
+      if (times.length > 0) {
+        puzzleAlreadySolvedByUser = true;
+        console.log('✅ Anonymous user already solved this puzzle in', times[0].solve_time_ms + 'ms');
+
+        // Update UI to show it's already solved
+        updateSolvedUI(times[0].solve_time_ms, times[0].completed_at);
+      } else {
+        puzzleAlreadySolvedByUser = false;
+        console.log('🆕 Anonymous user has not solved this puzzle yet');
+      }
+    }
+  }
+
+  function updateSolvedUI(solveTimeMs, completedAt) {
+    // Update the hint text to show it's already solved
+    const hint = document.querySelector('.hint');
+    if (hint) {
+      const seconds = (solveTimeMs / 1000).toFixed(2);
+      const date = new Date(completedAt).toLocaleDateString();
+      hint.innerHTML = `🎉 Already solved in ${seconds}s on ${date}! You can still play for fun, but only your first solve time counts.`;
+      hint.style.color = 'var(--good)';
+    }
+  }
+
+  function showCompletionMessage(message) {
+    // Show a temporary message overlay
+    const hint = document.querySelector('.hint');
+    if (hint) {
+      const originalText = hint.innerHTML;
+      const originalColor = hint.style.color;
+
+      hint.innerHTML = message;
+      hint.style.color = 'var(--good)';
+
+      // Revert after 3 seconds
+      setTimeout(() => {
+        hint.innerHTML = originalText;
+        hint.style.color = originalColor;
+      }, 3000);
     }
   }
 
@@ -716,13 +803,20 @@
         .then(data => {
           if (data.success) {
             console.log('Solve time recorded:', solveTimeMs + 'ms');
+            showCompletionMessage(`🎉 First solve! Time: ${(solveTimeMs / 1000).toFixed(2)}s`);
             loadGlobalTimes(); // Refresh times after recording
+          } else if (data.already_solved) {
+            console.log('User already solved this puzzle previously');
+            showCompletionMessage('🎉 Solved! (But your first time already counts)');
+            puzzleAlreadySolvedByUser = true; // Update status
           } else {
             console.error('Failed to record solve time:', data.error);
+            showCompletionMessage('🎉 Solved! (Error saving time)');
           }
         })
         .catch(error => {
           console.error('Error recording solve time:', error);
+          showCompletionMessage('🎉 Solved! (Error saving time)');
         });
     } else {
       console.log('📱 Anonymous user branch - calling saveAnonymousTime');
@@ -867,21 +961,24 @@
     let times = JSON.parse(localStorage.getItem(key) || '[]');
     console.log('💾 existing times:', times);
 
-    times.push({
-      solve_time_ms: solveTimeMs,
-      completed_at: new Date().toISOString()
-    });
-    console.log('💾 times after push:', times);
+    // For anonymous users, only save first solve
+    if (times.length === 0) {
+      times.push({
+        solve_time_ms: solveTimeMs,
+        completed_at: new Date().toISOString()
+      });
+      console.log('💾 First solve saved:', times);
 
-    // Keep only the best 10 times
-    times.sort((a, b) => a.solve_time_ms - b.solve_time_ms);
-    times = times.slice(0, 10);
-    console.log('💾 times after sort/slice:', times);
+      localStorage.setItem(key, JSON.stringify(times));
+      console.log('💾 saved to localStorage successfully');
 
-    localStorage.setItem(key, JSON.stringify(times));
-    console.log('💾 saved to localStorage successfully');
+      showCompletionMessage(`🎉 First solve! Time: ${(solveTimeMs / 1000).toFixed(2)}s`);
+    } else {
+      console.log('💾 Anonymous user already has a time for this puzzle - not saving duplicate');
+      showCompletionMessage('🎉 Solved again! Your first time still counts.');
+    }
 
-    // Verify it was saved
+    // Verify current state
     const saved = localStorage.getItem(key);
     console.log('💾 verification - localStorage now contains:', saved);
   }

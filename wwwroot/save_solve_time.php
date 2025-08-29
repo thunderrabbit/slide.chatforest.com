@@ -70,6 +70,18 @@ try {
         echo json_encode(["error" => "Failed to save solve time"]);
     }
 
+} catch (\PDOException $e) {
+    // Check if it's a duplicate key constraint violation (MySQL error code 23000)
+    if ($e->getCode() == '23000' && strpos($e->getMessage(), 'unique_user_puzzle_solve') !== false) {
+        http_response_code(409); // Conflict
+        echo json_encode([
+            "error" => "You have already solved this puzzle",
+            "already_solved" => true
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
 } catch (\Exception $e) {
     http_response_code(500);
     echo json_encode(["error" => $e->getMessage()]);
