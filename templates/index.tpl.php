@@ -28,8 +28,17 @@
     </div>
 
     <div class="leaderboard-section">
-      <h3>Global Leaderboard</h3>
-      <div id="user-times"></div>
+      <?php if(!$username): ?>
+      <div class="anonymous-times">
+        <h3>Your Times (Local)</h3>
+        <div id="anonymous-times"></div>
+      </div>
+      <?php endif; ?>
+
+      <div class="global-times">
+        <h3>Global Leaderboard</h3>
+        <div id="global-times"></div>
+      </div>
     </div>
 
   </div>
@@ -629,7 +638,7 @@
   }
 
   function displayGlobalTimes(times, currentUserId) {
-    const container = document.getElementById('user-times');
+    const container = document.getElementById('global-times');
     if (!container) return;
 
     if (times.length === 0) {
@@ -642,7 +651,7 @@
       const date = new Date(time.completed_at).toLocaleDateString();
       const isCurrentUser = currentUserId && parseInt(time.user_id) === currentUserId;
       const entryClass = isCurrentUser ? 'time-entry current-user' : 'time-entry';
-      
+
       return `<div class="${entryClass}">
         <span class="rank">#${index + 1}</span>
         <span class="time">${seconds}s</span>
@@ -680,7 +689,7 @@
   }
 
   function displayAnonymousTimes(times) {
-    const container = document.getElementById('user-times');
+    const container = document.getElementById('anonymous-times');
     if (!container) return;
 
     if (times.length === 0) {
@@ -905,9 +914,13 @@
   // Load puzzle data if available (for existing puzzle URLs)
   loadPuzzleData(puzzleData);
 
-  // Load global leaderboard for existing puzzles
+  // Load leaderboards for existing puzzles
   if (puzzleData) {
-    loadGlobalTimes();
+    const username = '<?= $username ?>';
+    if (!username) {
+      loadAnonymousTimes(); // Load local times for anonymous users
+    }
+    loadGlobalTimes(); // Always load global leaderboard
   }
 
   // If no puzzle data, automatically generate a new puzzle
