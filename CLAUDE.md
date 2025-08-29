@@ -150,6 +150,14 @@ Key functions:
 - Real-time path validation and visual feedback
 - Solution overlay with toggle functionality
 
+### Puzzle Storage & Sharing
+
+- **YouTube-style puzzle codes**: 8-character codes (e.g., `kx7mp9qr`) using clean character set without look-alikes
+- **Database storage**: Each puzzle saved with barriers, numbered positions, solution path, and difficulty
+- **Shareable URLs**: `/puzzle/kx7mp9qr` for specific puzzles, `/puzzle/123` for backwards compatibility
+- **Automatic saving**: Every "New" puzzle click generates and saves a unique puzzle
+- **Clean character set**: `abcdefghjkmnopqrstuvwxyzACDEFHJKLMNPQRTUVWXY34679` (49 chars, 33+ trillion capacity)
+
 ### Development History
 
 Notable fixes and improvements:
