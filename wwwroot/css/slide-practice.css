@@ -102,3 +102,84 @@
     color: var(--muted);
     font-size: 12px;
 }
+
+/* Leaderboard Styles */
+.slide-practice .leaderboard-section {
+    padding: 16px;
+    border-top: 1px solid #1b1f2a;
+    background: #0f1320;
+}
+
+.slide-practice .leaderboard-section h3 {
+    margin: 0 0 12px 0;
+    color: var(--fg);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.slide-practice .times-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.slide-practice .time-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid #1b1f2a;
+}
+
+.slide-practice .time-entry .rank {
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 24px;
+}
+
+.slide-practice .time-entry .time {
+    font-weight: 600;
+    color: var(--good);
+    font-family: ui-monospace, Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+}
+
+.slide-practice .time-entry .date {
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.slide-practice .no-times {
+    color: var(--muted);
+    font-style: italic;
+    margin: 0;
+    padding: 12px;
+    text-align: center;
+}
+
+.slide-practice .register-prompt {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(90, 166, 255, 0.1);
+    border: 1px solid rgba(90, 166, 255, 0.3);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.slide-practice .register-prompt p {
+    margin: 0;
+    color: var(--fg);
+    font-size: 14px;
+}
+
+.slide-practice .register-prompt a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.slide-practice .register-prompt a:hover {
+    text-decoration: underline;
+}

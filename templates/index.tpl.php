@@ -27,6 +27,11 @@
       <canvas id="board" width="800" height="800" aria-label="Slide grid"></canvas>
     </div>
 
+    <div class="leaderboard-section">
+      <h3><?php echo $username ? 'Your Best Times' : 'Your Times (Local)'; ?></h3>
+      <div id="user-times"></div>
+    </div>
+
   </div>
 </div>
 
@@ -57,6 +62,10 @@
   const puzzleData = <?= isset($puzzle_data) ? $puzzle_data : 'null' ?>;
   const puzzleId = <?= isset($puzzle_id) && $puzzle_id ? $puzzle_id : 'null' ?>;
   const puzzleCode = <?= isset($puzzle_code) ? '"' . $puzzle_code . '"' : 'null' ?>;
+
+  // Timing for solve speed tracking
+  let puzzleStartTime = null;
+  let puzzleSolved = false;
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -472,6 +481,11 @@
     const k = key(r,c);
 
     if (path.length===0){
+      // Start timing when first cell is clicked
+      if (puzzleMode && !puzzleSolved) {
+        puzzleStartTime = Date.now();
+      }
+
       // Check if first cell is accessible (only matters for numbered cells)
       if (!isNumberedCellAccessible(r, c)) return;
 
@@ -521,7 +535,16 @@
       if (puzzleMode) {
         // Check if solution is correct
         if (checkSolution()) {
+          puzzleSolved = true;
           flash('#1dd1a1'); // Success green
+
+          // Record solve time if under 60 seconds
+          if (puzzleStartTime) {
+            const solveTimeMs = Date.now() - puzzleStartTime;
+            if (solveTimeMs < 60000) { // Under 60 seconds
+              recordSolveTime(solveTimeMs);
+            }
+          }
         } else {
           flash('#ff6b6b'); // Error red
         }
@@ -537,6 +560,139 @@
       if (!equal(path[i], solutionPath[i])) return false;
     }
     return true;
+  }
+
+  function recordSolveTime(solveTimeMs) {
+    if (!puzzleData || !puzzleData.puzzle_id) return;
+
+    const username = '<?= $username ?>';
+
+    if (username) {
+      // Logged-in user: save to database
+      fetch('/save_solve_time.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          puzzle_id: puzzleData.puzzle_id,
+          puzzle_code: puzzleData.puzzle_code,
+          solve_time_ms: solveTimeMs
+        })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Solve time recorded:', solveTimeMs + 'ms');
+            loadUserTimes(); // Refresh times after recording
+          } else {
+            console.error('Failed to record solve time:', data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error recording solve time:', error);
+        });
+    } else {
+      // Anonymous user: save to localStorage
+      saveAnonymousTime(puzzleData.puzzle_id, solveTimeMs);
+      loadAnonymousTimes();
+    }
+  }
+
+  function loadUserTimes() {
+    if (!puzzleData || !puzzleData.puzzle_id) return;
+
+    const username = '<?= $username ?>';
+    if (!username) return;
+
+    fetch(`/get_user_times.php?puzzle_id=${puzzleData.puzzle_id}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          displayUserTimes(data.times);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading user times:', error);
+      });
+  }
+
+  function displayUserTimes(times) {
+    const container = document.getElementById('user-times');
+    if (!container) return;
+
+    if (times.length === 0) {
+      container.innerHTML = '<p class="no-times">No times recorded yet for this puzzle.</p>';
+      return;
+    }
+
+    const timesList = times.map((time, index) => {
+      const seconds = (time.solve_time_ms / 1000).toFixed(2);
+      const date = new Date(time.completed_at).toLocaleDateString();
+      return `<div class="time-entry">
+        <span class="rank">#${index + 1}</span>
+        <span class="time">${seconds}s</span>
+        <span class="date">${date}</span>
+      </div>`;
+    }).join('');
+
+    container.innerHTML = `<div class="times-list">${timesList}</div>`;
+  }
+
+  function saveAnonymousTime(puzzleId, solveTimeMs) {
+    const key = `slide_times_${puzzleId}`;
+    let times = JSON.parse(localStorage.getItem(key) || '[]');
+
+    times.push({
+      solve_time_ms: solveTimeMs,
+      completed_at: new Date().toISOString()
+    });
+
+    // Keep only the best 10 times
+    times.sort((a, b) => a.solve_time_ms - b.solve_time_ms);
+    times = times.slice(0, 10);
+
+    localStorage.setItem(key, JSON.stringify(times));
+  }
+
+  function loadAnonymousTimes() {
+    if (!puzzleData || !puzzleData.puzzle_id) return;
+
+    const key = `slide_times_${puzzleData.puzzle_id}`;
+    const times = JSON.parse(localStorage.getItem(key) || '[]');
+
+    displayAnonymousTimes(times);
+  }
+
+  function displayAnonymousTimes(times) {
+    const container = document.getElementById('user-times');
+    if (!container) return;
+
+    if (times.length === 0) {
+      container.innerHTML = `
+        <p class="no-times">No times recorded yet for this puzzle.</p>
+        <div class="register-prompt">
+          <p>🏆 <a href="/login/register.php">Create an account</a> to permanently save your solve times and compete on global leaderboards!</p>
+        </div>
+      `;
+      return;
+    }
+
+    const timesList = times.map((time, index) => {
+      const seconds = (time.solve_time_ms / 1000).toFixed(2);
+      const date = new Date(time.completed_at).toLocaleDateString();
+      return `<div class="time-entry">
+        <span class="rank">#${index + 1}</span>
+        <span class="time">${seconds}s</span>
+        <span class="date">${date}</span>
+      </div>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="times-list">${timesList}</div>
+      <div class="register-prompt">
+        <p>🏆 <a href="/login/register.php">Create an account</a> to permanently save your solve times and compete on global leaderboards!</p>
+      </div>
+    `;
   }
 
   // --- Rendering ---
@@ -732,6 +888,16 @@
 
   // Load puzzle data if available (for existing puzzle URLs)
   loadPuzzleData(puzzleData);
+
+  // Load user times for existing puzzles
+  if (puzzleData) {
+    const username = '<?= $username ?>';
+    if (username) {
+      loadUserTimes();
+    } else {
+      loadAnonymousTimes();
+    }
+  }
 
   // If no puzzle data, automatically generate a new puzzle
   if (!puzzleData) {
