@@ -27,14 +27,14 @@ class PuzzleManager
         ]);
 
         return [
-            'id' => (int)$this->pdo->lastInsertId(),
+            'puzzle_id' => (int)$this->pdo->lastInsertId(),
             'puzzle_code' => $puzzleCode
         ];
     }
 
     public function getPuzzle(int $puzzleId): ?array
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM puzzles WHERE id = ? LIMIT 1");
+        $stmt = $this->pdo->prepare("SELECT * FROM puzzles WHERE puzzle_id = ? LIMIT 1");
         $stmt->execute([$puzzleId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -43,7 +43,7 @@ class PuzzleManager
         }
 
         return [
-            'id' => $result['id'],
+            'puzzle_id' => $result['puzzle_id'],
             'puzzle_code' => $result['puzzle_code'],
             'grid_size' => (int)$result['grid_size'],
             'barriers' => json_decode($result['barriers'], true),
@@ -69,7 +69,7 @@ class PuzzleManager
         }
 
         return [
-            'id' => $result['id'],
+            'puzzle_id' => $result['puzzle_id'],
             'puzzle_code' => $result['puzzle_code'],
             'grid_size' => (int)$result['grid_size'],
             'barriers' => json_decode($result['barriers'], true),

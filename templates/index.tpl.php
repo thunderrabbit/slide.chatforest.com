@@ -15,8 +15,8 @@
       <div class="lower_controls">
           <button id="puzzleBtn">New</button>
           <button id="solutionBtn">Solve</button>
-          <?php if(isset($puzzle_id) && $puzzle_id): ?>
-          <a href="/puzzle/<?= $puzzle_id ?>" class="puzzle-info">Puzzle #<?= $puzzle_id ?></a>
+          <?php if(isset($puzzle_id) && $puzzle_id && isset($puzzle_code) && $puzzle_code): ?>
+          <a href="/puzzle/<?= $puzzle_code ?>" class="puzzle-info">Puzzle #<?= $puzzle_id ?></a>
           <?php endif; ?>
         </div>
     </header>
@@ -56,6 +56,7 @@
   // Puzzle data from server (for loading existing puzzles)
   const puzzleData = <?= isset($puzzle_data) ? $puzzle_data : 'null' ?>;
   const puzzleId = <?= isset($puzzle_id) && $puzzle_id ? $puzzle_id : 'null' ?>;
+  const puzzleCode = <?= isset($puzzle_code) ? '"' . $puzzle_code . '"' : 'null' ?>;
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -404,9 +405,9 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        console.log('Puzzle saved with ID:', data.puzzle_id);
-        // Show the puzzle number in the UI
-        showPuzzleNumber(data.puzzle_id);
+        console.log('Puzzle saved with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
+        // Show the puzzle code in the UI
+        showPuzzleCode(data.puzzle_id, data.puzzle_code);
       } else {
         console.error('Failed to save puzzle:', data.error);
       }
@@ -416,7 +417,7 @@
     });
   }
 
-  function showPuzzleNumber(puzzleId) {
+  function showPuzzleCode(puzzleId, puzzleCode) {
     // Find the lower_controls div and add/update puzzle info
     const lowerControls = document.querySelector('.lower_controls');
     let puzzleInfo = lowerControls.querySelector('.puzzle-info');
@@ -428,7 +429,7 @@
       lowerControls.appendChild(puzzleInfo);
     }
 
-    puzzleInfo.href = `/puzzle/${puzzleId}`;
+    puzzleInfo.href = `/puzzle/${puzzleCode}`;
     puzzleInfo.textContent = `Puzzle #${puzzleId}`;
   }
 
@@ -713,7 +714,7 @@
     resize();
   });
   document.getElementById('puzzleBtn').addEventListener('click', ()=>{
-    if (puzzleId) {
+    if (puzzleCode || puzzleId) {
       // If viewing a loaded puzzle, redirect to main page for new puzzle generation
       window.location.href = '/';
     } else {
