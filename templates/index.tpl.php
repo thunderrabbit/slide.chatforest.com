@@ -546,9 +546,7 @@
       // Start timing when first cell is clicked (only if user hasn't solved this before)
       if (puzzleMode && !puzzleSolved && !puzzleAlreadySolvedByUser) {
         puzzleStartTime = Date.now();
-        console.log('⏰ Started timing at:', puzzleStartTime);
       } else if (puzzleAlreadySolvedByUser) {
-        console.log('⏰ Starting timer - but user already solved this puzzle');
         puzzleStartTime = Date.now();
       }
 
