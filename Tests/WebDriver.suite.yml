@@ -1,0 +1,27 @@
+# Codeception WebDriver Test Suite Configuration
+#
+# Suite for JavaScript-enabled tests using WebDriver (Chrome/Selenium)
+# Enables testing of user interactions, form submissions, and dynamic content
+
+actor: WebDriverTester
+modules:
+    enabled:
+        - Tests\Support\Helper\WebDriver
+        - WebDriver:
+            url: https://slide.chatforest.com
+            browser: chrome
+            host: localhost
+            port: 4444
+            window_size: 1920x1080
+            capabilities:
+                chromeOptions:
+                    args: ["--headless", "--no-sandbox", "--disable-dev-shm-usage"]
+    # Database module for user registration testing
+    #    - Db:
+    #        dsn: 'mysql:host=localhost;dbname=chatforest_slide'
+    #        user: 'your_db_user'
+    #        password: 'your_db_password'
+    #        dump: Tests/Support/Data/dump.sql
+    #        populate: false
+    #        cleanup: false
+step_decorators: ~

@@ -2,3 +2,9 @@
 .aider*
 scp_files_to_dh.sh
 classes/Config.php
+
+# Codeception test outputs
+Tests/_output/*
+Tests/Support/_generated/*
+!Tests/Support/_generated/.gitignore
+vendor/

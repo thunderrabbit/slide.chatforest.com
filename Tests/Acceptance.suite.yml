@@ -1,0 +1,20 @@
+# Codeception Test Suite Configuration
+#
+# Suite for acceptance tests.
+# Perform tests in browser using PhpBrowser for simple HTTP testing
+
+actor: AcceptanceTester
+modules:
+    enabled:
+        - Tests\Support\Helper\Acceptance
+        - PhpBrowser:
+            url: https://slide.chatforest.com
+    # Disabled for basic testing - uncomment and configure when needed
+    #    - Db:
+    #        dsn: 'mysql:host=localhost;dbname=chatforest_slide'
+    #        user: 'your_db_user'
+    #        password: 'your_db_password'
+    #        dump: Tests/Support/Data/dump.sql
+    #        populate: false
+    #        cleanup: false
+step_decorators: ~
