@@ -5,6 +5,7 @@
         <label>Grid: <select id="gridSize">
           <option value="5" selected>5×5</option>
           <option value="6">6×6</option>
+          <option value="7">7×7</option>
         </select></label>
         <select id="difficulty">
           <option value="easy">Easy</option>
@@ -399,6 +400,63 @@
     }
 
     puzzleMode = true;
+  }
+
+  function generatePuzzleUsingPHP(difficulty) {
+    console.log('🚀 Using PHP generator for', N + 'x' + N, 'puzzle with difficulty:', difficulty);
+
+    // Send request to PHP generator
+    fetch('/generate_puzzle.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        grid_size: N,
+        difficulty: difficulty
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('✅ PHP puzzle generated with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
+
+        // Load the generated puzzle data into the game
+        loadPuzzleData({
+          puzzle_id: data.puzzle_id,
+          puzzle_code: data.puzzle_code,
+          grid_size: data.puzzle_data.grid_size,
+          barriers: data.puzzle_data.barriers,
+          numbered_positions: data.puzzle_data.numbered_positions,
+          solution_path: data.puzzle_data.solution_path,
+          difficulty: data.puzzle_data.difficulty
+        });
+
+        // Update global puzzleData
+        puzzleData = {
+          puzzle_id: data.puzzle_id,
+          puzzle_code: data.puzzle_code
+        };
+
+        // Store last played puzzle
+        localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
+
+        // Show the puzzle code in the UI
+        showPuzzleCode(data.puzzle_id, data.puzzle_code);
+
+        // Clear any existing path and redraw
+        clearAll();
+        draw();
+
+      } else {
+        console.error('❌ Failed to generate PHP puzzle:', data.error);
+        alert('Failed to generate puzzle: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error generating PHP puzzle:', error);
+      alert('Error generating puzzle. Please try again.');
+    });
   }
 
   function savePuzzle(difficulty) {
@@ -1208,10 +1266,18 @@
     } else {
       // If on main page, generate new puzzle
       const difficulty = document.getElementById('difficulty').value;
-      generatePuzzle(difficulty);
-      clearAll();
-      draw();
-      savePuzzle(difficulty);
+
+      // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
+      if (N >= 7) {
+        console.log('🚀 Grid size', N + 'x' + N, '- using PHP generator');
+        generatePuzzleUsingPHP(difficulty);
+      } else {
+        console.log('🚀 Grid size', N + 'x' + N, '- using JavaScript generator');
+        generatePuzzle(difficulty);
+        clearAll();
+        draw();
+        savePuzzle(difficulty);
+      }
     }
   });
   document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
@@ -1257,17 +1323,25 @@
     console.log('🎲 No initial puzzleData, generating new puzzle');
     const difficulty = document.getElementById('difficulty').value;
 
-    // Set temporary puzzleData immediately so recordSolveTime() won't fail
-    puzzleData = {
-      puzzle_id: 'temp_' + Date.now(), // temporary ID until server responds
-      puzzle_code: 'temp'
-    };
-    console.log('🎲 Set temporary puzzleData:', puzzleData);
+    // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
+    if (N >= 7) {
+      console.log('🎲 Grid size', N + 'x' + N, '- using PHP generator for initial puzzle');
+      generatePuzzleUsingPHP(difficulty);
+    } else {
+      console.log('🎲 Grid size', N + 'x' + N, '- using JavaScript generator for initial puzzle');
 
-    generatePuzzle(difficulty);
-    clearAll();
-    draw();
-    savePuzzle(difficulty);
+      // Set temporary puzzleData immediately so recordSolveTime() won't fail
+      puzzleData = {
+        puzzle_id: 'temp_' + Date.now(), // temporary ID until server responds
+        puzzle_code: 'temp'
+      };
+      console.log('🎲 Set temporary puzzleData:', puzzleData);
+
+      generatePuzzle(difficulty);
+      clearAll();
+      draw();
+      savePuzzle(difficulty);
+    }
   }
 
   resize();
