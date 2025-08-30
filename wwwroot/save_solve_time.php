@@ -41,10 +41,10 @@ try {
         'user_id' => $user_id
     ];
 
-    // Validate solve time is reasonable (between 1ms and 60 seconds)
-    if ($solve_data['solve_time_ms'] < 1 || $solve_data['solve_time_ms'] >= 60000) {
+    // Validate solve time is reasonable (minimum 2.5 seconds to prevent bots)
+    if ($solve_data['solve_time_ms'] < 2500) {
         http_response_code(400);
-        echo json_encode(["error" => "Invalid solve time"]);
+        echo json_encode(["error" => "Wow that's fast"]);
         exit;
     }
 

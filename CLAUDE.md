@@ -158,6 +158,17 @@ Key functions:
 - **Automatic saving**: Every "New" puzzle click generates and saves a unique puzzle
 - **Clean character set**: `abcdefghjkmnopqrstuvwxyzACDEFHJKLMNPQRTUVWXY34679` (49 chars, 33+ trillion capacity)
 
+### Solve Time Tracking System
+
+- **"First solve only" policy**: Each user can only record one solve time per puzzle
+- **Database constraint**: `unique_user_puzzle_solve` prevents duplicate database entries
+- **Anonymous user support**: localStorage tracks first solve for non-logged-in users
+- **User migration**: Anonymous times automatically migrate to account upon registration/login
+- **API endpoints**: `/save_solve_time.php`, `/get_user_times.php`, `/check_solved.php`
+- **Leaderboards**: Global leaderboard shows best times with usernames, local times for anonymous users
+- **Time validation**: Saves all reasonable times (above 2.5 seconds) to prevent spam/cheating
+- **UI feedback**: Different messages for first solve vs repeat completions
+
 ### Development History
 
 Notable fixes and improvements:

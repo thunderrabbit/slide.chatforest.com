@@ -616,18 +616,13 @@
           } else {
             console.log('🎉 PUZZLE SOLVED FOR FIRST TIME!');
 
-            // Record solve time if under 60 seconds (only once per solve)
+            // Record solve time (only once per solve)
             if (puzzleStartTime && !solveTimeRecorded) {
               const solveTimeMs = Date.now() - puzzleStartTime;
               console.log('⏱️ Puzzle solved! Time:', solveTimeMs + 'ms');
-              if (solveTimeMs < 60000) { // Under 60 seconds
-                console.log('⏱️ Time under 60s, calling recordSolveTime');
-                recordSolveTime(solveTimeMs);
-                solveTimeRecorded = true; // Prevent duplicate recordings
-              } else {
-                console.log('⏱️ Time over 60s, not recording');
-                showCompletionMessage('🎉 Solved! (Time over 60s - not recorded)');
-              }
+              console.log('⏱️ Recording solve time');
+              recordSolveTime(solveTimeMs);
+              solveTimeRecorded = true; // Prevent duplicate recordings
             } else if (solveTimeRecorded) {
               console.log('⏱️ Time already recorded for this solve');
             } else {
