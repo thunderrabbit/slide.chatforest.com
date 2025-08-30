@@ -110,6 +110,16 @@
     background: #0f1320;
 }
 
+.slide-practice .anonymous-times {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #1b1f2a;
+}
+
+.slide-practice .global-times {
+    /* No additional styling needed */
+}
+
 .slide-practice .leaderboard-section h3 {
     margin: 0 0 12px 0;
     color: var(--fg);
@@ -145,10 +155,25 @@
     font-family: ui-monospace, Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
 }
 
+.slide-practice .time-entry .username {
+    color: var(--fg);
+    font-weight: 500;
+    flex: 1;
+}
+
 .slide-practice .time-entry .date {
     color: var(--muted);
     font-size: 12px;
-    margin-left: auto;
+}
+
+.slide-practice .time-entry.current-user {
+    background: rgba(90, 166, 255, 0.15);
+    border-color: var(--accent);
+}
+
+.slide-practice .time-entry.current-user .username {
+    color: var(--accent);
+    font-weight: 600;
 }
 
 .slide-practice .no-times {
@@ -182,4 +207,48 @@
 
 .slide-practice .register-prompt a:hover {
     text-decoration: underline;
+}
+
+/* Puzzle Navigation */
+.slide-practice .puzzle-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.slide-practice .puzzle-nav-btn {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    min-width: 50px;
+    text-align: center;
+}
+
+.slide-practice .puzzle-nav-btn:hover {
+    color: var(--accent);
+    background: rgba(90, 166, 255, 0.1);
+}
+
+.slide-practice .puzzle-nav-btn:active {
+    transform: translateY(1px);
+}
+
+.slide-practice .puzzle-nav-btn.disabled {
+    color: #3a3f4a;
+    cursor: default;
+    pointer-events: none;
+}
+
+.slide-practice .puzzle-info {
+    color: var(--fg);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 4px 8px;
+}
+
+.slide-practice .puzzle-info:hover {
+    color: var(--accent);
 }

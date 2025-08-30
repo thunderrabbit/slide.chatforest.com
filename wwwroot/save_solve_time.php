@@ -31,31 +31,29 @@ foreach ($required_fields as $field) {
 }
 
 try {
-    $user_id = $is_logged_in->getLoggedInUserId();
+    $user_id = $is_logged_in->loggedInID();
 
     // Prepare the solve time data
     $solve_data = [
         'puzzle_id' => intval($input['puzzle_id']),
-        'puzzle_code' => $input['puzzle_code'] ?? null,
         'solve_time_ms' => intval($input['solve_time_ms']),
         'user_id' => $user_id
     ];
 
-    // Validate solve time is reasonable (between 1ms and 60 seconds)
-    if ($solve_data['solve_time_ms'] < 1 || $solve_data['solve_time_ms'] >= 60000) {
+    // Validate solve time is reasonable (minimum 2.5 seconds to prevent bots)
+    if ($solve_data['solve_time_ms'] < 2500) {
         http_response_code(400);
-        echo json_encode(["error" => "Invalid solve time"]);
+        echo json_encode(["error" => "Wow that's fast"]);
         exit;
     }
 
     // Insert the solve time
-    $query = "INSERT INTO solve_times (puzzle_id, puzzle_code, solve_time_ms, user_id)
-              VALUES (?, ?, ?, ?)";
+    $query = "INSERT INTO solve_times (puzzle_id, solve_time_ms, user_id)
+              VALUES (?, ?, ?)";
 
     $stmt = $mla_database->prepare($query);
     $result = $stmt->execute([
         $solve_data['puzzle_id'],
-        $solve_data['puzzle_code'],
         $solve_data['solve_time_ms'],
         $solve_data['user_id']
     ]);
@@ -70,6 +68,18 @@ try {
         echo json_encode(["error" => "Failed to save solve time"]);
     }
 
+} catch (\PDOException $e) {
+    // Check if it's a duplicate key constraint violation (MySQL error code 23000)
+    if ($e->getCode() == '23000' && strpos($e->getMessage(), 'unique_user_puzzle_solve') !== false) {
+        http_response_code(409); // Conflict
+        echo json_encode([
+            "error" => "You have already solved this puzzle",
+            "already_solved" => true
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
 } catch (\Exception $e) {
     http_response_code(500);
     echo json_encode(["error" => $e->getMessage()]);

@@ -16,20 +16,43 @@
           <button id="puzzleBtn">New</button>
           <button id="solutionBtn">Solve</button>
           <?php if(isset($puzzle_id) && $puzzle_id && isset($puzzle_code) && $puzzle_code): ?>
-          <a href="/puzzle/<?= $puzzle_code ?>" class="puzzle-info">Puzzle #<?= $puzzle_id ?></a>
+          <div class="puzzle-nav">
+            <?php if(isset($prev_puzzle_code) && $prev_puzzle_code): ?>
+            <a href="/puzzle/<?= $prev_puzzle_code ?>" class="puzzle-nav-btn prev" title="Previous puzzle">← Prev</a>
+            <?php else: ?>
+            <span class="puzzle-nav-btn prev disabled">-----</span>
+            <?php endif; ?>
+
+            <a href="/puzzle/<?= $puzzle_code ?>" class="puzzle-info" title="Current puzzle">Puzzle #<?= $puzzle_id ?></a>
+
+            <?php if(isset($next_puzzle_code) && $next_puzzle_code): ?>
+            <a href="/puzzle/<?= $next_puzzle_code ?>" class="puzzle-nav-btn next" title="Next puzzle">Next →</a>
+            <?php else: ?>
+            <span class="puzzle-nav-btn next disabled">-----</span>
+            <?php endif; ?>
+          </div>
           <?php endif; ?>
         </div>
     </header>
 
-    <div class="hint">Drag one finger to draw; slide back to erase (backtrack). Long‑press anywhere to clear.</div>
+    <div class="hint">Drag one finger to draw; slide back to erase (backtrack). Long‑press anywhere to clear. Visit numbers 1, 2, 3... in order and END on the highest number.</div>
 
     <div class="stage">
       <canvas id="board" width="800" height="800" aria-label="Slide grid"></canvas>
     </div>
 
     <div class="leaderboard-section">
-      <h3><?php echo $username ? 'Your Best Times' : 'Your Times (Local)'; ?></h3>
-      <div id="user-times"></div>
+      <?php if(!$username): ?>
+      <div class="anonymous-times">
+        <h3>Your Times (Local)</h3>
+        <div id="anonymous-times"></div>
+      </div>
+      <?php endif; ?>
+
+      <div class="global-times">
+        <h3>Global Leaderboard</h3>
+        <div id="global-times"></div>
+      </div>
     </div>
 
   </div>
@@ -59,13 +82,15 @@
   let showingSolution = false; // whether to display the solution path
 
   // Puzzle data from server (for loading existing puzzles)
-  const puzzleData = <?= isset($puzzle_data) ? $puzzle_data : 'null' ?>;
+  let puzzleData = <?= isset($puzzle_data) ? $puzzle_data : 'null' ?>;
   const puzzleId = <?= isset($puzzle_id) && $puzzle_id ? $puzzle_id : 'null' ?>;
   const puzzleCode = <?= isset($puzzle_code) ? '"' . $puzzle_code . '"' : 'null' ?>;
 
   // Timing for solve speed tracking
   let puzzleStartTime = null;
   let puzzleSolved = false;
+  let solveTimeRecorded = false;
+  let puzzleAlreadySolvedByUser = false; // Track if user already solved this puzzle
 
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
@@ -132,6 +157,11 @@
       return;
     }
 
+    // Store last played puzzle for potential restoration after login/registration
+    if (data.puzzle_code) {
+      localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
+    }
+
     // Set grid size
     N = data.grid_size;
     document.getElementById('gridSize').value = N.toString();
@@ -164,6 +194,9 @@
     puzzleMode = true;
     nextRequiredNumber = 1;
     showingSolution = false;
+
+    // Check if user already solved this puzzle (logged-in or anonymous)
+    checkIfAlreadySolved();
   }
 
   // --- Puzzle Generation ---
@@ -395,7 +428,7 @@
     // Convert solution path
     const solution_path = solutionPath.map(cell => ({x: cell.c, y: cell.r}));
 
-    const puzzleData = {
+    const requestData = {
       grid_size: N,
       barriers: barriers,
       numbered_positions: numbered_positions,
@@ -409,12 +442,34 @@
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(puzzleData)
+      body: JSON.stringify(requestData)
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
         console.log('Puzzle saved with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
+
+        // Update global puzzleData so recordSolveTime() can access puzzle_id
+        console.log('💽 Updating global puzzleData with server response');
+        console.log('💽 Before update - puzzleData:', puzzleData);
+        if (!puzzleData) {
+          puzzleData = {};
+        }
+        puzzleData.puzzle_id = data.puzzle_id;
+        puzzleData.puzzle_code = data.puzzle_code;
+        console.log('💽 After update - puzzleData:', puzzleData);
+
+        // Check if there's a pending solve time to save now that we have a real puzzle_id
+        const currentUsername = '<?= $username ?>';
+        if (window.pendingSolveTime && !currentUsername) {
+          console.log('💽 Found pendingSolveTime, saving to localStorage now');
+          saveAnonymousTime(data.puzzle_id, window.pendingSolveTime);
+          loadAnonymousTimes();
+          window.pendingSolveTime = null; // Clear pending time
+        }
+
+        // Store last played puzzle
+        localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
         // Show the puzzle code in the UI
         showPuzzleCode(data.puzzle_id, data.puzzle_code);
       } else {
@@ -447,6 +502,12 @@
     occupied.clear();
     nextRequiredNumber = 1; // Reset sequence tracker
     showingSolution = false; // Hide solution when clearing
+
+    // Reset solve tracking for new attempt
+    puzzleStartTime = null;
+    puzzleSolved = false;
+    solveTimeRecorded = false;
+    console.log('🔄 Reset solve tracking for new attempt');
     if (!puzzleMode) {
       edgeBarriers.clear();
       numberHints.clear();
@@ -477,26 +538,36 @@
   }
 
   function tryAddCell(r,c){
+    console.log('🖱️ tryAddCell called:', r, c, 'current path length:', path.length);
     if(!inBounds(r,c)) return;
     const k = key(r,c);
 
     if (path.length===0){
-      // Start timing when first cell is clicked
-      if (puzzleMode && !puzzleSolved) {
+      // Start timing when first cell is clicked (only if user hasn't solved this before)
+      if (puzzleMode && !puzzleSolved && !puzzleAlreadySolvedByUser) {
+        puzzleStartTime = Date.now();
+        console.log('⏰ Started timing at:', puzzleStartTime);
+      } else if (puzzleAlreadySolvedByUser) {
+        console.log('⏰ Starting timer - but user already solved this puzzle');
         puzzleStartTime = Date.now();
       }
 
       // Check if first cell is accessible (only matters for numbered cells)
       if (!isNumberedCellAccessible(r, c)) return;
 
-      path.push({r,c});
-      occupied.add(k);
-
       // If first cell has a number, update the next required number
       const cellNumber = numberHints.get(k);
       if (cellNumber && cellNumber === nextRequiredNumber) {
         nextRequiredNumber++;
+      } else {
+        // Path length is 0, so if the check above failed,
+        // user did not start with the anchor cell [1]
+        // Ignore the touch
+        return;
       }
+
+      path.push({r,c});
+      occupied.add(k);
 
       haptic();
       clearLongPress();
@@ -531,21 +602,44 @@
     clearLongPress();
     draw();
 
+    console.log('🔍 Path completed! path.length:', path.length, 'N*N:', N*N, 'puzzleMode:', puzzleMode);
+
     if (path.length === N*N){
       if (puzzleMode) {
         // Check if solution is correct
-        if (checkSolution()) {
+        console.log('🔍 Checking solution...');
+        const solutionCorrect = checkSolution();
+        console.log('🔍 Solution correct?', solutionCorrect);
+
+        if (solutionCorrect) {
           puzzleSolved = true;
           flash('#1dd1a1'); // Success green
 
-          // Record solve time if under 60 seconds
-          if (puzzleStartTime) {
+          if (puzzleAlreadySolvedByUser) {
+            console.log('🎉 PUZZLE COMPLETED AGAIN! (But time not recorded - already solved before)');
             const solveTimeMs = Date.now() - puzzleStartTime;
-            if (solveTimeMs < 60000) { // Under 60 seconds
+            const seconds = (solveTimeMs / 1000).toFixed(2);
+            // Show completion message but no timing
+            showCompletionMessage('🎉 Solved again in ' + seconds + 's!  But only your first solve time counts.');
+          } else {
+            console.log('🎉 PUZZLE SOLVED FOR FIRST TIME!');
+
+            // Record solve time (only once per solve)
+            if (puzzleStartTime && !solveTimeRecorded) {
+              const solveTimeMs = Date.now() - puzzleStartTime;
+              console.log('⏱️ Puzzle solved! Time:', solveTimeMs + 'ms');
+              console.log('⏱️ Recording solve time');
               recordSolveTime(solveTimeMs);
+              solveTimeRecorded = true; // Prevent duplicate recordings
+            } else if (solveTimeRecorded) {
+              console.log('⏱️ Time already recorded for this solve');
+            } else {
+              console.log('⏱️ No puzzleStartTime, cannot record');
+              showCompletionMessage('🎉 Solved!');
             }
           }
         } else {
+          console.log('❌ Solution incorrect');
           flash('#ff6b6b'); // Error red
         }
       } else {
@@ -554,18 +648,147 @@
     }
   }
 
-  function checkSolution() {
-    if (path.length !== solutionPath.length) return false;
-    for (let i = 0; i < path.length; i++) {
-      if (!equal(path[i], solutionPath[i])) return false;
+  function checkIfAlreadySolved() {
+    if (!puzzleData || !puzzleData.puzzle_id) return;
+
+    const username = '<?= $username ?>';
+
+    if (username) {
+      // Logged-in user: check database
+      fetch(`/check_solved.php?puzzle_id=${puzzleData.puzzle_id}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.solved) {
+            puzzleAlreadySolvedByUser = true;
+            console.log('✅ Logged-in user already solved this puzzle in', data.solve_time_ms + 'ms');
+
+            // Update UI to show it's already solved
+            updateSolvedUI(data.solve_time_ms, data.completed_at);
+          } else {
+            puzzleAlreadySolvedByUser = false;
+            console.log('🆕 Logged-in user has not solved this puzzle yet');
+          }
+        })
+        .catch(error => {
+          console.error('Error checking solve status:', error);
+          puzzleAlreadySolvedByUser = false;
+        });
+    } else {
+      // Anonymous user: check localStorage
+      const key = `slide_times_${puzzleData.puzzle_id}`;
+      const times = JSON.parse(localStorage.getItem(key) || '[]');
+
+      if (times.length > 0) {
+        puzzleAlreadySolvedByUser = true;
+        console.log('✅ Anonymous user already solved this puzzle in', times[0].solve_time_ms + 'ms');
+
+        // Update UI to show it's already solved
+        updateSolvedUI(times[0].solve_time_ms, times[0].completed_at);
+      } else {
+        puzzleAlreadySolvedByUser = false;
+        console.log('🆕 Anonymous user has not solved this puzzle yet');
+      }
     }
+  }
+
+  function updateSolvedUI(solveTimeMs, completedAt) {
+    // Update the hint text to show it's already solved
+    const hint = document.querySelector('.hint');
+    if (hint) {
+      const seconds = (solveTimeMs / 1000).toFixed(2);
+      const date = new Date(completedAt).toLocaleDateString();
+      hint.innerHTML = `🎉 Already solved in ${seconds}s on ${date}! You can still play for fun, but only your first solve time counts.`;
+      hint.style.color = 'var(--good)';
+    }
+  }
+
+  function showCompletionMessage(message) {
+    // Show a temporary message overlay
+    const hint = document.querySelector('.hint');
+    if (hint) {
+      const originalText = hint.innerHTML;
+      const originalColor = hint.style.color;
+
+      hint.innerHTML = message;
+      hint.style.color = 'var(--good)';
+
+      // Revert after 3 seconds
+      setTimeout(() => {
+        hint.innerHTML = originalText;
+        hint.style.color = originalColor;
+      }, 3000);
+    }
+  }
+
+  function checkSolution() {
+    console.log('🔍 checkSolution: path.length =', path.length, 'expected:', N*N);
+
+    // Must visit all squares
+    if (path.length !== N * N) {
+      console.log('❌ Length mismatch - need to visit all', N*N, 'squares');
+      return false;
+    }
+
+    // Check if path visits all numbered cells in correct order
+    const numberedCells = Array.from(numberHints.entries()).sort((a, b) => a[1] - b[1]);
+    console.log('🔍 Numbered cells to check:', numberedCells);
+
+    // Find the highest number (last cell we must end on)
+    const maxNumber = numberedCells.length;
+    const lastNumberedCell = numberedCells.find(([cellKey, number]) => number === maxNumber);
+    const lastCell = path[path.length - 1];
+    const lastCellKey = key(lastCell.r, lastCell.c);
+
+    console.log('🔍 Must end on cell with number', maxNumber, 'at key:', lastNumberedCell[0]);
+    console.log('🔍 Actually ended on key:', lastCellKey);
+
+    // Must end on the highest numbered cell
+    if (lastCellKey !== lastNumberedCell[0]) {
+      console.log('❌ Must end on the highest numbered cell (', maxNumber, ')');
+      return false;
+    }
+
+    let expectedNumber = 1;
+
+    for (let i = 0; i < path.length; i++) {
+      const cell = path[i];
+      const cellKey = key(cell.r, cell.c);
+
+      if (numberHints.has(cellKey)) {
+        const cellNumber = numberHints.get(cellKey);
+        console.log('🔍 At path index', i, 'found numbered cell', cellNumber, 'expected', expectedNumber);
+
+        if (cellNumber !== expectedNumber) {
+          console.log('❌ Wrong sequence - found number', cellNumber, 'but expected', expectedNumber);
+          return false;
+        }
+        expectedNumber++;
+      }
+    }
+
+    // Must have visited all numbered cells
+    if (expectedNumber !== numberedCells.length + 1) {
+      console.log('❌ Missing numbered cells - only visited up to', expectedNumber - 1, 'of', numberedCells.length);
+      return false;
+    }
+
+    console.log('✅ Solution valid - visited all squares in correct numbered sequence and ended on final number!');
     return true;
   }
 
   function recordSolveTime(solveTimeMs) {
-    if (!puzzleData || !puzzleData.puzzle_id) return;
+    console.log('🎯 recordSolveTime called with:', solveTimeMs + 'ms');
+    console.log('🎯 puzzleData:', puzzleData);
+    console.log('🎯 puzzleData.puzzle_id:', puzzleData?.puzzle_id);
+
+    if (!puzzleData || !puzzleData.puzzle_id) {
+      console.log('❌ Early return: puzzleData missing or no puzzle_id');
+      return;
+    }
 
     const username = '<?= $username ?>';
+    console.log('🎯 username:', username);
+    console.log('🎯 username truthy?:', !!username);
 
     if (username) {
       // Logged-in user: save to database
@@ -583,32 +806,66 @@
         .then(data => {
           if (data.success) {
             console.log('Solve time recorded:', solveTimeMs + 'ms');
-            loadUserTimes(); // Refresh times after recording
+            showCompletionMessage(`🎉 First solve! Time: ${(solveTimeMs / 1000).toFixed(2)}s`);
+            loadGlobalTimes(); // Refresh times after recording
+          } else if (data.already_solved) {
+            console.log('User already solved this puzzle previously');
+            showCompletionMessage('🎉 Solved! (But your first time already counts)');
+            puzzleAlreadySolvedByUser = true; // Update status
           } else {
             console.error('Failed to record solve time:', data.error);
+            showCompletionMessage('🎉 Solved! (Error saving time)');
           }
         })
         .catch(error => {
           console.error('Error recording solve time:', error);
+          showCompletionMessage('🎉 Solved! (Error saving time)');
         });
     } else {
-      // Anonymous user: save to localStorage
-      saveAnonymousTime(puzzleData.puzzle_id, solveTimeMs);
-      loadAnonymousTimes();
+      console.log('📱 Anonymous user branch - calling saveAnonymousTime');
+
+      // Check if we have a temporary puzzle_id (puzzle not saved to server yet)
+      if (typeof puzzleData.puzzle_id === 'string' && puzzleData.puzzle_id.startsWith('temp_')) {
+        console.log('📱 Temporary puzzle detected, will save time later when puzzle is saved');
+
+        // Store the solve time temporarily until the puzzle gets saved
+        window.pendingSolveTime = solveTimeMs;
+        console.log('📱 Stored pendingSolveTime:', window.pendingSolveTime);
+
+        loadGlobalTimes(); // Still load global times
+      } else {
+        // Anonymous user: save to localStorage and refresh displays
+        saveAnonymousTime(puzzleData.puzzle_id, solveTimeMs);
+        console.log('📱 Anonymous user branch - calling loadAnonymousTimes');
+        loadAnonymousTimes();
+        console.log('📱 Anonymous user branch - calling loadGlobalTimes');
+        loadGlobalTimes();
+      }
     }
   }
 
-  function loadUserTimes() {
+  function loadGlobalTimes() {
     if (!puzzleData || !puzzleData.puzzle_id) return;
 
-    const username = '<?= $username ?>';
-    if (!username) return;
-
     fetch(`/get_user_times.php?puzzle_id=${puzzleData.puzzle_id}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          displayUserTimes(data.times);
+      .then(response => {
+        if (!response.ok) {
+          console.log('User times request failed:', response.status);
+          return;
+        }
+        return response.text();
+      })
+      .then(text => {
+        if (!text) return;
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            displayGlobalTimes(data.times, data.current_user_id);
+          } else {
+            console.log('User times error:', data.error);
+          }
+        } catch (e) {
+          console.error('Invalid JSON response from get_user_times.php:', text);
         }
       })
       .catch(error => {
@@ -616,8 +873,8 @@
       });
   }
 
-  function displayUserTimes(times) {
-    const container = document.getElementById('user-times');
+  function displayGlobalTimes(times, currentUserId) {
+    const container = document.getElementById('global-times');
     if (!container) return;
 
     if (times.length === 0) {
@@ -628,9 +885,13 @@
     const timesList = times.map((time, index) => {
       const seconds = (time.solve_time_ms / 1000).toFixed(2);
       const date = new Date(time.completed_at).toLocaleDateString();
-      return `<div class="time-entry">
+      const isCurrentUser = currentUserId && parseInt(time.user_id) === currentUserId;
+      const entryClass = isCurrentUser ? 'time-entry current-user' : 'time-entry';
+
+      return `<div class="${entryClass}">
         <span class="rank">#${index + 1}</span>
         <span class="time">${seconds}s</span>
+        <span class="username">${time.username}</span>
         <span class="date">${date}</span>
       </div>`;
     }).join('');
@@ -638,20 +899,91 @@
     container.innerHTML = `<div class="times-list">${timesList}</div>`;
   }
 
-  function saveAnonymousTime(puzzleId, solveTimeMs) {
-    const key = `slide_times_${puzzleId}`;
-    let times = JSON.parse(localStorage.getItem(key) || '[]');
+  function migrateAnonymousTimes() {
+    // Find all localStorage puzzle times and migrate them
+    const keysToMigrate = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('slide_times_')) {
+        keysToMigrate.push(key);
+      }
+    }
 
-    times.push({
-      solve_time_ms: solveTimeMs,
-      completed_at: new Date().toISOString()
+    if (keysToMigrate.length === 0) return;
+
+    console.log(`Migrating ${keysToMigrate.length} puzzle times to account...`);
+
+    keysToMigrate.forEach(key => {
+      const puzzleId = key.replace('slide_times_', '');
+      const times = JSON.parse(localStorage.getItem(key) || '[]');
+
+      times.forEach(time => {
+        // Save each time to the database
+        fetch('/save_solve_time.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            puzzle_id: parseInt(puzzleId),
+            solve_time_ms: time.solve_time_ms
+          })
+        }).then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              console.log(`Migrated time ${time.solve_time_ms}ms for puzzle ${puzzleId}`);
+            }
+          })
+          .catch(error => {
+            console.error('Error migrating time:', error);
+          });
+      });
+
+      // Clear the localStorage key after migration
+      localStorage.removeItem(key);
     });
 
-    // Keep only the best 10 times
-    times.sort((a, b) => a.solve_time_ms - b.solve_time_ms);
-    times = times.slice(0, 10);
+    // Refresh the global leaderboard after migration
+    setTimeout(() => {
+      console.log('🔄 Migration complete, refreshing displays');
+      loadGlobalTimes();
 
-    localStorage.setItem(key, JSON.stringify(times));
+      // Also remove the anonymous times section since user is now logged in
+      const anonymousSection = document.getElementById('anonymous-times');
+      if (anonymousSection && anonymousSection.parentElement) {
+        anonymousSection.parentElement.style.display = 'none';
+      }
+    }, 1500); // Wait a bit longer for all migrations to complete
+  }
+
+  function saveAnonymousTime(puzzleId, solveTimeMs) {
+    console.log('💾 saveAnonymousTime called with puzzleId:', puzzleId, 'solveTime:', solveTimeMs);
+    const key = `slide_times_${puzzleId}`;
+    console.log('💾 localStorage key:', key);
+
+    let times = JSON.parse(localStorage.getItem(key) || '[]');
+    console.log('💾 existing times:', times);
+
+    // For anonymous users, only save first solve
+    if (times.length === 0) {
+      times.push({
+        solve_time_ms: solveTimeMs,
+        completed_at: new Date().toISOString()
+      });
+      console.log('💾 First solve saved:', times);
+
+      localStorage.setItem(key, JSON.stringify(times));
+      console.log('💾 saved to localStorage successfully');
+
+      showCompletionMessage(`🎉 First solve! Time: ${(solveTimeMs / 1000).toFixed(2)}s`);
+    } else {
+      console.log('💾 Anonymous user already has a time for this puzzle - not saving duplicate');
+      showCompletionMessage('🎉 Solved again! Your first time still counts.');
+    }
+
+    // Verify current state
+    const saved = localStorage.getItem(key);
+    console.log('💾 verification - localStorage now contains:', saved);
   }
 
   function loadAnonymousTimes() {
@@ -664,14 +996,14 @@
   }
 
   function displayAnonymousTimes(times) {
-    const container = document.getElementById('user-times');
+    const container = document.getElementById('anonymous-times');
     if (!container) return;
 
     if (times.length === 0) {
       container.innerHTML = `
         <p class="no-times">No times recorded yet for this puzzle.</p>
         <div class="register-prompt">
-          <p>🏆 <a href="/login/register.php">Create an account</a> to permanently save your solve times and compete on global leaderboards!</p>
+          <p>🏆 <a href="/login/register.php">Create an account</a> or <a href="/login/">Log in</a> to permanently save your solve times and compete on global leaderboards!</p>
         </div>
       `;
       return;
@@ -690,7 +1022,7 @@
     container.innerHTML = `
       <div class="times-list">${timesList}</div>
       <div class="register-prompt">
-        <p>🏆 <a href="/login/register.php">Create an account</a> to permanently save your solve times and compete on global leaderboards!</p>
+        <p>🏆 <a href="/login/register.php">Create an account</a> or <a href="/login/">Log in</a> to permanently save your solve times and compete on global leaderboards!</p>
       </div>
     `;
   }
@@ -887,21 +1219,51 @@
   seedAnchors();
 
   // Load puzzle data if available (for existing puzzle URLs)
+  console.log('🚀 Initial page load - puzzleData:', puzzleData);
+  console.log('🚀 Initial page load - typeof puzzleData:', typeof puzzleData);
+
+  // Temporary debug for development
+  if (location.search.includes('debug=1')) {
+    console.log('🐛 DEBUG MODE: puzzleData =', puzzleData);
+  }
+
   loadPuzzleData(puzzleData);
 
-  // Load user times for existing puzzles
-  if (puzzleData) {
-    const username = '<?= $username ?>';
-    if (username) {
-      loadUserTimes();
-    } else {
-      loadAnonymousTimes();
+  // Check if user just registered or logged in and trigger migration
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = '<?= $username ?>';
+
+  if (username && (urlParams.has('newuser') || urlParams.has('returning'))) {
+    // User just logged in or registered, migrate their localStorage times
+    migrateAnonymousTimes();
+
+    // Clean up the URL parameter
+    if (urlParams.has('newuser') || urlParams.has('returning')) {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
     }
+  }
+
+  // Load leaderboards for existing puzzles
+  if (puzzleData) {
+    if (!username) {
+      loadAnonymousTimes(); // Load local times for anonymous users
+    }
+    loadGlobalTimes(); // Always load global leaderboard
   }
 
   // If no puzzle data, automatically generate a new puzzle
   if (!puzzleData) {
+    console.log('🎲 No initial puzzleData, generating new puzzle');
     const difficulty = document.getElementById('difficulty').value;
+
+    // Set temporary puzzleData immediately so recordSolveTime() won't fail
+    puzzleData = {
+      puzzle_id: 'temp_' + Date.now(), // temporary ID until server responds
+      puzzle_code: 'temp'
+    };
+    console.log('🎲 Set temporary puzzleData:', puzzleData);
+
     generatePuzzle(difficulty);
     clearAll();
     draw();
