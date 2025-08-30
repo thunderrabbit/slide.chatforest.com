@@ -94,6 +94,46 @@ This leverages DreamHost's consistent `/home/username/domain.com/` path structur
 - Debug mode: Add `?debug=1` to any URL for additional debugging output
 - Use `print_rob($variable)` function for debugging (similar to `var_dump` but formatted)
 
+### Testing Strategy (Codeception + WebDriver)
+
+**Recommended Setup**: Use Codeception with WebDriver for end-to-end testing of JavaScript-heavy puzzle game functionality.
+
+**Key Test Scenarios**:
+- **First solve time recording**: Verify timing starts, solution validation works, time saves to database/localStorage
+- **Duplicate solve prevention**: Ensure second solve doesn't create duplicate database entries
+- **Anonymous user behavior**: Test localStorage saving, UI messages for non-logged-in users
+- **User migration**: Test anonymous time migration when user registers/logs in
+- **Cross-browser compatibility**: Ensure canvas/touch interactions work across browsers
+- **Database constraint validation**: Test unique constraint prevents duplicate entries
+- **API endpoint functionality**: Test `/save_solve_time.php`, `/check_solved.php` responses
+
+**Test Architecture**:
+```php
+// tests/acceptance/PuzzleSolveCest.php
+class PuzzleSolveCest {
+    public function testFirstSolveRecordsTime(AcceptanceTester $I) {
+        $I->amOnPage('/puzzle/abc12345');
+        $I->waitForJS('return typeof puzzleData !== "undefined"', 10);
+
+        // Auto-solve using solution path
+        $I->executeJS('solutionPath.forEach((cell, i) =>
+            setTimeout(() => tryAddCell(cell.r, cell.c), i * 50));');
+
+        $I->waitForText('First solve!', 30);
+        $I->seeInDatabase('solve_times', ['puzzle_id' => 123]);
+    }
+
+    public function testSecondSolveDoesntRecord(AcceptanceTester $I) {
+        // Test duplicate prevention...
+    }
+}
+```
+
+**Required Codeception Modules**:
+- `WebDriver` - Browser automation
+- `Db` - Database assertions
+- `REST` - API endpoint testing
+
 ### File Deployment
 - **Note**: `scp_files_to_dh.sh` is gitignored and must be created locally
 - Script should monitor file changes and deploy to DreamHost via SCP
