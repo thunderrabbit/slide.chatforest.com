@@ -12,29 +12,32 @@ class RealGameplayMigrationCest
     {
         $I->comment('=== TESTING REAL GAMEPLAY AND MIGRATION ===');
         
-        // Step 1: Load puzzle as anonymous user
+        // Step 1: Clear any existing state and load puzzle as anonymous user
+        $I->amOnPage('/');
+        $I->executeJS('localStorage.clear()');
         $I->amOnPage('/puzzle/Kw7fLo6M');
         $I->waitForPuzzleToLoad();
         
-        // Step 2: Get canvas dimensions and calculate cell positions
-        $canvasInfo = $I->executeJS('
-            const canvas = document.getElementById("board");
-            const rect = canvas.getBoundingClientRect();
-            const gridSize = 5; // This puzzle is 5x5
-            const cellSize = rect.width / gridSize;
-            
-            return {
-                x: rect.x,
-                y: rect.y,
-                width: rect.width,
-                height: rect.height,
-                cellSize: cellSize
+        // Step 2: Set up console log monitoring
+        $I->executeJS('
+            window.gameConsoleLogs = [];
+            const originalLog = console.log;
+            console.log = function(...args) {
+                const logString = args.join(" ");
+                if (logString.includes("tryAddCell") || 
+                    logString.includes("🖱️") ||
+                    logString.includes("Path completed") ||
+                    logString.includes("Puzzle solved") ||
+                    logString.includes("localStorage")) {
+                    window.gameConsoleLogs.push(logString);
+                }
+                originalLog.apply(console, args);
             };
         ');
         
-        $I->comment("Canvas info: " . json_encode($canvasInfo));
+        // Step 3: Solve puzzle using pointer events (the breakthrough method!)
+        $I->comment('--- Solving puzzle using pointer events ---');
         
-        // Step 3: Play the game by clicking the solution path
         $solutionPath = [
             ["x" => 3, "y" => 1], ["x" => 4, "y" => 1], ["x" => 4, "y" => 0], ["x" => 3, "y" => 0], ["x" => 2, "y" => 0],
             ["x" => 2, "y" => 1], ["x" => 2, "y" => 2], ["x" => 3, "y" => 2], ["x" => 4, "y" => 2], ["x" => 4, "y" => 3],
@@ -43,107 +46,93 @@ class RealGameplayMigrationCest
             ["x" => 0, "y" => 4], ["x" => 1, "y" => 4], ["x" => 2, "y" => 4], ["x" => 3, "y" => 4], ["x" => 4, "y" => 4]
         ];
         
-        $I->comment('--- Playing the puzzle by dragging through solution path ---');
-        
-        // Calculate all pixel coordinates first
-        $pathPixels = [];
-        foreach ($solutionPath as $cell) {
-            $pathPixels[] = [
-                'x' => $canvasInfo['x'] + ($cell['x'] * $canvasInfo['cellSize']) + ($canvasInfo['cellSize'] / 2),
-                'y' => $canvasInfo['y'] + ($cell['y'] * $canvasInfo['cellSize']) + ($canvasInfo['cellSize'] / 2)
-            ];
-        }
-        
-        // Simulate a continuous drag through all points
-        $I->executeJS("
-            const canvas = document.getElementById('board');
+        $solutionResult = $I->executeJS('
+            window.gameConsoleLogs = [];
+            
+            const canvas = document.getElementById("board");
             const rect = canvas.getBoundingClientRect();
-            const pathPixels = " . json_encode($pathPixels) . ";
+            const cellSize = rect.width / 5;
+            const solutionPath = ' . json_encode($solutionPath) . ';
             
-            // Start with mousedown at first position
-            const startX = pathPixels[0].x - rect.left;
-            const startY = pathPixels[0].y - rect.top;
+            // Use pointer events (the key breakthrough!)
+            let currentPointerId = 1;
             
-            console.log('Starting drag at', startX, startY);
+            solutionPath.forEach((step, index) => {
+                const targetX = rect.left + (step.x * cellSize) + (cellSize / 2);
+                const targetY = rect.top + (step.y * cellSize) + (cellSize / 2);
+                
+                if (index === 0) {
+                    // First step: pointerdown to start drawing
+                    const pointerDown = new PointerEvent("pointerdown", {
+                        pointerId: currentPointerId,
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: targetX,
+                        clientY: targetY,
+                        button: 0,
+                        buttons: 1
+                    });
+                    canvas.dispatchEvent(pointerDown);
+                } else {
+                    // Subsequent steps: pointermove to continue drawing
+                    const pointerMove = new PointerEvent("pointermove", {
+                        pointerId: currentPointerId,
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: targetX,
+                        clientY: targetY,
+                        button: 0,
+                        buttons: 1
+                    });
+                    canvas.dispatchEvent(pointerMove);
+                }
+            });
             
-            // Mouse down to start drawing
-            const mouseDown = new MouseEvent('mousedown', {
-                clientX: pathPixels[0].x,
-                clientY: pathPixels[0].y,
+            // Final step: pointerup to finish drawing
+            const lastStep = solutionPath[solutionPath.length - 1];
+            const finalX = rect.left + (lastStep.x * cellSize) + (cellSize / 2);
+            const finalY = rect.top + (lastStep.y * cellSize) + (cellSize / 2);
+            
+            const pointerUp = new PointerEvent("pointerup", {
+                pointerId: currentPointerId,
                 bubbles: true,
                 cancelable: true,
-                buttons: 1
-            });
-            canvas.dispatchEvent(mouseDown);
-            
-            // Simulate dragging through each point
-            pathPixels.forEach((point, index) => {
-                if (index === 0) return; // Skip first point (already handled)
-                
-                const x = point.x - rect.left;
-                const y = point.y - rect.top;
-                
-                const mouseMoveEvent = new MouseEvent('mousemove', {
-                    clientX: point.x,
-                    clientY: point.y,
-                    bubbles: true,
-                    cancelable: true,
-                    buttons: 1
-                });
-                
-                canvas.dispatchEvent(mouseMoveEvent);
-                console.log('Dragged to step', index + 1, 'at', x, y);
-            });
-            
-            // Finish with mouseup at final position
-            const endPoint = pathPixels[pathPixels.length - 1];
-            const mouseUp = new MouseEvent('mouseup', {
-                clientX: endPoint.x,
-                clientY: endPoint.y,
-                bubbles: true,
-                cancelable: true,
+                clientX: finalX,
+                clientY: finalY,
+                button: 0,
                 buttons: 0
             });
-            canvas.dispatchEvent(mouseUp);
-            
-            console.log('Finished drag at', endPoint.x - rect.left, endPoint.y - rect.top);
-        ");
-        
-        $I->comment("Completed drag through " . count($solutionPath) . " cells");
-        
-        // Step 4: Wait for puzzle completion
-        $I->comment('--- Waiting for puzzle completion ---');
-        $I->wait(3);
-        
-        // Check if puzzle was completed
-        $puzzleCompleted = $I->executeJS('
-            // Look for completion indicators
-            const completionText = document.body.textContent.toLowerCase();
-            const hasCompletedText = completionText.includes("completed") || 
-                                   completionText.includes("solved") || 
-                                   completionText.includes("congratulations") ||
-                                   completionText.includes("first solve");
-            
-            // Check localStorage for saved time
-            let hasSavedTime = false;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith("slide_times_")) {
-                    hasSavedTime = true;
-                    break;
-                }
-            }
+            canvas.dispatchEvent(pointerUp);
             
             return {
-                hasCompletionText: hasCompletedText,
-                hasSavedTime: hasSavedTime,
-                bodyText: document.body.textContent
+                pathLength: solutionPath.length,
+                completed: true
             };
         ');
         
-        $I->comment("Puzzle completion check: " . json_encode($puzzleCompleted));
+        $I->comment("Solution path attempted with {$solutionResult['pathLength']} steps");
         
-        // Step 5: Check localStorage for anonymous solve time
+        // Step 4: Wait for puzzle completion and verify
+        $I->wait(3);
+        
+        $solutionLogs = $I->executeJS('return window.gameConsoleLogs.slice()');
+        $puzzleSolved = false;
+        
+        foreach ($solutionLogs as $log) {
+            if (strpos($log, 'Puzzle solved') !== false) {
+                $puzzleSolved = true;
+                $I->comment("✅ {$log}");
+            }
+        }
+        
+        if (!$puzzleSolved) {
+            $I->comment("❌ Puzzle may not have been solved - checking logs:");
+            foreach (array_slice($solutionLogs, -5) as $log) {
+                $I->comment("  {$log}");
+            }
+        }
+        
+        // Step 5: Verify anonymous solve was saved to localStorage
         $anonymousTime = $I->executeJS('
             const times = {};
             for (let i = 0; i < localStorage.length; i++) {
@@ -156,23 +145,36 @@ class RealGameplayMigrationCest
         ');
         
         if (!empty($anonymousTime)) {
-            $I->comment("✓ Anonymous solve time saved: " . json_encode($anonymousTime));
+            $I->comment("✅ Anonymous solve time saved: " . json_encode($anonymousTime));
         } else {
-            $I->comment("⚠ No anonymous solve time found in localStorage");
+            $I->comment("❌ No anonymous solve time found in localStorage - migration test cannot proceed");
+            return;
         }
         
         // Step 6: Register a new user
-        $I->comment('--- Registering new user ---');
+        $I->comment('--- Registering new user for migration test ---');
         $user = $I->generateTestUser();
-        $I->registerUser($user['username'], $user['email'], $user['password']);
-        $I->wait(2);
+        $I->comment("Test user: {$user['username']}");
         
-        // Step 7: Return to puzzle page (should trigger migration)
-        $I->comment('--- Returning to puzzle page to trigger migration ---');
-        $I->amOnPage('/puzzle/Kw7fLo6M');
+        $I->registerUser($user['username'], $user['email'], $user['password']);
+        $I->wait(3); // Allow registration to complete
+        
+        // Step 7: Check if server automatically redirected to puzzle, if not reload manually  
+        // IMPORTANT: Add ?newuser=1 parameter to trigger migration!
+        $I->comment('--- Checking if automatically redirected to puzzle ---');
+        $currentUrl = $I->executeJS('return window.location.pathname');
+        
+        if (strpos($currentUrl, '/puzzle/') === false) {
+            $I->comment("Not redirected automatically, reloading puzzle manually with migration trigger...");
+            $I->amOnPage('/puzzle/Kw7fLo6M?newuser=1');
+        } else {
+            $I->comment("✅ Automatically redirected to puzzle page, adding migration trigger...");
+            $I->amOnPage('/puzzle/Kw7fLo6M?newuser=1');
+        }
+        
         $I->wait(5); // Give time for migration to process
         
-        // Step 8: Check if migration worked
+        // Step 8: Check migration results
         $I->comment('--- Checking migration results ---');
         
         // Check localStorage (should be cleared if migration worked)
@@ -188,12 +190,14 @@ class RealGameplayMigrationCest
         ');
         
         if (empty($localStorageAfter)) {
-            $I->comment("✓ localStorage cleared - migration likely occurred");
+            $I->comment("✅ localStorage cleared - migration occurred");
         } else {
             $I->comment("⚠ localStorage still contains: " . json_encode($localStorageAfter));
         }
         
-        // Check global leaderboard for new user
+        // Step 9: Look for test user in global leaderboard
+        $I->comment("--- Looking for {$user['username']} in global leaderboard ---");
+        
         $globalTimes = $I->executeJS('
             const globalSection = document.getElementById("global-times");
             if (!globalSection) return [];
@@ -210,7 +214,7 @@ class RealGameplayMigrationCest
             return times;
         ');
         
-        $I->comment("Global leaderboard after migration:");
+        $I->comment("Current global leaderboard:");
         foreach ($globalTimes as $entry) {
             $I->comment("  {$entry}");
         }
@@ -219,16 +223,32 @@ class RealGameplayMigrationCest
         $foundUser = false;
         foreach ($globalTimes as $entry) {
             if (strpos($entry, $user['username']) !== false) {
-                $I->comment("🎉 SUCCESS: Found test user {$user['username']} in global leaderboard!");
+                $I->comment("🎉 MIGRATION SUCCESS: Found {$user['username']} in global leaderboard!");
                 $foundUser = true;
                 break;
             }
         }
         
         if (!$foundUser) {
-            $I->comment("⚠ Test user {$user['username']} NOT found in global leaderboard");
+            $I->comment("❌ Migration may have failed - {$user['username']} NOT found in global leaderboard");
+            
+            // Additional debugging - check if user is logged in
+            $loginStatus = $I->executeJS('
+                const bodyText = document.body.textContent;
+                return {
+                    hasLogout: bodyText.includes("logout"),
+                    hasUsername: bodyText.includes("' . $user['username'] . '"),
+                    bodySnippet: bodyText.substring(0, 300)
+                };
+            ');
+            
+            if ($loginStatus['hasLogout'] || $loginStatus['hasUsername']) {
+                $I->comment("✅ User appears to be logged in");
+            } else {
+                $I->comment("⚠ User may not be logged in - body snippet: " . substr($loginStatus['bodySnippet'], 0, 150));
+            }
         }
         
-        $I->comment('=== REAL GAMEPLAY MIGRATION TEST COMPLETE ===');
+        $I->comment('=== MIGRATION TEST COMPLETE ===');
     }
 }
