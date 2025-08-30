@@ -554,14 +554,19 @@
       // Check if first cell is accessible (only matters for numbered cells)
       if (!isNumberedCellAccessible(r, c)) return;
 
-      path.push({r,c});
-      occupied.add(k);
-
       // If first cell has a number, update the next required number
       const cellNumber = numberHints.get(k);
       if (cellNumber && cellNumber === nextRequiredNumber) {
         nextRequiredNumber++;
+      } else {
+        // Path length is 0, so if the check above failed,
+        // user did not start with the anchor cell [1]
+        // Ignore the touch
+        return;
       }
+
+      path.push({r,c});
+      occupied.add(k);
 
       haptic();
       clearLongPress();
