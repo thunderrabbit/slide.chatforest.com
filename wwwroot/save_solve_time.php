@@ -36,7 +36,6 @@ try {
     // Prepare the solve time data
     $solve_data = [
         'puzzle_id' => intval($input['puzzle_id']),
-        'puzzle_code' => $input['puzzle_code'] ?? null,
         'solve_time_ms' => intval($input['solve_time_ms']),
         'user_id' => $user_id
     ];
@@ -49,13 +48,12 @@ try {
     }
 
     // Insert the solve time
-    $query = "INSERT INTO solve_times (puzzle_id, puzzle_code, solve_time_ms, user_id)
-              VALUES (?, ?, ?, ?)";
+    $query = "INSERT INTO solve_times (puzzle_id, solve_time_ms, user_id)
+              VALUES (?, ?, ?)";
 
     $stmt = $mla_database->prepare($query);
     $result = $stmt->execute([
         $solve_data['puzzle_id'],
-        $solve_data['puzzle_code'],
         $solve_data['solve_time_ms'],
         $solve_data['user_id']
     ]);
