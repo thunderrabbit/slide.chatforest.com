@@ -35,6 +35,19 @@
     gap: 12px;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.slide-practice .builder-toggle {
+    color: var(--warn);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.slide-practice .builder-toggle input[type="checkbox"] {
+    margin-right: 6px;
 }
 
 .slide-practice h1 {
@@ -61,6 +74,79 @@
     gap: 8px;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
+}
+
+.slide-practice .builder-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 0;
+    border-top: 1px solid #272d3c;
+    margin-top: 8px;
+}
+
+.slide-practice .builder-controls button {
+    background: var(--warn);
+    color: var(--bg);
+    font-size: 13px;
+    padding: 6px 10px;
+    font-weight: 600;
+}
+
+.slide-practice .builder-controls button:hover {
+    background: #e6a350;
+}
+
+.slide-practice .builder-controls button:disabled {
+    background: #444;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.slide-practice .builder-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.slide-practice .density-control {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: #1a1f2c;
+    border: 1px solid #272d3c;
+    border-radius: 8px;
+    padding: 2px 4px;
+}
+
+.slide-practice .density-btn {
+    background: transparent;
+    border: none;
+    color: var(--warn);
+    font-size: 14px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slide-practice .density-btn:hover {
+    background: rgba(255, 181, 86, 0.2);
+}
+
+.slide-practice .density-control span {
+    min-width: 16px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
 }
 
 .slide-practice button,

@@ -5,16 +5,45 @@
         <label>Grid: <select id="gridSize">
           <option value="5" selected>5×5</option>
           <option value="6">6×6</option>
+          <option value="7">7×7</option>
         </select></label>
         <select id="difficulty">
           <option value="easy">Easy</option>
           <option value="medium" selected>Medium</option>
           <option value="hard">Hard</option>
         </select>
+        <?php if($is_admin): ?>
+        <label class="builder-toggle">
+          <input type="checkbox" id="builderMode"> Builder Mode
+        </label>
+        <?php endif; ?>
       </div>
       <div class="lower_controls">
           <button id="puzzleBtn">New</button>
           <button id="solutionBtn">Solve</button>
+          <?php if($is_admin): ?>
+          <div class="builder-controls" id="builderControls" style="display: none;">
+            <button id="clearPathBtn">Clear Path</button>
+            <div class="builder-option">
+              <button id="addBarriersBtn">Add Barriers</button>
+              <div class="density-control">
+                <button class="density-btn" id="barrierDownBtn">−</button>
+                <span id="barrierCount">6</span>
+                <button class="density-btn" id="barrierUpBtn">+</button>
+              </div>
+            </div>
+            <div class="builder-option">
+              <button id="addNumbersBtn">Add Numbers</button>
+              <div class="density-control">
+                <button class="density-btn" id="numberDownBtn">−</button>
+                <span id="numberCount">4</span>
+                <button class="density-btn" id="numberUpBtn">+</button>
+              </div>
+            </div>
+            <button id="testPlayBtn">Test Play</button>
+            <button id="saveBuilderBtn">Save Puzzle</button>
+          </div>
+          <?php endif; ?>
           <?php if(isset($puzzle_id) && $puzzle_id && isset($puzzle_code) && $puzzle_code): ?>
           <div class="puzzle-nav">
             <?php if(isset($prev_puzzle_code) && $prev_puzzle_code): ?>
@@ -72,6 +101,13 @@
   let occupied = new Set(); // key r,c
   let drawing = false;
   let anchors = new Map(); // no anchors by default
+
+  // Builder mode state
+  let builderMode = false;
+  let builderPhase = 'drawing'; // 'drawing', 'preview', 'testplay'
+  let builderPath = []; // the custom path being built
+  let builderBarrierCount = 6; // adjustable barrier density
+  let builderNumberCount = 4; // adjustable number count
 
   // Puzzle generation state
   let edgeBarriers = new Set(); // edges that are blocked (format: "r1,c1|r2,c2")
@@ -138,7 +174,7 @@
   }
 
   function isNumberedCellAccessible(r, c) {
-    if (!puzzleMode) return true; // In practice mode, all cells accessible
+    if (!puzzleMode || builderMode) return true; // In practice mode or builder mode, all cells accessible
 
     const cellKey = key(r, c);
     const cellNumber = numberHints.get(cellKey);
@@ -401,6 +437,63 @@
     puzzleMode = true;
   }
 
+  function generatePuzzleUsingPHP(difficulty) {
+    console.log('🚀 Using PHP generator for', N + 'x' + N, 'puzzle with difficulty:', difficulty);
+
+    // Send request to PHP generator
+    fetch('/generate_puzzle.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        grid_size: N,
+        difficulty: difficulty
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('✅ PHP puzzle generated with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
+
+        // Load the generated puzzle data into the game
+        loadPuzzleData({
+          puzzle_id: data.puzzle_id,
+          puzzle_code: data.puzzle_code,
+          grid_size: data.puzzle_data.grid_size,
+          barriers: data.puzzle_data.barriers,
+          numbered_positions: data.puzzle_data.numbered_positions,
+          solution_path: data.puzzle_data.solution_path,
+          difficulty: data.puzzle_data.difficulty
+        });
+
+        // Update global puzzleData
+        puzzleData = {
+          puzzle_id: data.puzzle_id,
+          puzzle_code: data.puzzle_code
+        };
+
+        // Store last played puzzle
+        localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
+
+        // Show the puzzle code in the UI
+        showPuzzleCode(data.puzzle_id, data.puzzle_code);
+
+        // Clear any existing path and redraw
+        clearAll();
+        draw();
+
+      } else {
+        console.error('❌ Failed to generate PHP puzzle:', data.error);
+        alert('Failed to generate puzzle: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error generating PHP puzzle:', error);
+      alert('Error generating puzzle. Please try again.');
+    });
+  }
+
   function savePuzzle(difficulty) {
     // Convert edgeBarriers Set to array for JSON
     const barriers = [];
@@ -516,6 +609,117 @@
     draw();
   }
 
+  // --- Builder Mode Functions ---
+  function validateBuilderPath(path) {
+    // Must visit all squares exactly once
+    if (path.length !== N * N) {
+      return { valid: false, error: `Path must visit all ${N * N} cells (currently ${path.length})` };
+    }
+
+    // Check that all cells are within bounds and unique
+    const visited = new Set();
+    for (const cell of path) {
+      if (!inBounds(cell.r, cell.c)) {
+        return { valid: false, error: 'Path goes out of bounds' };
+      }
+
+      const cellKey = key(cell.r, cell.c);
+      if (visited.has(cellKey)) {
+        return { valid: false, error: 'Path visits the same cell twice' };
+      }
+      visited.add(cellKey);
+    }
+
+    // Check that consecutive cells are adjacent
+    for (let i = 1; i < path.length; i++) {
+      const prev = path[i-1];
+      const curr = path[i];
+      if (!neighbors(prev, curr)) {
+        return { valid: false, error: 'Path has non-adjacent cells' };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  function generateBuilderBarriers(customPath) {
+    const barriers = [];
+    const pathEdges = new Set();
+
+    // Create set of edges used in the solution path
+    for (let i = 0; i < customPath.length - 1; i++) {
+      const curr = customPath[i];
+      const next = customPath[i + 1];
+      pathEdges.add(edgeKey(curr.r, curr.c, next.r, next.c));
+    }
+
+    // Use adjustable barrier count
+    const targetBarriers = builderBarrierCount;
+    let attempts = 0;
+
+    while (barriers.length < targetBarriers && attempts < 200) {
+      const r1 = Math.floor(Math.random() * N);
+      const c1 = Math.floor(Math.random() * N);
+
+      // Pick random adjacent cell
+      const directions = [{r:-1,c:0}, {r:1,c:0}, {r:0,c:-1}, {r:0,c:1}];
+      const validDirections = directions.filter(dir =>
+        inBounds(r1 + dir.r, c1 + dir.c)
+      );
+
+      if (validDirections.length > 0) {
+        const dir = validDirections[Math.floor(Math.random() * validDirections.length)];
+        const r2 = r1 + dir.r;
+        const c2 = c1 + dir.c;
+        const edge = edgeKey(r1, c1, r2, c2);
+
+        // Don't block solution path edges and avoid duplicates
+        if (!pathEdges.has(edge) && !barriers.some(b =>
+          edgeKey(b.y1, b.x1, b.y2, b.x2) === edge
+        )) {
+          barriers.push({
+            x1: c1, y1: r1,
+            x2: c2, y2: r2,
+            type: r1 === r2 ? 'horizontal' : 'vertical'
+          });
+        }
+      }
+      attempts++;
+    }
+
+    return barriers;
+  }
+
+  function generateBuilderNumbers(customPath) {
+    const numberedPositions = {};
+    const pathLength = customPath.length;
+
+    // Always include start and end
+    const hintPositions = [0, pathLength - 1];
+
+    // Use adjustable number count (subtract 2 because start/end are always included)  
+    const additionalHints = Math.max(0, builderNumberCount - 2);
+    while (hintPositions.length < builderNumberCount && additionalHints > 0) {
+      const randomPos = Math.floor(Math.random() * (pathLength - 2)) + 1;
+      if (!hintPositions.includes(randomPos)) {
+        hintPositions.push(randomPos);
+      }
+      if (hintPositions.length >= pathLength) break; // Safety check
+    }
+
+    hintPositions.sort((a, b) => a - b);
+
+    // Place consecutive numbers at these positions
+    let hintNumber = 1;
+    for (const position of hintPositions) {
+      const cell = customPath[position];
+      numberedPositions[hintNumber] = {x: cell.c, y: cell.r};
+      hintNumber++;
+    }
+
+    return numberedPositions;
+  }
+
   function toggleSolution() {
     if (!puzzleMode || solutionPath.length === 0) return; // Only works in puzzle mode
     showingSolution = !showingSolution;
@@ -538,10 +742,60 @@
   }
 
   function tryAddCell(r,c){
-    console.log('🖱️ tryAddCell called:', r, c, 'current path length:', path.length);
+    console.log('🖱️ tryAddCell called:', r, c, 'current path length:', path.length, 'builderMode:', builderMode);
     if(!inBounds(r,c)) return;
     const k = key(r,c);
 
+    // Builder mode - different path handling
+    if (builderMode && builderPhase === 'drawing') {
+      if (path.length === 0) {
+        // First cell in builder mode
+        path.push({r,c});
+        occupied.add(k);
+        builderPath = [{r,c}];
+        haptic();
+        clearLongPress();
+        draw();
+        return;
+      }
+
+      const prev = path[path.length-1];
+      if (path.length>1 && equal({r,c}, path[path.length-2])){
+        // Backtrack in builder mode
+        const removed = path.pop();
+        occupied.delete(key(removed.r, removed.c));
+        builderPath.pop();
+        clearLongPress();
+        draw();
+        return;
+      }
+      if (!neighbors(prev,{r,c})) return;
+      if (occupied.has(k)) return;
+
+      // Add cell to builder path
+      path.push({r,c});
+      occupied.add(k);
+      builderPath.push({r,c});
+
+      haptic();
+      clearLongPress();
+      draw();
+
+      // Check if path is complete
+      if (path.length === N*N) {
+        const validation = validateBuilderPath(builderPath);
+        if (validation.valid) {
+          flash('#1dd1a1'); // Success green
+          updateBuilderHint('✅ Perfect! Path visits all cells. Now click "Add Barriers".');
+        } else {
+          flash('#ff6b6b'); // Error red
+          updateBuilderHint('❌ ' + validation.error);
+        }
+      }
+      return;
+    }
+
+    // Normal game mode logic
     if (path.length===0){
       // Start timing when first cell is clicked (only if user hasn't solved this before)
       if (puzzleMode && !puzzleSolved && !puzzleAlreadySolvedByUser) {
@@ -1201,6 +1455,227 @@
     clearAll();
     resize();
   });
+
+  // Builder mode controls (only exist for admin users)
+  const builderModeCheckbox = document.getElementById('builderMode');
+  const builderControls = document.getElementById('builderControls');
+
+  if (builderModeCheckbox) {
+    builderModeCheckbox.addEventListener('change', (e) => {
+      builderMode = e.target.checked;
+      builderControls.style.display = builderMode ? 'block' : 'none';
+
+      if (builderMode) {
+        // Enter builder mode - clear everything and set up for path drawing
+        N = 7; // Force 7x7 for builder mode
+        document.getElementById('gridSize').value = '7';
+        builderPhase = 'drawing';
+        builderPath = [];
+        path = [];
+        occupied.clear();
+        edgeBarriers.clear();
+        numberHints.clear();
+        solutionPath = [];
+        puzzleMode = false;
+        updateBuilderHint('Draw a path that visits all 49 cells exactly once');
+        resize();
+      } else {
+        // Exit builder mode
+        clearAll();
+        updateBuilderHint('');
+      }
+    });
+
+    document.getElementById('clearPathBtn').addEventListener('click', () => {
+      if (builderMode) {
+        builderPath = [];
+        path = [];
+        occupied.clear();
+        builderPhase = 'drawing';
+        updateBuilderHint('Draw a path that visits all 49 cells exactly once');
+        draw();
+      }
+    });
+
+    document.getElementById('addBarriersBtn').addEventListener('click', () => {
+      if (builderMode && builderPath.length > 0) {
+        const validation = validateBuilderPath(builderPath);
+        if (!validation.valid) {
+          alert('Path is invalid: ' + validation.error);
+          return;
+        }
+
+        // Generate random barriers
+        const barriers = generateBuilderBarriers(builderPath);
+        edgeBarriers.clear();
+        barriers.forEach(barrier => {
+          const edgeId = edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
+          edgeBarriers.add(edgeId);
+        });
+
+        builderPhase = 'preview';
+        updateBuilderHint('Barriers added! Click "Add Numbers" to continue.');
+        draw();
+      }
+    });
+
+    document.getElementById('addNumbersBtn').addEventListener('click', () => {
+      if (builderMode && builderPath.length > 0) {
+        const validation = validateBuilderPath(builderPath);
+        if (!validation.valid) {
+          alert('Path is invalid: ' + validation.error);
+          return;
+        }
+
+        // Generate random numbered positions
+        const numberedPositions = generateBuilderNumbers(builderPath);
+        numberHints.clear();
+        Object.entries(numberedPositions).forEach(([number, pos]) => {
+          numberHints.set(key(pos.y, pos.x), parseInt(number));
+        });
+
+        solutionPath = builderPath.map(cell => ({r: cell.r, c: cell.c}));
+        builderPhase = 'preview';
+        updateBuilderHint('Numbers added! Click "Test Play" to try your puzzle.');
+        draw();
+      }
+    });
+
+    document.getElementById('testPlayBtn').addEventListener('click', () => {
+      if (builderMode && builderPath.length > 0) {
+        const validation = validateBuilderPath(builderPath);
+        if (!validation.valid) {
+          alert('Path is invalid: ' + validation.error);
+          return;
+        }
+
+        // Switch to test play mode
+        builderPhase = 'testplay';
+        puzzleMode = true;
+        nextRequiredNumber = 1;
+        path = [];
+        occupied.clear();
+        updateBuilderHint('Test your puzzle! Try to solve it. Click "Save Puzzle" when ready.');
+        draw();
+      }
+    });
+
+    document.getElementById('saveBuilderBtn').addEventListener('click', () => {
+      if (builderMode && builderPath.length > 0) {
+        const validation = validateBuilderPath(builderPath);
+        if (!validation.valid) {
+          alert('Path is invalid: ' + validation.error);
+          return;
+        }
+
+        if (edgeBarriers.size === 0 || numberHints.size === 0) {
+          alert('Please add barriers and numbers before saving');
+          return;
+        }
+
+        // Save the builder puzzle
+        const difficulty = document.getElementById('difficulty').value;
+        saveBuilderPuzzle(difficulty);
+      }
+    });
+
+    // Density control handlers
+    document.getElementById('barrierUpBtn').addEventListener('click', () => {
+      builderBarrierCount = Math.min(builderBarrierCount + 1, 15);
+      document.getElementById('barrierCount').textContent = builderBarrierCount;
+    });
+
+    document.getElementById('barrierDownBtn').addEventListener('click', () => {
+      builderBarrierCount = Math.max(builderBarrierCount - 1, 1);
+      document.getElementById('barrierCount').textContent = builderBarrierCount;
+    });
+
+    document.getElementById('numberUpBtn').addEventListener('click', () => {
+      builderNumberCount = Math.min(builderNumberCount + 1, 10);
+      document.getElementById('numberCount').textContent = builderNumberCount;
+    });
+
+    document.getElementById('numberDownBtn').addEventListener('click', () => {
+      builderNumberCount = Math.max(builderNumberCount - 1, 2);
+      document.getElementById('numberCount').textContent = builderNumberCount;
+    });
+  }
+
+  function updateBuilderHint(message) {
+    const hint = document.querySelector('.hint');
+    if (hint && builderMode) {
+      hint.textContent = message;
+      hint.style.color = message ? '#ffb556' : '';
+    } else if (hint && !builderMode) {
+      hint.innerHTML = 'Drag one finger to draw; slide back to erase (backtrack). Long‑press anywhere to clear. Visit numbers 1, 2, 3... in order and END on the highest number.';
+      hint.style.color = '';
+    }
+  }
+
+  function saveBuilderPuzzle(difficulty) {
+    // Convert data to same format as regular puzzles
+    const barriers = [];
+    edgeBarriers.forEach(edgeId => {
+      const [cell1, cell2] = edgeId.split('|');
+      const [r1, c1] = cell1.split(',').map(Number);
+      const [r2, c2] = cell2.split(',').map(Number);
+
+      barriers.push({
+        x1: c1, y1: r1,
+        x2: c2, y2: r2,
+        type: r1 === r2 ? 'horizontal' : 'vertical'
+      });
+    });
+
+    const numbered_positions = {};
+    numberHints.forEach((number, cellKey) => {
+      const [r, c] = cellKey.split(',').map(Number);
+      numbered_positions[number] = {x: c, y: r};
+    });
+
+    const solution_path = builderPath.map(cell => ({x: cell.c, y: cell.r}));
+
+    const requestData = {
+      grid_size: N,
+      barriers: barriers,
+      numbered_positions: numbered_positions,
+      solution_path: solution_path,
+      difficulty: difficulty
+    };
+
+    // Save to server
+    fetch('/save_puzzle.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(`✅ Builder puzzle saved!\nPuzzle Code: ${data.puzzle_code}\nPuzzle ID: ${data.puzzle_id}`);
+
+        // Stay in builder mode but reset for next puzzle
+        builderPhase = 'drawing';
+        builderPath = [];
+        path = [];
+        occupied.clear();
+        edgeBarriers.clear();
+        numberHints.clear();
+        solutionPath = [];
+        puzzleMode = false;
+
+        updateBuilderHint('Puzzle saved! Draw a new path to create another puzzle.');
+        draw();
+      } else {
+        alert('❌ Failed to save puzzle: ' + data.error);
+      }
+    })
+    .catch(error => {
+      alert('❌ Error saving puzzle: ' + error.message);
+    });
+  }
   document.getElementById('puzzleBtn').addEventListener('click', ()=>{
     if (puzzleCode || puzzleId) {
       // If viewing a loaded puzzle, redirect to main page for new puzzle generation
@@ -1208,10 +1683,18 @@
     } else {
       // If on main page, generate new puzzle
       const difficulty = document.getElementById('difficulty').value;
-      generatePuzzle(difficulty);
-      clearAll();
-      draw();
-      savePuzzle(difficulty);
+
+      // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
+      if (N >= 7) {
+        console.log('🚀 Grid size', N + 'x' + N, '- using PHP generator');
+        generatePuzzleUsingPHP(difficulty);
+      } else {
+        console.log('🚀 Grid size', N + 'x' + N, '- using JavaScript generator');
+        generatePuzzle(difficulty);
+        clearAll();
+        draw();
+        savePuzzle(difficulty);
+      }
     }
   });
   document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
@@ -1257,17 +1740,25 @@
     console.log('🎲 No initial puzzleData, generating new puzzle');
     const difficulty = document.getElementById('difficulty').value;
 
-    // Set temporary puzzleData immediately so recordSolveTime() won't fail
-    puzzleData = {
-      puzzle_id: 'temp_' + Date.now(), // temporary ID until server responds
-      puzzle_code: 'temp'
-    };
-    console.log('🎲 Set temporary puzzleData:', puzzleData);
+    // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
+    if (N >= 7) {
+      console.log('🎲 Grid size', N + 'x' + N, '- using PHP generator for initial puzzle');
+      generatePuzzleUsingPHP(difficulty);
+    } else {
+      console.log('🎲 Grid size', N + 'x' + N, '- using JavaScript generator for initial puzzle');
 
-    generatePuzzle(difficulty);
-    clearAll();
-    draw();
-    savePuzzle(difficulty);
+      // Set temporary puzzleData immediately so recordSolveTime() won't fail
+      puzzleData = {
+        puzzle_id: 'temp_' + Date.now(), // temporary ID until server responds
+        puzzle_code: 'temp'
+      };
+      console.log('🎲 Set temporary puzzleData:', puzzleData);
+
+      generatePuzzle(difficulty);
+      clearAll();
+      draw();
+      savePuzzle(difficulty);
+    }
   }
 
   resize();
