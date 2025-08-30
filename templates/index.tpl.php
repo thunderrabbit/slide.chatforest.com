@@ -548,7 +548,8 @@
         puzzleStartTime = Date.now();
         console.log('⏰ Started timing at:', puzzleStartTime);
       } else if (puzzleAlreadySolvedByUser) {
-        console.log('⏰ Not starting timer - user already solved this puzzle');
+        console.log('⏰ Starting timer - but user already solved this puzzle');
+        puzzleStartTime = Date.now();
       }
 
       // Check if first cell is accessible (only matters for numbered cells)
@@ -616,8 +617,10 @@
 
           if (puzzleAlreadySolvedByUser) {
             console.log('🎉 PUZZLE COMPLETED AGAIN! (But time not recorded - already solved before)');
+            const solveTimeMs = Date.now() - puzzleStartTime;
+            const seconds = (solveTimeMs / 1000).toFixed(2);
             // Show completion message but no timing
-            showCompletionMessage('🎉 Solved again! Your first solve time still counts.');
+            showCompletionMessage('🎉 Solved again in ' + seconds + 's!  But only your first solve time counts.');
           } else {
             console.log('🎉 PUZZLE SOLVED FOR FIRST TIME!');
 
