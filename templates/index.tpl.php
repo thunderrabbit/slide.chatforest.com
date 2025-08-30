@@ -1656,13 +1656,18 @@
       if (data.success) {
         alert(`✅ Builder puzzle saved!\nPuzzle Code: ${data.puzzle_code}\nPuzzle ID: ${data.puzzle_id}`);
 
-        // Reset builder mode
-        builderMode = false;
-        builderModeCheckbox.checked = false;
-        builderControls.style.display = 'none';
+        // Stay in builder mode but reset for next puzzle
+        builderPhase = 'drawing';
+        builderPath = [];
+        path = [];
+        occupied.clear();
+        edgeBarriers.clear();
+        numberHints.clear();
+        solutionPath = [];
+        puzzleMode = false;
 
-        // Load the saved puzzle for playing
-        window.location.href = `/puzzle/${data.puzzle_code}`;
+        updateBuilderHint('Puzzle saved! Draw a new path to create another puzzle.');
+        draw();
       } else {
         alert('❌ Failed to save puzzle: ' + data.error);
       }
