@@ -24,8 +24,22 @@
           <?php if($is_admin): ?>
           <div class="builder-controls" id="builderControls" style="display: none;">
             <button id="clearPathBtn">Clear Path</button>
-            <button id="addBarriersBtn">Add Barriers</button>
-            <button id="addNumbersBtn">Add Numbers</button>
+            <div class="builder-option">
+              <button id="addBarriersBtn">Add Barriers</button>
+              <div class="density-control">
+                <button class="density-btn" id="barrierDownBtn">−</button>
+                <span id="barrierCount">6</span>
+                <button class="density-btn" id="barrierUpBtn">+</button>
+              </div>
+            </div>
+            <div class="builder-option">
+              <button id="addNumbersBtn">Add Numbers</button>
+              <div class="density-control">
+                <button class="density-btn" id="numberDownBtn">−</button>
+                <span id="numberCount">4</span>
+                <button class="density-btn" id="numberUpBtn">+</button>
+              </div>
+            </div>
             <button id="testPlayBtn">Test Play</button>
             <button id="saveBuilderBtn">Save Puzzle</button>
           </div>
@@ -92,6 +106,8 @@
   let builderMode = false;
   let builderPhase = 'drawing'; // 'drawing', 'preview', 'testplay'
   let builderPath = []; // the custom path being built
+  let builderBarrierCount = 6; // adjustable barrier density
+  let builderNumberCount = 4; // adjustable number count
 
   // Puzzle generation state
   let edgeBarriers = new Set(); // edges that are blocked (format: "r1,c1|r2,c2")
@@ -637,8 +653,8 @@
       pathEdges.add(edgeKey(curr.r, curr.c, next.r, next.c));
     }
 
-    // Add random barriers that don't block the solution path
-    const targetBarriers = Math.floor((N * N - 1) * 0.12); // Medium difficulty
+    // Use adjustable barrier count
+    const targetBarriers = builderBarrierCount;
     let attempts = 0;
 
     while (barriers.length < targetBarriers && attempts < 200) {
@@ -681,13 +697,14 @@
     // Always include start and end
     const hintPositions = [0, pathLength - 1];
 
-    // Add 2-4 random positions in between
-    const additionalHints = 2 + Math.floor(Math.random() * 3);
-    while (hintPositions.length < additionalHints + 2) {
+    // Use adjustable number count (subtract 2 because start/end are always included)  
+    const additionalHints = Math.max(0, builderNumberCount - 2);
+    while (hintPositions.length < builderNumberCount && additionalHints > 0) {
       const randomPos = Math.floor(Math.random() * (pathLength - 2)) + 1;
       if (!hintPositions.includes(randomPos)) {
         hintPositions.push(randomPos);
       }
+      if (hintPositions.length >= pathLength) break; // Safety check
     }
 
     hintPositions.sort((a, b) => a - b);
@@ -1560,6 +1577,27 @@
         const difficulty = document.getElementById('difficulty').value;
         saveBuilderPuzzle(difficulty);
       }
+    });
+
+    // Density control handlers
+    document.getElementById('barrierUpBtn').addEventListener('click', () => {
+      builderBarrierCount = Math.min(builderBarrierCount + 1, 15);
+      document.getElementById('barrierCount').textContent = builderBarrierCount;
+    });
+
+    document.getElementById('barrierDownBtn').addEventListener('click', () => {
+      builderBarrierCount = Math.max(builderBarrierCount - 1, 1);
+      document.getElementById('barrierCount').textContent = builderBarrierCount;
+    });
+
+    document.getElementById('numberUpBtn').addEventListener('click', () => {
+      builderNumberCount = Math.min(builderNumberCount + 1, 10);
+      document.getElementById('numberCount').textContent = builderNumberCount;
+    });
+
+    document.getElementById('numberDownBtn').addEventListener('click', () => {
+      builderNumberCount = Math.max(builderNumberCount - 1, 2);
+      document.getElementById('numberCount').textContent = builderNumberCount;
     });
   }
 

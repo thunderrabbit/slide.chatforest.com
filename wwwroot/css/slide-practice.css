@@ -106,6 +106,49 @@
     cursor: not-allowed;
 }
 
+.slide-practice .builder-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.slide-practice .density-control {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: #1a1f2c;
+    border: 1px solid #272d3c;
+    border-radius: 8px;
+    padding: 2px 4px;
+}
+
+.slide-practice .density-btn {
+    background: transparent;
+    border: none;
+    color: var(--warn);
+    font-size: 14px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slide-practice .density-btn:hover {
+    background: rgba(255, 181, 86, 0.2);
+}
+
+.slide-practice .density-control span {
+    min-width: 16px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+}
+
 .slide-practice button,
 .slide-practice select {
     background: #111522;
