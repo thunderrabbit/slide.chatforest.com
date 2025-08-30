@@ -92,6 +92,35 @@
   let solveTimeRecorded = false;
   let puzzleAlreadySolvedByUser = false; // Track if user already solved this puzzle
 
+  // Generic logging function
+  function logSomeStuff(r, c, pathLength, customData) {
+    let logData;
+
+    if (customData) {
+      // Use custom data if provided (for puzzle completion, etc.)
+      logData = customData;
+    } else {
+      // Default cell click data
+      logData = {
+        r: r,
+        c: c,
+        path_length: pathLength
+      };
+    }
+
+    // Non-blocking AJAX call to log data
+    fetch('/log_cell_click.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(logData)
+    }).catch(error => {
+      // Silent fail - don't interrupt gameplay if logging fails
+      console.warn('Logging failed:', error);
+    });
+  }
+
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
   let downPos = null; // {x,y} in CSS pixels * dpi
@@ -566,6 +595,7 @@
 
       path.push({r,c});
       occupied.add(k);
+      logSomeStuff(r, c, path.length);
 
       haptic();
       clearLongPress();
@@ -589,6 +619,7 @@
 
     path.push({r,c});
     occupied.add(k);
+    logSomeStuff(r, c, path.length);
 
     // If this cell has a number, update the next required number
     const cellNumber = numberHints.get(k);
@@ -617,6 +648,14 @@
             console.log('🎉 PUZZLE COMPLETED AGAIN! (But time not recorded - already solved before)');
             const solveTimeMs = Date.now() - puzzleStartTime;
             const seconds = (solveTimeMs / 1000).toFixed(2);
+
+            // Log the repeat solve
+            logSomeStuff(null, null, null, {
+              action: 'puzzle_solved_again',
+              solve_time_ms: solveTimeMs,
+              puzzle_id: puzzleData?.puzzle_id
+            });
+
             // Show completion message but no timing
             showCompletionMessage('🎉 Solved again in ' + seconds + 's!  But only your first solve time counts.');
           } else {
@@ -626,6 +665,13 @@
             if (puzzleStartTime && !solveTimeRecorded) {
               const solveTimeMs = Date.now() - puzzleStartTime;
               console.log('⏱️ Puzzle solved! Time:', solveTimeMs + 'ms');
+
+              // Log the first-time solve
+              logSomeStuff(null, null, null, {
+                action: 'puzzle_solved_first_time',
+                solve_time_ms: solveTimeMs,
+                puzzle_id: puzzleData?.puzzle_id
+              });
               console.log('⏱️ Recording solve time');
               recordSolveTime(solveTimeMs);
               solveTimeRecorded = true; // Prevent duplicate recordings
@@ -911,6 +957,12 @@
 
     console.log(`Migrating ${keysToMigrate.length} puzzle times to account...`);
 
+    // Log the start of migration
+    logSomeStuff(null, null, null, {
+      action: 'anonymous_migration_started',
+      puzzles_to_migrate: keysToMigrate.length
+    });
+
     keysToMigrate.forEach(key => {
       const puzzleId = key.replace('slide_times_', '');
       const times = JSON.parse(localStorage.getItem(key) || '[]');
@@ -930,6 +982,14 @@
           .then(data => {
             if (data.success) {
               console.log(`Migrated time ${time.solve_time_ms}ms for puzzle ${puzzleId}`);
+
+              // Log successful migration of each time
+              logSomeStuff(null, null, null, {
+                action: 'anonymous_time_migrated',
+                puzzle_id: parseInt(puzzleId),
+                solve_time_ms: time.solve_time_ms,
+                completed_at: time.completed_at
+              });
             }
           })
           .catch(error => {
@@ -944,6 +1004,13 @@
     // Refresh the global leaderboard after migration
     setTimeout(() => {
       console.log('🔄 Migration complete, refreshing displays');
+
+      // Log completion of migration
+      logSomeStuff(null, null, null, {
+        action: 'anonymous_migration_completed',
+        puzzles_migrated: keysToMigrate.length
+      });
+
       loadGlobalTimes();
 
       // Also remove the anonymous times section since user is now logged in
