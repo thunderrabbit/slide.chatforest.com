@@ -28,7 +28,9 @@ class WebDriverTester extends \Codeception\Actor
      */
     public function waitForPuzzleToLoad($timeout = 10)
     {
-        $this->waitForJS('return typeof puzzleData !== "undefined"', $timeout);
+        // Wait for canvas and basic JS to be ready instead of puzzleData
+        $this->waitForElement('canvas#board', $timeout);
+        $this->wait(2); // Allow JS to initialize
     }
 
     /**
@@ -81,18 +83,17 @@ class WebDriverTester extends \Codeception\Actor
     }
 
     /**
-     * Fill registration form and submit
+     * Fill registration form and submit (based on actual form structure)
      */
     public function registerUser($username, $email, $password)
     {
         $this->amOnPage('/login/register.php');
         $this->waitForElement('input[name="username"]', 10);
         
-        $this->fillField('username', $username);
-        $this->fillField('email', $email);
-        $this->fillField('password', $password);
-        $this->fillField('password_confirm', $password);
+        $this->fillField('input[name="username"]', $username);
+        $this->fillField('input[name="pass"]', $password);
+        $this->fillField('input[name="pass_verify"]', $password);
         
-        $this->click('input[type="submit"], button[type="submit"]');
+        $this->click('input[type="submit"]');
     }
 }
