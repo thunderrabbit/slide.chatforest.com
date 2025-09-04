@@ -20,6 +20,7 @@
       </div>
       <div class="lower_controls">
           <button id="puzzleBtn">New</button>
+          <button id="earliestUnplayedBtn">Play Earliest Unplayed</button>
           <button id="solutionBtn">Solve</button>
           <?php if($is_admin): ?>
           <div class="builder-controls" id="builderControls" style="display: none;">
@@ -59,6 +60,8 @@
             <?php else: ?>
             <span class="puzzle-nav-btn next disabled">-----</span>
             <?php endif; ?>
+            
+            <button id="nextUnplayedBtn" class="puzzle-nav-btn next-unplayed" title="Next unplayed puzzle">Next Unplayed →</button>
           </div>
           <?php endif; ?>
         </div>
@@ -1698,6 +1701,55 @@
     }
   });
   document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
+
+  document.getElementById('earliestUnplayedBtn').addEventListener('click', async () => {
+    try {
+      const response = await fetch('/earliest_unplayed.php');
+      const data = await response.json();
+      
+      if (data.success) {
+        // Navigate to the earliest unplayed puzzle
+        window.location.href = '/puzzle/' + data.puzzle_code;
+      } else {
+        // Handle case where all puzzles are solved or no puzzles exist
+        alert(data.message || 'No unplayed puzzles found');
+      }
+    } catch (error) {
+      console.error('Error finding earliest unplayed puzzle:', error);
+      alert('Error finding earliest unplayed puzzle');
+    }
+  });
+
+  // Add event listener for "Next Unplayed" button (only exists on puzzle pages)
+  const nextUnplayedBtn = document.getElementById('nextUnplayedBtn');
+  if (nextUnplayedBtn) {
+    nextUnplayedBtn.addEventListener('click', async () => {
+      try {
+        const currentPuzzleId = puzzleId || (puzzleData && puzzleData.puzzle_id);
+        if (!currentPuzzleId) {
+          console.error('No current puzzle ID available');
+          alert('Error: Current puzzle ID not found');
+          return;
+        }
+
+        const response = await fetch('/next_unplayed.php?current_puzzle_id=' + currentPuzzleId);
+        const data = await response.json();
+        
+        if (data.success) {
+          // Navigate to the next unplayed puzzle
+          window.location.href = '/puzzle/' + data.puzzle_code;
+        } else if (data.redirect_to_new) {
+          // No more unplayed puzzles - redirect to main page for new puzzle
+          window.location.href = '/';
+        } else {
+          alert(data.message || 'No more unplayed puzzles found');
+        }
+      } catch (error) {
+        console.error('Error finding next unplayed puzzle:', error);
+        alert('Error finding next unplayed puzzle');
+      }
+    });
+  }
 
   seedAnchors();
 
