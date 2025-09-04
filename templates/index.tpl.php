@@ -234,6 +234,7 @@
     nextRequiredNumber = 1;
     showingSolution = false;
 
+
     // Check if user already solved this puzzle (logged-in or anonymous)
     checkIfAlreadySolved();
   }
@@ -438,6 +439,12 @@
     }
 
     puzzleMode = true;
+
+    // Start timing for new puzzle
+    if (!puzzleStartTime) {
+      puzzleStartTime = Date.now();
+      console.log('⏰ Started timing for new generated puzzle at:', puzzleStartTime);
+    }
   }
 
   function generatePuzzleUsingPHP(difficulty) {
@@ -481,6 +488,12 @@
 
         // Show the puzzle code in the UI
         showPuzzleCode(data.puzzle_id, data.puzzle_code);
+
+        // Start timing for new PHP-generated puzzle
+        if (!puzzleStartTime) {
+          puzzleStartTime = Date.now();
+          console.log('⏰ Started timing for new PHP-generated puzzle at:', puzzleStartTime);
+        }
 
         // Clear any existing path and redraw
         clearAll();
@@ -599,15 +612,18 @@
     nextRequiredNumber = 1; // Reset sequence tracker
     showingSolution = false; // Hide solution when clearing
 
-    // Reset solve tracking for new attempt
-    puzzleStartTime = null;
-    puzzleSolved = false;
-    solveTimeRecorded = false;
-    console.log('🔄 Reset solve tracking for new attempt');
+    // Don't reset timer - clearing is just resetting the path, not starting over
+    // Only reset solve status for practice mode or when loading new puzzle
     if (!puzzleMode) {
+      puzzleStartTime = null;
+      puzzleSolved = false;
+      solveTimeRecorded = false;
+      console.log('🔄 Reset solve tracking for practice mode');
       edgeBarriers.clear();
       numberHints.clear();
       solutionPath = [];
+    } else {
+      console.log('🔄 Cleared path but kept timer running for puzzle mode');
     }
     draw();
   }
@@ -800,14 +816,7 @@
 
     // Normal game mode logic
     if (path.length===0){
-      // Start timing when first cell is clicked (only if user hasn't solved this before)
-      if (puzzleMode && !puzzleSolved && !puzzleAlreadySolvedByUser) {
-        puzzleStartTime = Date.now();
-        console.log('⏰ Started timing at:', puzzleStartTime);
-      } else if (puzzleAlreadySolvedByUser) {
-        console.log('⏰ Starting timer - but user already solved this puzzle');
-        puzzleStartTime = Date.now();
-      }
+      // Timer already started when puzzle loaded - no need to restart here
 
       // Check if first cell is accessible (only matters for numbered cells)
       if (!isNumberedCellAccessible(r, c)) return;
@@ -924,11 +933,23 @@
           } else {
             puzzleAlreadySolvedByUser = false;
             console.log('🆕 Logged-in user has not solved this puzzle yet');
+
+            // Start timing for first-time solve
+            if (!puzzleStartTime) {
+              puzzleStartTime = Date.now();
+              console.log('⏰ Started timing for logged-in user at:', puzzleStartTime);
+            }
           }
         })
         .catch(error => {
           console.error('Error checking solve status:', error);
           puzzleAlreadySolvedByUser = false;
+
+          // Start timing on error (assume first-time solve)
+          if (!puzzleStartTime) {
+            puzzleStartTime = Date.now();
+            console.log('⏰ Started timing on error (assumed first-time) at:', puzzleStartTime);
+          }
         });
     } else {
       // Anonymous user: check localStorage
@@ -944,6 +965,12 @@
       } else {
         puzzleAlreadySolvedByUser = false;
         console.log('🆕 Anonymous user has not solved this puzzle yet');
+
+        // Start timing for first-time solve
+        if (!puzzleStartTime) {
+          puzzleStartTime = Date.now();
+          console.log('⏰ Started timing for anonymous user at:', puzzleStartTime);
+        }
       }
     }
   }
