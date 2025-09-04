@@ -26,6 +26,13 @@
           <div class="builder-controls" id="builderControls" style="display: none;">
             <button id="clearPathBtn">Clear Path</button>
             <div class="builder-option">
+              <label>Extend from:</label>
+              <select id="activeEndSelect">
+                <option value="end" selected>End of path</option>
+                <option value="start">Start of path</option>
+              </select>
+            </div>
+            <div class="builder-option">
               <button id="addBarriersBtn">Add Barriers</button>
               <div class="density-control">
                 <button class="density-btn" id="barrierDownBtn">−</button>
@@ -111,6 +118,7 @@
   let builderPath = []; // the custom path being built
   let builderBarrierCount = 6; // adjustable barrier density
   let builderNumberCount = 4; // adjustable number count
+  let builderActiveEnd = 'end'; // 'start' or 'end' - which end of path to extend
 
   // Puzzle generation state
   let edgeBarriers = new Set(); // edges that are blocked (format: "r1,c1|r2,c2")
@@ -778,23 +786,42 @@
         return;
       }
 
-      const prev = path[path.length-1];
-      if (path.length>1 && equal({r,c}, path[path.length-2])){
-        // Backtrack in builder mode
+      // Get the active end of the path based on user selection
+      const activeEndIndex = builderActiveEnd === 'end' ? path.length - 1 : 0;
+      const activeCell = path[activeEndIndex];
+
+      // Check for backtracking (undoing the last move on active end)
+      if (builderActiveEnd === 'end' && path.length > 1 && equal({r,c}, path[path.length-2])) {
+        // Backtrack from end
         const removed = path.pop();
         occupied.delete(key(removed.r, removed.c));
         builderPath.pop();
         clearLongPress();
         draw();
         return;
+      } else if (builderActiveEnd === 'start' && path.length > 1 && equal({r,c}, path[1])) {
+        // Backtrack from start
+        const removed = path.shift();
+        occupied.delete(key(removed.r, removed.c));
+        builderPath.shift();
+        clearLongPress();
+        draw();
+        return;
       }
-      if (!neighbors(prev,{r,c})) return;
+
+      // Check if new cell is adjacent to active end
+      if (!neighbors(activeCell, {r,c})) return;
       if (occupied.has(k)) return;
 
-      // Add cell to builder path
-      path.push({r,c});
+      // Add cell to appropriate end of builder path
+      if (builderActiveEnd === 'end') {
+        path.push({r,c});
+        builderPath.push({r,c});
+      } else {
+        path.unshift({r,c});
+        builderPath.unshift({r,c});
+      }
       occupied.add(k);
-      builderPath.push({r,c});
 
       haptic();
       clearLongPress();
@@ -1370,13 +1397,38 @@
       }
       ctx.stroke();
 
-      const cur = path[path.length-1];
-      const pxy = px(cur.r, cur.c);
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(67,192,122,0.85)';
-      ctx.lineWidth = 3*dpi;
-      ctx.arc(pxy.x, pxy.y, Math.max(10*dpi, cell*0.18), 0, Math.PI*2);
-      ctx.stroke();
+      // Show indicators for path ends in builder mode
+      if (builderMode && path.length > 1) {
+        // Show both start and end with different styles
+        const startPxy = px(path[0].r, path[0].c);
+        const endPxy = px(path[path.length-1].r, path[path.length-1].c);
+
+        // Active end gets bright green circle
+        const activePxy = builderActiveEnd === 'start' ? startPxy : endPxy;
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(67,192,122,0.85)';
+        ctx.lineWidth = 3*dpi;
+        ctx.arc(activePxy.x, activePxy.y, Math.max(10*dpi, cell*0.18), 0, Math.PI*2);
+        ctx.stroke();
+
+        // Inactive end gets dimmed circle
+        const inactivePxy = builderActiveEnd === 'start' ? endPxy : startPxy;
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(67,192,122,0.3)';
+        ctx.lineWidth = 2*dpi;
+        ctx.arc(inactivePxy.x, inactivePxy.y, Math.max(8*dpi, cell*0.14), 0, Math.PI*2);
+        ctx.stroke();
+      } else {
+        // Normal mode or single cell - show green circle at end
+        const curIndex = (builderMode && builderActiveEnd === 'start') ? 0 : path.length - 1;
+        const cur = path[curIndex];
+        const pxy = px(cur.r, cur.c);
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(67,192,122,0.85)';
+        ctx.lineWidth = 3*dpi;
+        ctx.arc(pxy.x, pxy.y, Math.max(10*dpi, cell*0.18), 0, Math.PI*2);
+        ctx.stroke();
+      }
     }
 
     // Draw solution path if enabled
@@ -1434,9 +1486,11 @@
     }
 
     const cellRC = cellAt(x,y);
-    const last = path[path.length-1];
-    if (!last || !equal(cellRC,last)) {
-      stepThrough(last, cellRC);
+    // In builder mode, use the active end; in normal mode, always use the last cell
+    const activeIndex = (builderMode && builderActiveEnd === 'start') ? 0 : path.length - 1;
+    const activeCellInPath = path[activeIndex];
+    if (!activeCellInPath || !equal(cellRC, activeCellInPath)) {
+      stepThrough(activeCellInPath, cellRC);
     }
   }
 
@@ -1450,8 +1504,10 @@
     while (r!==to.r || c!==to.c){
       r += dr; c += dc;
       tryAddCell(r,c);
-      const last = path[path.length-1];
-      if (!last || last.r!==r || last.c!==c) break;
+      // Check the active end to see if the cell was actually added
+      const activeIndex = (builderMode && builderActiveEnd === 'start') ? 0 : path.length - 1;
+      const activeCell = path[activeIndex];
+      if (!activeCell || activeCell.r!==r || activeCell.c!==c) break;
     }
   }
 
@@ -1517,6 +1573,8 @@
         numberHints.clear();
         solutionPath = [];
         puzzleMode = false;
+        builderActiveEnd = 'end';
+        document.getElementById('activeEndSelect').value = 'end';
         updateBuilderHint('Draw a path that visits all 49 cells exactly once');
         resize();
       } else {
@@ -1532,6 +1590,8 @@
         path = [];
         occupied.clear();
         builderPhase = 'drawing';
+        builderActiveEnd = 'end';
+        document.getElementById('activeEndSelect').value = 'end';
         updateBuilderHint('Draw a path that visits all 49 cells exactly once');
         draw();
       }
@@ -1639,6 +1699,16 @@
       builderNumberCount = Math.max(builderNumberCount - 1, 2);
       document.getElementById('numberCount').textContent = builderNumberCount;
     });
+
+    // Active end selection handler
+    document.getElementById('activeEndSelect').addEventListener('change', (e) => {
+      builderActiveEnd = e.target.value;
+
+      // Update hint to show which end is active
+      const endName = builderActiveEnd === 'end' ? 'END' : 'START';
+      const pathStatus = path.length > 0 ? ` (${path.length}/${N*N} cells)` : '';
+      updateBuilderHint(`Extending from ${endName} of path${pathStatus}`);
+    });
   }
 
   function updateBuilderHint(message) {
@@ -1705,6 +1775,8 @@
         numberHints.clear();
         solutionPath = [];
         puzzleMode = false;
+        builderActiveEnd = 'end';
+        document.getElementById('activeEndSelect').value = 'end';
 
         updateBuilderHint('Puzzle saved! Draw a new path to create another puzzle.');
         draw();
