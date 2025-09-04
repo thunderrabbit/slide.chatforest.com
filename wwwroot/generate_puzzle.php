@@ -36,7 +36,27 @@ if (!in_array($difficulty, ['easy', 'medium', 'hard'])) {
 }
 
 try {
-    // Generate the puzzle using PHP
+    // For 7x7 puzzles, try to use pre-generated puzzles first
+    if ($gridSize === 7) {
+        $backgroundGen = new BackgroundPuzzleGenerator($mla_database);
+        $preGenerated = $backgroundGen->getPreGeneratedPuzzle($difficulty);
+
+        if ($preGenerated) {
+            echo json_encode([
+                "success" => true,
+                "puzzle_id" => $preGenerated['puzzle_id'],
+                "puzzle_code" => $preGenerated['puzzle_code'],
+                "puzzle_data" => $preGenerated['puzzle_data'],
+                "generated_by" => "pre-generated"
+            ]);
+            exit;
+        }
+
+        // If no pre-generated puzzle available, log and fall back to live generation
+        error_log("No pre-generated 7x7 puzzle available for difficulty: $difficulty");
+    }
+
+    // Generate the puzzle using PHP (fallback or non-7x7)
     $generator = new PuzzleGenerator($gridSize);
     $puzzleData = $generator->generatePuzzle($difficulty);
 
