@@ -66,6 +66,11 @@ class DBExistaroo {
     }
 
     private function domainMatches(): bool {
+        // Skip domain check when running from CLI (e.g., cron jobs, scripts)
+        if (php_sapi_name() === 'cli') {
+            return true;
+        }
+
         $currentDomain = $_SERVER['HTTP_HOST'] ?? '';
         return $currentDomain === $this->config->domain_name;
     }
