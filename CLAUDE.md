@@ -2,9 +2,73 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Slide Practice Game
 
-This is a minimalist PHP web application framework designed for DreamHost deployment. It's a custom template-based site with admin dashboard functionality, database migration system, and user authentication using cookies stored in the database. The current implementation includes a Slide Practice puzzle game as the main application feature.
+The main application feature is a puzzle game implemented in `templates/index.tpl.php` with supporting CSS in `wwwroot/css/slide-practice.css`.
+
+### Game Features
+
+- **Canvas-based HTML5 game** with touch and mouse support
+- **Hamiltonian path puzzle generation** using recursive backtracking algorithm
+- **Sequential number access system** - players must visit numbered cells in order (1, 2, 3, etc.)
+- **Edge-based barrier system** - walls block passages between grid cells
+- **Solution visualization** - "Show Solution" button reveals complete path with dashed overlay
+- **Difficulty levels** - Easy (5x5), Medium (6x6)
+- **Flexible number placement** - variable number of numbered cells along solution path
+
+### Technical Implementation
+
+#### Puzzle Generation (`templates/index.tpl.php`)
+
+Key functions:
+- `generateHamiltonianPath(grid, startX, startY)` - Creates valid solution path using backtracking
+- `generatePuzzle()` - Main puzzle creation with barriers and number placement
+- `validateSolutionPath(path, gridSize)` - Ensures solution integrity
+- `isNumberedCellAccessible(x, y)` - Sequential access control
+
+#### Game Logic
+
+- **Path validation**: Ensures all cells visited exactly once in valid sequence
+- **Barrier generation**: Edge barriers placed randomly without blocking solution
+- **Number placement**: Start gets 1, end gets highest number, random distribution in between
+- **Win condition**: Player reaches final numbered cell in correct sequence
+
+#### Rendering System
+
+- Canvas-based 2D rendering with cell/wall/number layers
+- Touch-friendly interface with drag-based movement
+- Real-time path validation and visual feedback
+- Solution overlay with toggle functionality
+
+### Puzzle Storage & Sharing
+
+- **YouTube-style puzzle codes**: 8-character codes (e.g., `kx7mp9qr`) using clean character set without look-alikes
+- **Database storage**: Each puzzle saved with barriers, numbered positions, solution path, and difficulty
+- **Shareable URLs**: `/puzzle/kx7mp9qr` for specific puzzles, to prevent scraping, puzzles are not available by id
+- **Automatic saving**: Every "New" puzzle click generates and saves a unique puzzle
+- **Clean character set**: `abcdefghjkmnopqrstuvwxyzACDEFHJKLMNPQRTUVWXY34679` (49 chars, 33+ trillion capacity)
+
+### Solve Time Tracking System
+
+- **"First solve only" policy**: Each user can only record one solve time per puzzle
+- **Database constraint**: `unique_user_puzzle_solve` prevents duplicate database entries
+- **Anonymous user support**: localStorage tracks first solve for non-logged-in users
+- **User migration**: Anonymous times automatically migrate to account upon registration/login
+- **API endpoints**: `/save_solve_time.php`, `/get_user_times.php`, `/check_solved.php`
+- **Leaderboards**: Global leaderboard shows best times with usernames, local times for anonymous users
+- **Time validation**: Saves all reasonable times (above 2.5 seconds) to prevent spam/cheating
+- **UI feedback**: Different messages for first solve vs repeat completions
+
+### Development History
+
+Notable fixes and improvements:
+- Resolved Hamiltonian path generation bugs (variable scope, bounds checking)
+- Implemented sequential number access with state tracking
+- Added solution visualization system
+- Created flexible number placement (non-rigid spacing)
+- Implemented YouTube-style puzzle codes and sharing system
+- Consolidated duplicate templates to reduce codebase by 490+ lines
+- Implemented comprehensive solve time tracking with "first solve only" policy
 
 ## Key Architecture
 
@@ -102,8 +166,6 @@ This leverages DreamHost's consistent `/home/username/domain.com/` path structur
 
 ### Database Operations
 - Visit `/admin/migrate_tables.php` to manually apply pending migrations
-- Database schemas automatically applied for prefixes "00" and "01"
-- First-time setup creates admin user automatically (or redirects to `/login/register.php`)
 
 ## Error Handling and Debugging
 
@@ -111,76 +173,6 @@ This leverages DreamHost's consistent `/home/username/domain.com/` path structur
 - Missing users table triggers admin registration flow (`prepend.php:48-59`)
 - All PHP errors displayed to screen during development (`prepend.php:5-8`)
 - Template system supports debug context via `?debug=1` parameter
-
-## Slide Practice Game
-
-The main application feature is a puzzle game implemented in `templates/index.tpl.php` with supporting CSS in `wwwroot/css/slide-practice.css`.
-
-### Game Features
-
-- **Canvas-based HTML5 game** with touch and mouse support
-- **Hamiltonian path puzzle generation** using recursive backtracking algorithm
-- **Sequential number access system** - players must visit numbered cells in order (1, 2, 3, etc.)
-- **Edge-based barrier system** - walls block passages between grid cells
-- **Solution visualization** - "Show Solution" button reveals complete path with dashed overlay
-- **Difficulty levels** - Easy (5x5), Medium (6x6)
-- **Flexible number placement** - variable number of numbered cells along solution path
-
-### Technical Implementation
-
-#### Puzzle Generation (`templates/index.tpl.php`)
-
-Key functions:
-- `generateHamiltonianPath(grid, startX, startY)` - Creates valid solution path using backtracking
-- `generatePuzzle()` - Main puzzle creation with barriers and number placement
-- `validateSolutionPath(path, gridSize)` - Ensures solution integrity
-- `isNumberedCellAccessible(x, y)` - Sequential access control
-
-#### Game Logic
-
-- **Path validation**: Ensures all cells visited exactly once in valid sequence
-- **Barrier generation**: Edge barriers placed randomly without blocking solution
-- **Number placement**: Start gets 1, end gets highest number, random distribution in between
-- **Win condition**: Player reaches final numbered cell in correct sequence
-
-#### Rendering System
-
-- Canvas-based 2D rendering with cell/wall/number layers
-- Touch-friendly interface with drag-based movement
-- Real-time path validation and visual feedback
-- Solution overlay with toggle functionality
-
-### Puzzle Storage & Sharing
-
-- **YouTube-style puzzle codes**: 8-character codes (e.g., `kx7mp9qr`) using clean character set without look-alikes
-- **Database storage**: Each puzzle saved with barriers, numbered positions, solution path, and difficulty
-- **Shareable URLs**: `/puzzle/kx7mp9qr` for specific puzzles, `/puzzle/123` for backwards compatibility
-- **Automatic saving**: Every "New" puzzle click generates and saves a unique puzzle
-- **Clean character set**: `abcdefghjkmnopqrstuvwxyzACDEFHJKLMNPQRTUVWXY34679` (49 chars, 33+ trillion capacity)
-
-### Solve Time Tracking System
-
-- **"First solve only" policy**: Each user can only record one solve time per puzzle
-- **Database constraint**: `unique_user_puzzle_solve` prevents duplicate database entries
-- **Anonymous user support**: localStorage tracks first solve for non-logged-in users
-- **User migration**: Anonymous times automatically migrate to account upon registration/login
-- **API endpoints**: `/save_solve_time.php`, `/get_user_times.php`, `/check_solved.php`
-- **Leaderboards**: Global leaderboard shows best times with usernames, local times for anonymous users
-- **Time validation**: Saves all reasonable times (above 2.5 seconds) to prevent spam/cheating
-- **UI feedback**: Different messages for first solve vs repeat completions
-
-### Development History
-
-Notable fixes and improvements:
-- Fixed PDO exception handling in `DBExistaroo.php:131` for missing users table
-- Corrected domain paths from MarbleTrack3 to slide.chatforest.com
-- Resolved Hamiltonian path generation bugs (variable scope, bounds checking)
-- Implemented sequential number access with state tracking
-- Added solution visualization system
-- Created flexible number placement (non-rigid spacing)
-- Implemented YouTube-style puzzle codes and sharing system
-- Consolidated duplicate templates to reduce codebase by 490+ lines
-- Implemented comprehensive solve time tracking with "first solve only" policy
 
 ## Future Development Ideas
 
@@ -192,11 +184,10 @@ Notable fixes and improvements:
 - **Comments/ratings**: Let users rate and discuss specific puzzles
 
 ### Game Mechanics & Variety
-- **Multiple grid shapes**: Hexagonal, triangular, irregular grids
 - **Time challenges**: Speed puzzles, daily timed challenges
 - **Cooperative puzzles**: Multi-player puzzles requiring collaboration
 - **Progressive difficulty**: Adaptive difficulty based on player skill
-- **Puzzle variations**: Different rules (reverse path, mirror mode, etc.)
+- **Puzzle variations**: Different rules (reverse path, blind mode, etc.)
 
 ### Technical & Infrastructure
 - **Puzzle analytics**: Track which puzzles are hardest, most popular

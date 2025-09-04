@@ -1,66 +1,33 @@
-# DreamHost Site Template (MVP Framework)
+## Slide Practice Game
 
-This is a minimalist PHP template framework developed originally for
-db.**MarbleTrack3** and now used as a starter for DreamHost-based sites.
-It includes a simple admin dashboard, a lightweight templating engine,
-and a clean layout system with optional authentication hooks.
+Slide is a puzzle game to help me practice solving Hamiltonian graph puzzles.
 
----
+https://slide.chatforest.com
 
-## 📂 Structure
+### How to Play
 
-- `classes/Template.php`: Core rendering engine with support for string-capture (`grabTheGoods()`) and layout nesting.
-- `wwwroot/`: Public-facing files. Place your admin pages here (`/admin/index.php`, etc).
-- `templates/`: Your site’s UI. Includes layout wrappers and specific content templates.
-- `css/styles.css`: Soft blue aesthetic with clean panels and nav bar.
+**Objective**: Draw a path through numbered cells in sequence (1, 2, 3...) and end on the highest number.
 
----
+**Controls**:
+- **Drag** to draw your path through the grid
+- **Slide back** along your path to erase (backtrack)
+- **Long-press** anywhere to clear the entire path
 
-## 🚀 Features
+**Rules**:
+1. **Single Shot**: Your solve time is saved after you first play the level, no need to solve the same puzzle repeatedly.
+1. **Sequential Access**: You must visit numbered cells in order - you can only reach number 2 after visiting 1, number 3 after visiting 2, etc.
+2. **Barriers**: Walls block movement between adjacent cells
+3. **Single Path**: Each cell can only be visited once
+4. **End Goal**: Complete the puzzle by ending your path on the highest numbered cell
 
-- Lightweight custom templating (no Twig, Blade, or Smarty)
-- Admin dashboard scaffold
-- Built-in layout nesting (`grabTheGoods()`)
-- Styled with light blues and page panels
-- Easily set up first (admin) user
-- Uses cookies in DB for logins
+**Difficulty Levels**:
+- **Easy**: 5×5 grid with fewer barriers and numbers
+- **Medium**: 6×6 grid with moderate complexity
+- **Hard**: 7×7 grid with more barriers and numbers
 
----
+**Features**:
+- Click "Solve" to see the solution path
+- Click "New" to generate a fresh puzzle
+- Solve times are tracked - your first completion of each puzzle counts toward leaderboards
+- Share puzzle URLs to challenge friends with the same puzzle
 
-## 🔧 Setup (with DreamHost Deployment)
-
-1. **Set up a DreamHost new user account:**
-   - Clone [thunderrabbit/new-DH-user-account](https://github.com/thunderrabbit/new-DH-user-account)
-
-2. **Set your domain's Web Directory in DreamHost panel:**
-   - e.g. `/home/dh_user/example.com/wwwroot`
-
-3. **Clone this repo locally** into a working directory.
-
-4. **Configure your deploy script:**
-   - Edit `scp_files_to_dh.sh` to point to your DH username and target path.
-
-5. **Clone this repo server-side** (optional but useful):
-   - Clone to `/home/dh_user/example.com`
-   - ⚠️ Be aware of DreamHost system links like `.dh-diag → /dh/web/diag` — **The symlink is owned by `root`**.
-
-6. **Deploy with `scp_files_to_dh.sh`** or manually sync files.
-
-7. Customize the templates:
-   - `/templates/layout/admin_base.tpl.php`: Main layout
-   - `/templates/admin/index.tpl.php`: Admin dashboard
-   - `/templates/admin/workers/index.tpl.php`: Example content page
-
-8. Visit `/` to automagically create admin user in the freshly set up TABLEs `users` and `cookies`
-
----
-
-## 📝 License
-
-No license yet. Use it privately, tweak as needed. Attribution appreciated if it grows into something shared.
-
----
-
-## ✨ Origin
-
-Originally created during work on the **MarbleTrack3** stop-motion animation archive (June 2025). Designed for fun and minimal overhead.
