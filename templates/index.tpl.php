@@ -26,13 +26,6 @@
           <div class="builder-controls" id="builderControls" style="display: none;">
             <button id="clearPathBtn">Clear Path</button>
             <div class="builder-option">
-              <label>Extend from:</label>
-              <select id="activeEndSelect">
-                <option value="end" selected>End of path</option>
-                <option value="start">Start of path</option>
-              </select>
-            </div>
-            <div class="builder-option">
               <button id="addBarriersBtn">Add Barriers</button>
               <div class="density-control">
                 <button class="density-btn" id="barrierDownBtn">−</button>
@@ -769,12 +762,51 @@
   }
 
   function tryAddCell(r,c){
-    console.log('🖱️ tryAddCell called:', r, c, 'current path length:', path.length, 'builderMode:', builderMode);
+    console.log('🖱️ tryAddCell called:', {
+      cell: {r, c},
+      pathLength: path.length,
+      builderMode: builderMode,
+      builderPhase: builderPhase,
+      builderActiveEnd: builderActiveEnd
+    });
     if(!inBounds(r,c)) return;
     const k = key(r,c);
 
     // Builder mode - different path handling
     if (builderMode && builderPhase === 'drawing') {
+      // FIRST: Check if user clicked on a path end to select it (highest priority!)
+      if (path.length >= 2) {
+        const startCell = path[0];
+        const endCell = path[path.length - 1];
+
+        console.log('🎯 Builder click detection:', {
+          clickedCell: {r, c},
+          startCell: startCell,
+          endCell: endCell,
+          currentActiveEnd: builderActiveEnd,
+          clickedOnStart: equal({r,c}, startCell),
+          clickedOnEnd: equal({r,c}, endCell)
+        });
+
+        if (equal({r,c}, startCell) && builderActiveEnd !== 'start') {
+          // Clicked on start end - switch to start
+          console.log('🎯 Switching to START end');
+          builderActiveEnd = 'start';
+          updateBuilderHint(`Now extending from START of path (${path.length}/${N*N} cells)`);
+          haptic();
+          draw();
+          return;
+        } else if (equal({r,c}, endCell) && builderActiveEnd !== 'end') {
+          // Clicked on end end - switch to end
+          console.log('🎯 Switching to END end');
+          builderActiveEnd = 'end';
+          updateBuilderHint(`Now extending from END of path (${path.length}/${N*N} cells)`);
+          haptic();
+          draw();
+          return;
+        }
+      }
+
       if (path.length === 0) {
         // First cell in builder mode
         path.push({r,c});
@@ -786,7 +818,7 @@
         return;
       }
 
-      // Get the active end of the path based on user selection
+      // Get the active end of the path based on current selection
       const activeEndIndex = builderActiveEnd === 'end' ? path.length - 1 : 0;
       const activeCell = path[activeEndIndex];
 
@@ -1411,12 +1443,19 @@
         ctx.arc(activePxy.x, activePxy.y, Math.max(10*dpi, cell*0.18), 0, Math.PI*2);
         ctx.stroke();
 
-        // Inactive end gets dimmed circle
+        // Inactive end gets clickable indicator (pulsing outline)
         const inactivePxy = builderActiveEnd === 'start' ? endPxy : startPxy;
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(67,192,122,0.3)';
+        ctx.strokeStyle = 'rgba(67,192,122,0.5)';
         ctx.lineWidth = 2*dpi;
         ctx.arc(inactivePxy.x, inactivePxy.y, Math.max(8*dpi, cell*0.14), 0, Math.PI*2);
+        ctx.stroke();
+
+        // Add a subtle outer ring to indicate it's clickable
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(67,192,122,0.25)';
+        ctx.lineWidth = 1*dpi;
+        ctx.arc(inactivePxy.x, inactivePxy.y, Math.max(12*dpi, cell*0.22), 0, Math.PI*2);
         ctx.stroke();
       } else {
         // Normal mode or single cell - show green circle at end
@@ -1574,8 +1613,7 @@
         solutionPath = [];
         puzzleMode = false;
         builderActiveEnd = 'end';
-        document.getElementById('activeEndSelect').value = 'end';
-        updateBuilderHint('Draw a path that visits all 49 cells exactly once');
+        updateBuilderHint('Draw a path that visits all 49 cells exactly once. Click path ends to switch between extending start or end.');
         resize();
       } else {
         // Exit builder mode
@@ -1591,8 +1629,7 @@
         occupied.clear();
         builderPhase = 'drawing';
         builderActiveEnd = 'end';
-        document.getElementById('activeEndSelect').value = 'end';
-        updateBuilderHint('Draw a path that visits all 49 cells exactly once');
+        updateBuilderHint('Draw a path that visits all 49 cells exactly once. Click path ends to switch between extending start or end.');
         draw();
       }
     });
@@ -1699,16 +1736,6 @@
       builderNumberCount = Math.max(builderNumberCount - 1, 2);
       document.getElementById('numberCount').textContent = builderNumberCount;
     });
-
-    // Active end selection handler
-    document.getElementById('activeEndSelect').addEventListener('change', (e) => {
-      builderActiveEnd = e.target.value;
-
-      // Update hint to show which end is active
-      const endName = builderActiveEnd === 'end' ? 'END' : 'START';
-      const pathStatus = path.length > 0 ? ` (${path.length}/${N*N} cells)` : '';
-      updateBuilderHint(`Extending from ${endName} of path${pathStatus}`);
-    });
   }
 
   function updateBuilderHint(message) {
@@ -1776,7 +1803,6 @@
         solutionPath = [];
         puzzleMode = false;
         builderActiveEnd = 'end';
-        document.getElementById('activeEndSelect').value = 'end';
 
         updateBuilderHint('Puzzle saved! Draw a new path to create another puzzle.');
         draw();
