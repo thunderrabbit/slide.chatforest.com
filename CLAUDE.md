@@ -87,6 +87,15 @@ Notable fixes and improvements:
 - Applied migrations tracked in `applied_DB_versions` table
 - Manual rollbacks via PHPMyAdmin (no automated rollback system)
 
+### Database Naming Conventions
+
+- **Primary Keys**: Always use human-readable names instead of generic `id`
+  - Format: `{table_name}_id` (e.g., `user_id`, `puzzle_id`, `unseen_7_id`)
+  - Abbreviate long table names if needed (e.g., `pg_stats_id` for `puzzle_generation_stats`)
+- **Foreign Keys**: Use same naming as referenced primary key (e.g., `user_id` references `users.user_id`)
+- **Tables**: Use descriptive names that clearly indicate purpose
+- **Columns**: Use snake_case naming for consistency
+
 ### Project Structure
 
 - `wwwroot/` - Public web directory (DreamHost web root points here)
