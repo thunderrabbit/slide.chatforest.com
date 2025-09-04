@@ -60,7 +60,7 @@
             <?php else: ?>
             <span class="puzzle-nav-btn next disabled">-----</span>
             <?php endif; ?>
-            
+
             <button id="nextUnplayedBtn" class="puzzle-nav-btn next-unplayed" title="Next unplayed puzzle">Next Unplayed →</button>
           </div>
           <?php endif; ?>
@@ -700,7 +700,7 @@
     // Always include start and end
     const hintPositions = [0, pathLength - 1];
 
-    // Use adjustable number count (subtract 2 because start/end are always included)  
+    // Use adjustable number count (subtract 2 because start/end are always included)
     const additionalHints = Math.max(0, builderNumberCount - 2);
     while (hintPositions.length < builderNumberCount && additionalHints > 0) {
       const randomPos = Math.floor(Math.random() * (pathLength - 2)) + 1;
@@ -1453,7 +1453,17 @@
   canvas.addEventListener('pointercancel', onPointerUp);
 
   document.getElementById('gridSize').addEventListener('change', (e)=>{
-    N = parseInt(e.target.value,10);
+    const newSize = parseInt(e.target.value,10);
+
+    // If we have an active puzzle loaded, don't change the grid size immediately
+    // The new size will be used when generating the next puzzle
+    if (puzzleMode && (puzzleData || edgeBarriers.size > 0 || numberHints.size > 0)) {
+      console.log('🔒 Grid size will change on next puzzle generation (current puzzle preserved)');
+      return;
+    }
+
+    // Safe to change grid size for practice mode or empty state
+    N = newSize;
     seedAnchors();
     clearAll();
     resize();
@@ -1686,6 +1696,10 @@
     } else {
       // If on main page, generate new puzzle
       const difficulty = document.getElementById('difficulty').value;
+      const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
+
+      // Update N to the selected grid size for new puzzle generation
+      N = selectedGridSize;
 
       // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
       if (N >= 7) {
@@ -1698,6 +1712,9 @@
         draw();
         savePuzzle(difficulty);
       }
+
+      // Resize canvas for the new grid size
+      resize();
     }
   });
   document.getElementById('solutionBtn').addEventListener('click', toggleSolution);
@@ -1706,7 +1723,7 @@
     try {
       const response = await fetch('/earliest_unplayed.php');
       const data = await response.json();
-      
+
       if (data.success) {
         // Navigate to the earliest unplayed puzzle
         window.location.href = '/puzzle/' + data.puzzle_code;
@@ -1734,7 +1751,7 @@
 
         const response = await fetch('/next_unplayed.php?current_puzzle_id=' + currentPuzzleId);
         const data = await response.json();
-        
+
         if (data.success) {
           // Navigate to the next unplayed puzzle
           window.location.href = '/puzzle/' + data.puzzle_code;
@@ -1791,6 +1808,10 @@
   if (!puzzleData) {
     console.log('🎲 No initial puzzleData, generating new puzzle');
     const difficulty = document.getElementById('difficulty').value;
+    const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
+
+    // Update N to the selected grid size for initial puzzle generation
+    N = selectedGridSize;
 
     // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
     if (N >= 7) {
