@@ -338,3 +338,7 @@
 .slide-practice .puzzle-info:hover {
     color: var(--accent);
 }
+
+.slide-practice canvas.number-placement-mode {
+  cursor: crosshair;
+}

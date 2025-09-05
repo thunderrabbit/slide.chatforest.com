@@ -113,6 +113,12 @@
   let builderNumberCount = 4; // adjustable number count
   let builderActiveEnd = 'end'; // 'start' or 'end' - which end of path to extend
 
+  // Manual number placement mode
+  let isNumberPlacementMode = false;
+  let nextNumberToPlace = 1;
+  let placedNumbers = new Map(); // key r,c -> number
+
+
   // Puzzle generation state
   let edgeBarriers = new Set(); // edges that are blocked (format: "r1,c1|r2,c2")
   let numberHints = new Map(); // key r,c -> number
@@ -1386,6 +1392,47 @@
       }
     }
 
+    // Highlight valid cells in number placement mode
+    if (isNumberPlacementMode && builderPath.length > 1) {
+        const validNextCells = [];
+        const startCell = builderPath[0];
+        const endCell = builderPath[builderPath.length - 1];
+
+        if (nextNumberToPlace === 1) {
+            // Highlight ends if they aren't taken
+            if (!placedNumbers.has(key(startCell.r, startCell.c))) validNextCells.push(startCell);
+            if (!placedNumbers.has(key(endCell.r, endCell.c))) validNextCells.push(endCell);
+        } else {
+            // Find the index of the last placed number
+            let lastPlacedIndex = -1;
+            for (const [cellKey, number] of placedNumbers) {
+                if (number === nextNumberToPlace - 1) {
+                    const [r, c] = cellKey.split(',').map(Number);
+                    lastPlacedIndex = builderPath.findIndex(p => p.r === r && p.c === c);
+                    break;
+                }
+            }
+
+            // Highlight all valid cells after the last placed one
+            if (lastPlacedIndex !== -1) {
+                for (let i = lastPlacedIndex + 1; i < builderPath.length; i++) {
+                    const cell = builderPath[i];
+                    if (!placedNumbers.has(key(cell.r, cell.c))) {
+                        validNextCells.push(cell);
+                    }
+                }
+            }
+        }
+
+        ctx.fillStyle = 'rgba(67, 192, 122, 0.3)';
+        for (const cell of validNextCells) {
+            const rectX = origin.x + cell.c * cell;
+            const rectY = origin.y + cell.r * cell;
+            ctx.fillRect(rectX, rectY, cell, cell);
+        }
+    }
+
+
     // Draw edge barriers as walls
     ctx.strokeStyle = '#ff6b6b';
     ctx.lineWidth = Math.max(4*dpi, cell*0.15);
@@ -1558,6 +1605,93 @@
     // Convert to grid coordinates
     const cellRC = cellAt(x, y);
 
+    if (isNumberPlacementMode) {
+      if (!builderPath || builderPath.length < 2) {
+        updateBuilderHint('Please draw a complete path first.');
+        return;
+      }
+
+      const startCell = builderPath[0];
+      const endCell = builderPath[builderPath.length - 1];
+      const clickedCellKey = key(cellRC.r, cellRC.c);
+
+      // Ensure the clicked cell is on the builder path and not already numbered
+      const pathIndex = builderPath.findIndex(p => equal(p, cellRC));
+      if (pathIndex === -1) {
+        updateBuilderHint('Numbers must be placed on the drawn path.');
+        return;
+      }
+      if (placedNumbers.has(clickedCellKey)) {
+        // Allow re-clicking the last number to undo it
+        if (placedNumbers.get(clickedCellKey) === nextNumberToPlace - 1 && nextNumberToPlace > 1) {
+            placedNumbers.delete(clickedCellKey);
+            numberHints.delete(clickedCellKey);
+            nextNumberToPlace--;
+            updateBuilderHint(`Undid number ${nextNumberToPlace}. Place it again or choose a different cell.`);
+            draw();
+        }
+        return;
+      }
+
+
+      // Find the path index of the last placed number
+      let lastPlacedIndex = -1;
+      if (nextNumberToPlace > 1) {
+        for (const [cellKey, number] of placedNumbers) {
+          if (number === nextNumberToPlace - 1) {
+            const [r, c] = cellKey.split(',').map(Number);
+            lastPlacedIndex = builderPath.findIndex(p => p.r === r && p.c === c);
+            break;
+          }
+        }
+      }
+
+      if (nextNumberToPlace === 1) {
+        // First number must be at a path end
+        if (!equal(cellRC, startCell) && !equal(cellRC, endCell)) {
+          updateBuilderHint('The first number must be placed at one end of the path.');
+          return;
+        }
+      } else {
+        // Subsequent numbers must be further along the path
+        if (lastPlacedIndex === -1) {
+            updateBuilderHint('Error: Could not find the previously placed number.');
+            return;
+        }
+        if (pathIndex <= lastPlacedIndex) {
+            updateBuilderHint('The next number must be placed further along the path.');
+            return;
+        }
+      }
+
+      // All checks passed, place the number
+      placedNumbers.set(clickedCellKey, nextNumberToPlace);
+      numberHints.set(clickedCellKey, nextNumberToPlace);
+      const currentNumber = nextNumberToPlace;
+      nextNumberToPlace++;
+
+      // Check for completion: if one end has a number, and the user just placed a number on the other end
+      const isEnd = equal(cellRC, startCell) || equal(cellRC, endCell);
+      if (isEnd) {
+          const startKey = key(startCell.r, startCell.c);
+          const endKey = key(endCell.r, endCell.c);
+          if (placedNumbers.has(startKey) && placedNumbers.has(endKey)) {
+              isNumberPlacementMode = false;
+              updateBuilderHint('All numbers placed! You can now test or save the puzzle.');
+              document.getElementById('addNumbersBtn').textContent = 'Add Numbers';
+              canvas.classList.remove('number-placement-mode');
+              solutionPath = builderPath.map(cell => ({r: cell.r, c: cell.c}));
+          } else {
+              updateBuilderHint(`Number ${currentNumber} placed. Place the next number further along the path.`);
+          }
+      } else {
+          updateBuilderHint(`Number ${currentNumber} placed. Place the next number further along the path.`);
+      }
+
+      draw();
+      return; // Prevent normal path drawing
+    }
+
     // Call tryAddCell directly for precise click handling (enables builder start/end switching)
     tryAddCell(cellRC.r, cellRC.c);
   }
@@ -1707,24 +1841,22 @@
     });
 
     document.getElementById('addNumbersBtn').addEventListener('click', () => {
-      if (builderMode && builderPath.length > 0) {
-        const validation = validateBuilderPath(builderPath);
-        if (!validation.valid) {
-          alert('Path is invalid: ' + validation.error);
-          return;
-        }
+      isNumberPlacementMode = !isNumberPlacementMode; // Toggle the mode
 
-        // Generate random numbered positions
-        const numberedPositions = generateBuilderNumbers(builderPath);
-        numberHints.clear();
-        Object.entries(numberedPositions).forEach(([number, pos]) => {
-          numberHints.set(key(pos.y, pos.x), parseInt(number));
-        });
-
-        solutionPath = builderPath.map(cell => ({r: cell.r, c: cell.c}));
-        builderPhase = 'preview';
-        updateBuilderHint('Numbers added! Click "Test Play" to try your puzzle.');
+      if (isNumberPlacementMode) {
+        // --- Enter Number Placement Mode ---
+        numberHints.clear(); // Clear existing numbers
+        placedNumbers.clear();
+        nextNumberToPlace = 1;
+        updateBuilderHint(`Click a path end to place number 1.`);
+        document.getElementById('addNumbersBtn').textContent = 'Cancel Placing';
+        canvas.classList.add('number-placement-mode');
         draw();
+      } else {
+        // --- Exit Number Placement Mode ---
+        updateBuilderHint('Number placement cancelled.');
+        document.getElementById('addNumbersBtn').textContent = 'Add Numbers';
+        canvas.classList.remove('number-placement-mode');
       }
     });
 
