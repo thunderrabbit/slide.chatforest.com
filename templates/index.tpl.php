@@ -1821,6 +1821,19 @@
         builderPath = [];
         path = [];
         occupied.clear();
+        numberHints.clear(); // Clear numbers too
+        spotPlacements.clear(); // Clear spot placements
+
+        // Reset modes and re-enable buttons
+        isBarrierEditingMode = false;
+        isNumberPlacementMode = false;
+        document.getElementById('addBarriersBtn').disabled = false;
+        document.getElementById('addNumbersBtn').disabled = false;
+        document.getElementById('addBarriersBtn').textContent = 'Add Barriers';
+        document.getElementById('addNumbersBtn').textContent = 'Add Numbers';
+        canvas.classList.remove('barrier-editing-mode');
+        canvas.classList.remove('number-placement-mode');
+
         builderPhase = 'drawing';
         builderActiveEnd = 'end';
         updateBuilderHint('Draw a path that visits all 49 cells exactly once. Click path ends to switch between extending start or end.');
@@ -1850,11 +1863,13 @@
         if (isBarrierEditingMode) {
           isNumberPlacementMode = false; // Ensure number mode is off
           document.getElementById('addBarriersBtn').textContent = 'Done Editing Barriers';
+          document.getElementById('addNumbersBtn').disabled = true; // Disable numbers button
           updateBuilderHint('Click on any grid line to add or remove a barrier. Barriers cannot block the solution path.');
           canvas.classList.add('barrier-editing-mode');
           canvas.classList.remove('number-placement-mode');
         } else {
           document.getElementById('addBarriersBtn').textContent = 'Add Barriers';
+          document.getElementById('addNumbersBtn').disabled = false; // Re-enable numbers button
           updateBuilderHint('Barriers set. Click "Add Numbers" to continue.');
           canvas.classList.remove('barrier-editing-mode');
         }
@@ -1869,17 +1884,21 @@
 
       if (isNumberPlacementMode) {
         // --- Enter Spot Placement Mode ---
+        isBarrierEditingMode = false; // Ensure barrier mode is off
         numberHints.clear();
         spotPlacements.clear();
         chosenStartEnd = null;
         updateBuilderHint(`Click cells on the path to place number spots. Click an end cell first to set the start.`);
         document.getElementById('addNumbersBtn').textContent = 'Cancel Placing';
+        document.getElementById('addBarriersBtn').disabled = true; // Disable barriers button
         canvas.classList.add('number-placement-mode');
+        canvas.classList.remove('barrier-editing-mode');
         draw();
       } else {
         // --- Exit Spot Placement Mode ---
         updateBuilderHint('Spot placement cancelled.');
         document.getElementById('addNumbersBtn').textContent = 'Add Numbers';
+        document.getElementById('addBarriersBtn').disabled = false; // Re-enable barriers button
         canvas.classList.remove('number-placement-mode');
       }
     });
