@@ -112,6 +112,7 @@
   let builderBarrierCount = 6; // adjustable barrier density
   let builderNumberCount = 4; // adjustable number count
   let builderActiveEnd = 'end'; // 'start' or 'end' - which end of path to extend
+  let isBarrierEditingMode = false;
 
   // Manual number placement mode
   let isNumberPlacementMode = false;
@@ -171,6 +172,32 @@
   }
 
   function px(r,c){ return { x: origin.x + c*cell + cell/2, y: origin.y + r*cell + cell/2 } }
+
+  function edgeAt(x, y) {
+    const tolerance = cell * 0.2; // Click within 20% of the edge
+    const cellPos = cellAt(x, y);
+    const cellCenter = px(cellPos.r, cellPos.c);
+
+    const dx = x - cellCenter.x;
+    const dy = y - cellCenter.y;
+
+    // Check if click is near a vertical edge
+    if (Math.abs(dx) > cell / 2 - tolerance) {
+        const adjacentC = cellPos.c + (dx > 0 ? 1 : -1);
+        if (inBounds(cellPos.r, adjacentC)) {
+            return { cell1: cellPos, cell2: { r: cellPos.r, c: adjacentC } };
+        }
+    }
+    // Check if click is near a horizontal edge
+    else if (Math.abs(dy) > cell / 2 - tolerance) {
+        const adjacentR = cellPos.r + (dy > 0 ? 1 : -1);
+        if (inBounds(adjacentR, cellPos.c)) {
+            return { cell1: cellPos, cell2: { r: adjacentR, c: cellPos.c } };
+        }
+    }
+
+    return null;
+  }
 
   // Edge barrier helper functions
   function edgeKey(r1, c1, r2, c2) {
@@ -1578,6 +1605,32 @@
     // Convert to grid coordinates
     const cellRC = cellAt(x, y);
 
+    if (isBarrierEditingMode) {
+        const edge = edgeAt(x, y);
+        if (edge) {
+            // Check if this edge is part of the solution path
+            const pathEdges = new Set();
+            for (let i = 0; i < builderPath.length - 1; i++) {
+                pathEdges.add(edgeKey(builderPath[i].r, builderPath[i].c, builderPath[i+1].r, builderPath[i+1].c));
+            }
+
+            const currentEdgeKey = edgeKey(edge.cell1.r, edge.cell1.c, edge.cell2.r, edge.cell2.c);
+            if (pathEdges.has(currentEdgeKey)) {
+                updateBuilderHint('Cannot place a barrier on the solution path.');
+                return;
+            }
+
+            // Toggle the barrier
+            if (edgeBarriers.has(currentEdgeKey)) {
+                edgeBarriers.delete(currentEdgeKey);
+            } else {
+                edgeBarriers.add(currentEdgeKey);
+            }
+            draw();
+        }
+        return; // Prevent other click actions
+    }
+
     if (isNumberPlacementMode) {
       if (!builderPath || builderPath.length < 2) {
         updateBuilderHint('Please draw a complete path first.');
@@ -1771,22 +1824,36 @@
 
     document.getElementById('addBarriersBtn').addEventListener('click', () => {
       if (builderMode && builderPath.length > 0) {
-        const validation = validateBuilderPath(builderPath);
-        if (!validation.valid) {
-          alert('Path is invalid: ' + validation.error);
-          return;
+        // If barriers haven't been generated yet, do it once.
+        if (edgeBarriers.size === 0) {
+          const validation = validateBuilderPath(builderPath);
+          if (!validation.valid) {
+            alert('Path is invalid: ' + validation.error);
+            return;
+          }
+          const barriers = generateBuilderBarriers(builderPath);
+          barriers.forEach(barrier => {
+            const edgeId = edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
+            edgeBarriers.add(edgeId);
+          });
         }
 
-        // Generate random barriers
-        const barriers = generateBuilderBarriers(builderPath);
-        edgeBarriers.clear();
-        barriers.forEach(barrier => {
-          const edgeId = edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
-          edgeBarriers.add(edgeId);
-        });
+        // Toggle barrier editing mode
+        isBarrierEditingMode = !isBarrierEditingMode;
+
+        if (isBarrierEditingMode) {
+          isNumberPlacementMode = false; // Ensure number mode is off
+          document.getElementById('addBarriersBtn').textContent = 'Done Editing Barriers';
+          updateBuilderHint('Click on any grid line to add or remove a barrier. Barriers cannot block the solution path.');
+          canvas.classList.add('barrier-editing-mode');
+          canvas.classList.remove('number-placement-mode');
+        } else {
+          document.getElementById('addBarriersBtn').textContent = 'Add Barriers';
+          updateBuilderHint('Barriers set. Click "Add Numbers" to continue.');
+          canvas.classList.remove('barrier-editing-mode');
+        }
 
         builderPhase = 'preview';
-        updateBuilderHint('Barriers added! Click "Add Numbers" to continue.');
         draw();
       }
     });

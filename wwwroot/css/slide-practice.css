@@ -342,3 +342,7 @@
 .slide-practice canvas.number-placement-mode {
   cursor: crosshair;
 }
+
+.slide-practice canvas.barrier-editing-mode {
+  cursor: crosshair;
+}
