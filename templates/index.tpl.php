@@ -135,6 +135,7 @@
   // Long-press tracking (so we don't nuke the path while drawing)
   let longPressTimer = null;
   let downPos = null; // {x,y} in CSS pixels * dpi
+  let isDragging = false; // Track if we're actually dragging
 
   function seedAnchors() {
     anchors.clear(); // no anchors in practice mode
@@ -1505,29 +1506,78 @@
     e.preventDefault();
     canvas.setPointerCapture(e.pointerId);
     drawing = true;
+    isDragging = false; // Track if we're actually dragging
     const rect = canvas.getBoundingClientRect();
     downPos = { x: (e.clientX - rect.left) * dpi, y: (e.clientY - rect.top) * dpi };
-    handlePointer(e);
+
+    // Handle initial click directly (not as drag)
+    handleInitialClick(e);
     startLongPress();
   }
-  function onPointerMove(e){ if(!drawing) return; handlePointer(e); }
-  function onPointerUp(e){ drawing = false; clearLongPress(); canvas.releasePointerCapture?.(e.pointerId); }
 
-  function handlePointer(e){
+  function onPointerMove(e){
+    if(!drawing) return;
+
+    // Check if we've moved enough to start dragging
+    if (!isDragging && downPos) {
+      const rect = canvas.getBoundingClientRect();
+      const currentX = (e.clientX - rect.left) * dpi;
+      const currentY = (e.clientY - rect.top) * dpi;
+
+      const dx = Math.abs(currentX - downPos.x);
+      const dy = Math.abs(currentY - downPos.y);
+      const moveThresh = Math.max(8 * dpi, cell * 0.15);
+
+      if (dx > moveThresh || dy > moveThresh) {
+        isDragging = true;
+        clearLongPress(); // Cancel long press when dragging starts
+      }
+    }
+
+    // Only use stepThrough when actually dragging
+    if (isDragging) {
+      handleDragMove(e);
+    }
+  }
+
+  function onPointerUp(e){
+    drawing = false;
+    isDragging = false;
+    clearLongPress();
+    canvas.releasePointerCapture?.(e.pointerId);
+  }
+
+  /**
+   * Handle initial click (direct cell selection)
+   */
+  function handleInitialClick(e) {
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left) * dpi;
     const y = (e.clientY - rect.top) * dpi;
 
-    if (downPos){
-      const dx = Math.abs(x - downPos.x), dy = Math.abs(y - downPos.y);
-      const moveThresh = Math.max(8*dpi, cell*0.15);
-      if (dx > moveThresh || dy > moveThresh) clearLongPress();
-    }
+    // Convert to grid coordinates
+    const cellRC = cellAt(x, y);
 
-    const cellRC = cellAt(x,y);
+    // Call tryAddCell directly for precise click handling (enables builder start/end switching)
+    tryAddCell(cellRC.r, cellRC.c);
+  }
+
+  /**
+   * Handle drag movement (continuous path drawing)
+   */
+  function handleDragMove(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * dpi;
+    const y = (e.clientY - rect.top) * dpi;
+
+    // Convert to grid coordinates
+    const cellRC = cellAt(x, y);
+
     // In builder mode, use the active end; in normal mode, always use the last cell
     const activeIndex = (builderMode && builderActiveEnd === 'start') ? 0 : path.length - 1;
     const activeCellInPath = path[activeIndex];
+
+    // Only use stepThrough for drag movements (continuous drawing)
     if (!activeCellInPath || !equal(cellRC, activeCellInPath)) {
       stepThrough(activeCellInPath, cellRC);
     }
