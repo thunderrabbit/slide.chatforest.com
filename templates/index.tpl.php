@@ -975,7 +975,13 @@
           puzzleSolved = true;
           flash('#1dd1a1'); // Success green
 
-          if (puzzleAlreadySolvedByUser) {
+          // Show timing but don't record if we're in builder test mode
+          if (builderPhase === 'testplay') {
+            console.log('🎉 BUILDER TEST COMPLETED! (Timing shown but not recorded)');
+            const solveTimeMs = Date.now() - puzzleStartTime;
+            const seconds = (solveTimeMs / 1000).toFixed(2);
+            showCompletionMessage('🎉 Test solved in ' + seconds + 's! Puzzle works great! (Time not recorded)');
+          } else if (puzzleAlreadySolvedByUser) {
             console.log('🎉 PUZZLE COMPLETED AGAIN! (But time not recorded - already solved before)');
             const solveTimeMs = Date.now() - puzzleStartTime;
             const seconds = (solveTimeMs / 1000).toFixed(2);
