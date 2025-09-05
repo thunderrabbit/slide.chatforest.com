@@ -1874,7 +1874,7 @@
   function updateBuilderHint(message) {
     const hint = document.querySelector('.hint');
     if (hint && builderMode) {
-      hint.textContent = message;
+      hint.innerHTML = message;
       hint.style.color = message ? '#ffb556' : '';
     } else if (hint && !builderMode) {
       hint.innerHTML = 'Drag one finger to draw; slide back to erase (backtrack). Long‑press anywhere to clear. Visit numbers 1, 2, 3... in order and END on the highest number.';
@@ -1924,7 +1924,8 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert(`✅ Builder puzzle saved!\nPuzzle Code: ${data.puzzle_code}\nPuzzle ID: ${data.puzzle_id}`);
+        const puzzleUrl = `https://slide.chatforest.com/puzzle/${data.puzzle_code}`;
+        updateBuilderHint(`✅ Puzzle Saved! <a href="${puzzleUrl}" target="slidetesttab">Open Puzzle</a>. Draw a new path to create another.`);
 
         // Stay in builder mode but reset for next puzzle
         builderPhase = 'drawing';
@@ -1937,7 +1938,6 @@
         puzzleMode = false;
         builderActiveEnd = 'end';
 
-        updateBuilderHint('Puzzle saved! Draw a new path to create another puzzle.');
         draw();
       } else {
         alert('❌ Failed to save puzzle: ' + data.error);
