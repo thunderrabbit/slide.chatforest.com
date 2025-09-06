@@ -1911,6 +1911,28 @@
           return;
         }
 
+        // Check if currently in editing modes
+        if (isBarrierEditingMode) {
+          alert('Please finish editing barriers first (click "Done Editing Barriers")');
+          return;
+        }
+        if (isNumberPlacementMode) {
+          alert('Please finish placing numbers first');
+          return;
+        }
+
+        // Check if barriers have been added
+        if (edgeBarriers.size === 0) {
+          alert('Please add barriers first (click "Add Barriers")');
+          return;
+        }
+
+        // Check if numbers have been added
+        if (numberHints.size === 0) {
+          alert('Please add numbers first (click "Add Numbers")');
+          return;
+        }
+
         // Switch to test play mode
         builderPhase = 'testplay';
         puzzleMode = true;
