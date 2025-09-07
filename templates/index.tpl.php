@@ -1757,6 +1757,7 @@
   }
 
   function startLongPress(){
+    if(builderMode) return;  // Don't clear the path while I'm thinking about what to do
     clearLongPress();
     longPressTimer = setTimeout(()=>{ clearAll(); flash('#4d6aff'); }, 700);
   }
