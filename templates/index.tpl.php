@@ -146,6 +146,12 @@
   let downPos = null; // {x,y} in CSS pixels * dpi
   let isDragging = false; // Track if we're actually dragging
 
+  // Auto-hide UI for experienced users
+  const isExperienced = <?= $is_experienced ? 'true' : 'false' ?>;
+  let uiHidden = false;
+  let inactivityTimer = null;
+  let gameStarted = false;
+
   function seedAnchors() {
     anchors.clear(); // no anchors in practice mode
   }
@@ -481,6 +487,8 @@
     if (!puzzleStartTime) {
       puzzleStartTime = Date.now();
       console.log('⏰ Started timing for new generated puzzle at:', puzzleStartTime);
+      gameStarted = true;
+      hideUIForExperiencedUsers();
     }
   }
 
@@ -530,6 +538,8 @@
         if (!puzzleStartTime) {
           puzzleStartTime = Date.now();
           console.log('⏰ Started timing for new PHP-generated puzzle at:', puzzleStartTime);
+          gameStarted = true;
+          hideUIForExperiencedUsers();
         }
 
         // Clear any existing path and redraw
@@ -975,6 +985,7 @@
         if (solutionCorrect) {
           puzzleSolved = true;
           flash('#1dd1a1'); // Success green
+          showUIForExperiencedUsers(); // Show UI when puzzle is completed
 
           // Show timing but don't record if we're in builder test mode
           if (builderPhase === 'testplay') {
@@ -1564,6 +1575,9 @@
     const rect = canvas.getBoundingClientRect();
     downPos = { x: (e.clientX - rect.left) * dpi, y: (e.clientY - rect.top) * dpi };
 
+    // Reset inactivity timer on user interaction
+    resetInactivityTimer();
+
     // Handle initial click directly (not as drag)
     handleInitialClick(e);
     startLongPress();
@@ -1571,6 +1585,9 @@
 
   function onPointerMove(e){
     if(!drawing) return;
+
+    // Reset inactivity timer on user interaction
+    resetInactivityTimer();
 
     // Check if we've moved enough to start dragging
     if (!isDragging && downPos) {
@@ -1763,6 +1780,57 @@
     longPressTimer = setTimeout(()=>{ clearAll(); flash('#4d6aff'); }, 700);
   }
   function clearLongPress(){ if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer=null; } }
+
+  // --- Auto-hide UI functions ---
+  function hideUIForExperiencedUsers() {
+    if (!isExperienced || uiHidden) return;
+
+    const header = document.querySelector('header');
+    const hint = document.querySelector('.hint');
+    const leaderboard = document.querySelector('.leaderboard-section');
+
+    if (header) header.style.transform = 'translateY(-100%)';
+    if (hint) hint.style.transform = 'translateY(-100%)';
+    if (leaderboard) leaderboard.style.transform = 'translateY(100%)';
+
+    uiHidden = true;
+    startInactivityTimer();
+  }
+
+  function showUIForExperiencedUsers() {
+    if (!uiHidden) return;
+
+    const header = document.querySelector('header');
+    const hint = document.querySelector('.hint');
+    const leaderboard = document.querySelector('.leaderboard-section');
+
+    if (header) header.style.transform = '';
+    if (hint) hint.style.transform = '';
+    if (leaderboard) leaderboard.style.transform = '';
+
+    uiHidden = false;
+    clearInactivityTimer();
+  }
+
+  function startInactivityTimer() {
+    clearInactivityTimer();
+    inactivityTimer = setTimeout(() => {
+      showUIForExperiencedUsers();
+    }, 60000); // 1 minute
+  }
+
+  function clearInactivityTimer() {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+    }
+  }
+
+  function resetInactivityTimer() {
+    if (uiHidden) {
+      startInactivityTimer();
+    }
+  }
 
   // --- UI wiring ---
   canvas.addEventListener('pointerdown', onPointerDown);
