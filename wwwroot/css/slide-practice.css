@@ -28,7 +28,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    transition: transform 0.3s ease-out;
+    transition: height 0.3s ease-out, padding 0.3s ease-out, border 0.3s ease-out;
 }
 
 .slide-practice .top_controls {
@@ -168,7 +168,7 @@
     color: var(--muted);
     font-size: 12px;
     padding: 6px 16px;
-    transition: transform 0.3s ease-out;
+    transition: height 0.3s ease-out, padding 0.3s ease-out;
 }
 
 .slide-practice .stage {
@@ -196,7 +196,7 @@
     padding: 16px;
     border-top: 1px solid #1b1f2a;
     background: #0f1320;
-    transition: transform 0.3s ease-out;
+    transition: height 0.3s ease-out, padding 0.3s ease-out, border 0.3s ease-out;
 }
 
 .slide-practice .anonymous-times {

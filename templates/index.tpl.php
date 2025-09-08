@@ -277,6 +277,13 @@
     nextRequiredNumber = 1;
     showingSolution = false;
 
+    // Start timing for existing puzzle and hide UI for experienced users
+    if (!puzzleStartTime) {
+      puzzleStartTime = Date.now();
+      console.log('⏰ Started timing for existing puzzle at:', puzzleStartTime);
+      gameStarted = true;
+      hideUIForExperiencedUsers();
+    }
 
     // Check if user already solved this puzzle (logged-in or anonymous)
     checkIfAlreadySolved();
@@ -1789,9 +1796,23 @@
     const hint = document.querySelector('.hint');
     const leaderboard = document.querySelector('.leaderboard-section');
 
-    if (header) header.style.transform = 'translateY(-100%)';
-    if (hint) hint.style.transform = 'translateY(-100%)';
-    if (leaderboard) leaderboard.style.transform = 'translateY(100%)';
+    if (header) {
+      header.style.height = '0';
+      header.style.overflow = 'hidden';
+      header.style.padding = '0';
+      header.style.border = 'none';
+    }
+    if (hint) {
+      hint.style.height = '0';
+      hint.style.overflow = 'hidden';
+      hint.style.padding = '0';
+    }
+    if (leaderboard) {
+      leaderboard.style.height = '0';
+      leaderboard.style.overflow = 'hidden';
+      leaderboard.style.padding = '0';
+      leaderboard.style.border = 'none';
+    }
 
     uiHidden = true;
     startInactivityTimer();
@@ -1804,9 +1825,23 @@
     const hint = document.querySelector('.hint');
     const leaderboard = document.querySelector('.leaderboard-section');
 
-    if (header) header.style.transform = '';
-    if (hint) hint.style.transform = '';
-    if (leaderboard) leaderboard.style.transform = '';
+    if (header) {
+      header.style.height = '';
+      header.style.overflow = '';
+      header.style.padding = '';
+      header.style.border = '';
+    }
+    if (hint) {
+      hint.style.height = '';
+      hint.style.overflow = '';
+      hint.style.padding = '';
+    }
+    if (leaderboard) {
+      leaderboard.style.height = '';
+      leaderboard.style.overflow = '';
+      leaderboard.style.padding = '';
+      leaderboard.style.border = '';
+    }
 
     uiHidden = false;
     clearInactivityTimer();
