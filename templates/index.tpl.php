@@ -3,9 +3,10 @@
     <header>
       <div class="top_controls">
         <label>Grid: <select id="gridSize">
-          <option value="5" selected>5×5</option>
-          <option value="6">6×6</option>
+          <option value="5">5×5</option>
+          <option value="6" selected>6×6</option>
           <option value="7">7×7</option>
+          <option value="8">8×8</option>
         </select></label>
         <select id="difficulty">
           <option value="easy">Easy</option>
