@@ -36,11 +36,13 @@ $page = new \Template(config: $config);
 $page->setTemplate("layout/base.tpl.php");
 $page->set("page_title", $puzzle_data ? "Puzzle #{$puzzle_data['puzzle_id']} - Slide Practice" : "Slide Practice - Free Puzzle Game");
 $page->set("site_version", SENTIMENTAL_VERSION);
+$page->set("firefox_cache_buster", $firefox_cache_buster);
 
 // Get the inner content
 $inner_page = new \Template(config: $config);
 $inner_page->setTemplate("index.tpl.php");
 $inner_page->set("site_version", SENTIMENTAL_VERSION);
+$inner_page->set("firefox_cache_buster", $firefox_cache_buster);
 $inner_page->set("puzzle_id", $puzzle_data['puzzle_id'] ?? null);
 $inner_page->set("puzzle_code", $puzzle_data['puzzle_code'] ?? null);
 $inner_page->set("puzzle_data", $puzzle_data ? json_encode($puzzle_data) : 'null');

@@ -2,6 +2,8 @@
 
 const SENTIMENTAL_VERSION = "We have a slippery mvp!";
 
+$firefox_cache_buster = 3;
+
 # write errors to screen
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

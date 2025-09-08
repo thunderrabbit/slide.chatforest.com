@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Free online Slide Practice puzzle game - solve path puzzles by connecting numbered cells in sequence"/>
     <title><?= $page_title ?? 'Slide Practice - Free Puzzle Game' ?></title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/menu.css">
-    <link rel="stylesheet" href="/css/slide-practice.css">
+    <link rel="stylesheet" href="/css/styles.css?v=<?= $firefox_cache_buster ?? 1 ?>">
+    <link rel="stylesheet" href="/css/menu.css?v=<?= $firefox_cache_buster ?? 1 ?>">
+    <link rel="stylesheet" href="/css/slide-practice.css?v=<?= $firefox_cache_buster ?? 1 ?>">
 </head>
 <body>
     <div class="NavBar">

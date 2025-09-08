@@ -14,12 +14,16 @@ $page = new \Template(config: $config);
 $page->setTemplate("layout/base.tpl.php");
 $page->set("page_title", "Slide Practice - Free Puzzle Game");
 $page->set("site_version", SENTIMENTAL_VERSION);
+$page->set("firefox_cache_buster", $firefox_cache_buster);
 
 
 // Get the inner content
 $inner_page = new \Template(config: $config);
 $inner_page->setTemplate("index.tpl.php");
 $inner_page->set("site_version", SENTIMENTAL_VERSION);
+
+// Cache busting for static files
+$inner_page->set("firefox_cache_buster", $firefox_cache_buster);
 
 
 if($is_logged_in->isLoggedIn()){
