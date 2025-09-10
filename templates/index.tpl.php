@@ -151,6 +151,7 @@
   let uiHidden = false;
   let inactivityTimer = null;
   let gameStarted = false;
+  let touchesBlocked = false; // Block touches after puzzle is won
 
   function seedAnchors() {
     anchors.clear(); // no anchors in practice mode
@@ -665,6 +666,7 @@
     occupied.clear();
     nextRequiredNumber = 1; // Reset sequence tracker
     showingSolution = false; // Hide solution when clearing
+    touchesBlocked = false; // Re-enable touches when clearing
 
     // Don't reset timer - clearing is just resetting the path, not starting over
     // Only reset solve status for practice mode or when loading new puzzle
@@ -991,6 +993,7 @@
 
         if (solutionCorrect) {
           puzzleSolved = true;
+          touchesBlocked = true; // Block touches after win
           flash('#1dd1a1'); // Success green
           showUIForExperiencedUsers(); // Show UI when puzzle is completed
 
@@ -1576,6 +1579,10 @@
   // --- Pointer handling ---
   function onPointerDown(e){
     e.preventDefault();
+
+    // Block touches if puzzle is won and touches are disabled
+    if (touchesBlocked) return;
+
     canvas.setPointerCapture(e.pointerId);
     drawing = true;
     isDragging = false; // Track if we're actually dragging
@@ -1592,6 +1599,9 @@
 
   function onPointerMove(e){
     if(!drawing) return;
+
+    // Block touches if puzzle is won and touches are disabled
+    if (touchesBlocked) return;
 
     // Reset inactivity timer on user interaction
     resetInactivityTimer();
@@ -1821,30 +1831,40 @@
   function showUIForExperiencedUsers() {
     if (!uiHidden) return;
 
-    const header = document.querySelector('header');
-    const hint = document.querySelector('.hint');
-    const leaderboard = document.querySelector('.leaderboard-section');
+    function restoreUI() {
+      const header = document.querySelector('header');
+      const hint = document.querySelector('.hint');
+      const leaderboard = document.querySelector('.leaderboard-section');
 
-    if (header) {
-      header.style.height = '';
-      header.style.overflow = '';
-      header.style.padding = '';
-      header.style.border = '';
-    }
-    if (hint) {
-      hint.style.height = '';
-      hint.style.overflow = '';
-      hint.style.padding = '';
-    }
-    if (leaderboard) {
-      leaderboard.style.height = '';
-      leaderboard.style.overflow = '';
-      leaderboard.style.padding = '';
-      leaderboard.style.border = '';
+      if (header) {
+        header.style.height = '';
+        header.style.overflow = '';
+        header.style.padding = '';
+        header.style.border = '';
+      }
+      if (hint) {
+        hint.style.height = '';
+        hint.style.overflow = '';
+        hint.style.padding = '';
+      }
+      if (leaderboard) {
+        leaderboard.style.height = '';
+        leaderboard.style.overflow = '';
+        leaderboard.style.padding = '';
+        leaderboard.style.border = '';
+      }
+
+      uiHidden = false;
+      clearInactivityTimer();
     }
 
-    uiHidden = false;
-    clearInactivityTimer();
+    if (puzzleSolved) {
+      // When puzzle is solved, add delay before restoring UI to prevent grid movement affecting touches
+      setTimeout(restoreUI, 500); // 0.5 second delay
+    } else {
+      // For other cases (inactivity timeout), restore immediately
+      restoreUI();
+    }
   }
 
   function startInactivityTimer() {
