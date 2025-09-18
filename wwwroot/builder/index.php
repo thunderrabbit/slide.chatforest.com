@@ -64,7 +64,7 @@ $page_description = 'Create custom slide puzzles';
 </div>
 
 <script type="module">
-import { SlideBuilder } from '/js/builder.js';
+import { SlideBuilder } from '../js/builder.js';
 
 (function(){
   const builder = new SlideBuilder('board');
