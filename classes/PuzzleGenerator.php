@@ -101,12 +101,17 @@ class PuzzleGenerator
                 if ($unvisited) {
                     // Create a bridge to the unvisited area
                     $bridge = $this->createBridge($r, $c, $unvisited['r'], $unvisited['c'], $visited);
-                    foreach ($bridge as $cell) {
-                        $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
-                        $visited[$this->key($cell['r'], $cell['c'])] = true;
+                    if (!empty($bridge)) {
+                        foreach ($bridge as $cell) {
+                            $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
+                            $visited[$this->key($cell['r'], $cell['c'])] = true;
+                        }
+                        $r = $bridge[count($bridge) - 1]['r'];
+                        $c = $bridge[count($bridge) - 1]['c'];
+                    } else {
+                        // Bridge creation failed, break out
+                        break;
                     }
-                    $r = $bridge[count($bridge) - 1]['r'];
-                    $c = $bridge[count($bridge) - 1]['c'];
                 } else {
                     break; // Shouldn't happen in a valid Hamiltonian path
                 }
