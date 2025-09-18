@@ -372,7 +372,7 @@ export class SlideBuilder extends SlideCore {
 
         // Don't block solution path edges and avoid duplicates
         if (!pathEdges.has(edge) && !barriers.some(b =>
-          this.edgeKey(b.y1, b.x1, b.y2, b.y2) === edge
+          this.edgeKey(b.y1, b.x1, b.y2, b.x2) === edge
         )) {
           barriers.push({
             x1: c1, y1: r1,
@@ -452,7 +452,7 @@ export class SlideBuilder extends SlideCore {
         }
         const barriers = this.generateBuilderBarriers(this.builderPath);
         barriers.forEach(barrier => {
-          const edgeId = this.edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.y2);
+          const edgeId = this.edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
           this.edgeBarriers.add(edgeId);
         });
       }
