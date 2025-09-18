@@ -185,6 +185,63 @@ class PuzzleGenerator
         return $path;
     }
 
+    private function generateHamiltonianPathBacktrack(float $startTime): array
+    {
+        // Use the original backtracking algorithm for smaller grids
+        $totalCells = $this->gridSize * $this->gridSize;
+        $path = [];
+        $visited = [];
+        
+        // Start from a random position
+        $r = random_int(0, $this->gridSize - 1);
+        $c = random_int(0, $this->gridSize - 1);
+        
+        $path[] = ['x' => $c, 'y' => $r];
+        $visited[$this->key($r, $c)] = true;
+        
+        // Backtracking algorithm
+        if ($this->backtrack($r, $c, $path, $visited, $startTime)) {
+            return $path;
+        }
+        
+        // If backtracking fails, return spiral
+        return $this->generateSpiralPath();
+    }
+    
+    private function backtrack(int $r, int $c, array &$path, array &$visited, float $startTime): bool
+    {
+        if (count($path) === $this->gridSize * $this->gridSize) {
+            return true; // Complete path found
+        }
+        
+        if (microtime(true) - $startTime > $this->timeoutSeconds) {
+            return false; // Timeout
+        }
+        
+        $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
+        
+        // Shuffle neighbors for randomness
+        shuffle($neighbors);
+        
+        foreach ($neighbors as $neighbor) {
+            $nr = $neighbor['r'];
+            $nc = $neighbor['c'];
+            
+            $path[] = ['x' => $nc, 'y' => $nr];
+            $visited[$this->key($nr, $nc)] = true;
+            
+            if ($this->backtrack($nr, $nc, $path, $visited, $startTime)) {
+                return true;
+            }
+            
+            // Backtrack
+            array_pop($path);
+            unset($visited[$this->key($nr, $nc)]);
+        }
+        
+        return false;
+    }
+
     private function findNearestUnvisited(int $r, int $c, array $visited): ?array
     {
         // Find the nearest unvisited cell using BFS
