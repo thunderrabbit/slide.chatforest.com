@@ -821,12 +821,8 @@ export class SlideGame extends SlideCore {
   }
 
   loadGlobalTimes() {
-    if (!this.puzzleData || !this.puzzleData.puzzle_id) {
-      console.log('🔍 loadGlobalTimes: No puzzle data or puzzle_id available', this.puzzleData);
-      return;
-    }
+    if (!this.puzzleData || !this.puzzleData.puzzle_id) return;
 
-    console.log('🔍 Loading global times for puzzle_id:', this.puzzleData.puzzle_id);
     fetch(`/get_user_times.php?puzzle_id=${this.puzzleData.puzzle_id}`)
       .then(response => {
         if (!response.ok) {
@@ -836,20 +832,16 @@ export class SlideGame extends SlideCore {
         return response.text();
       })
       .then(text => {
-        if (!text) {
-          console.log('🔍 loadGlobalTimes: Empty response from server');
-          return;
-        }
+        if (!text) return;
         try {
           const data = JSON.parse(text);
-          console.log('🔍 loadGlobalTimes: Response data:', data);
           if (data.success) {
             this.displayGlobalTimes(data.times, data.current_user_id);
           } else {
-            console.log('🔍 User times error:', data.error);
+            console.log('User times error:', data.error);
           }
         } catch (e) {
-          console.error('🔍 Invalid JSON response from get_user_times.php:', text);
+          console.error('Invalid JSON response from get_user_times.php:', text);
         }
       })
       .catch(error => {
