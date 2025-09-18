@@ -76,6 +76,18 @@ if ($puzzle_data) {
 $inner_page->set("prev_puzzle_code", $prev_puzzle_code);
 $inner_page->set("next_puzzle_code", $next_puzzle_code);
 
+// Handle grid size parameter - use puzzle's actual size or URL parameter
+$selected_grid_size = null;
+if ($puzzle_data) {
+    $selected_grid_size = $puzzle_data['grid_size']; // Use actual puzzle size
+} else {
+    $selected_grid_size = intval($_GET['grid_size'] ?? 6); // Fallback to URL param or default
+}
+if ($selected_grid_size < 5 || $selected_grid_size > 8) {
+    $selected_grid_size = 6; // Default to 6x6
+}
+$inner_page->set("selected_grid_size", $selected_grid_size);
+
 if($is_logged_in->isLoggedIn()){
     $page->set("username", $is_logged_in->getLoggedInUsername());
     $inner_page->set("username", $is_logged_in->getLoggedInUsername());

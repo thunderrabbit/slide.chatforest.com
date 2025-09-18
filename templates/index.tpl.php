@@ -3,10 +3,10 @@
     <header>
       <div class="top_controls">
         <label>Grid: <select id="gridSize">
-          <option value="5">5×5</option>
-          <option value="6" selected>6×6</option>
-          <option value="7">7×7</option>
-          <option value="8">8×8</option>
+          <option value="5" <?= isset($selected_grid_size) && $selected_grid_size == 5 ? 'selected' : '' ?>>5×5</option>
+          <option value="6" <?= !isset($selected_grid_size) || $selected_grid_size == 6 ? 'selected' : '' ?>>6×6</option>
+          <option value="7" <?= isset($selected_grid_size) && $selected_grid_size == 7 ? 'selected' : '' ?>>7×7</option>
+          <option value="8" <?= isset($selected_grid_size) && $selected_grid_size == 8 ? 'selected' : '' ?>>8×8</option>
         </select></label>
         <select id="difficulty">
           <option value="easy">Easy</option>
@@ -109,8 +109,9 @@ import { SlideGame } from '/js/game.js';
 
   // Handle puzzle generation
   document.getElementById('puzzleBtn').addEventListener('click', () => {
-    // Always refresh the page for a clean reset
-    window.location.href = '/';
+    // Get selected grid size and pass it as URL parameter
+    const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
+    window.location.href = '/?grid_size=' + selectedGridSize;
   });
 
   // Handle solution toggle
@@ -125,8 +126,8 @@ import { SlideGame } from '/js/game.js';
       const data = await response.json();
 
       if (data.success) {
-        // Navigate to the earliest unplayed puzzle
-        window.location.href = '/puzzle/' + data.puzzle_code;
+        // Navigate to the earliest unplayed puzzle with grid size parameter
+        window.location.href = '/puzzle/' + data.puzzle_code + '?grid_size=' + data.grid_size;
       } else {
         // Handle case where all puzzles are solved or no puzzles exist
         alert(data.message || 'No unplayed puzzles found');
@@ -180,7 +181,7 @@ import { SlideGame } from '/js/game.js';
       const header = document.querySelector('header');
       const isHidden = header && (header.style.height === '0px' || header.style.height === '0');
       console.log('🔍 Escape button check - header height:', header?.style.height, 'isHidden:', isHidden);
-      
+
       if (isHidden) {
         escapeBtn.classList.add('visible');
         console.log('🔍 Escape button made visible');
@@ -205,7 +206,7 @@ import { SlideGame } from '/js/game.js';
       const header = document.querySelector('header');
       const isHidden = header && (header.style.height === '0px' || header.style.height === '0');
       console.log('🔍 Initial escape button check - header height:', header?.style.height, 'isHidden:', isHidden);
-      
+
       if (isHidden) {
         escapeBtn.classList.add('visible');
         console.log('🔍 Initial escape button made visible');

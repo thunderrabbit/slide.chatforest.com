@@ -25,6 +25,12 @@ $inner_page->set("site_version", SENTIMENTAL_VERSION);
 // Cache busting for static files
 $inner_page->set("firefox_cache_buster", $firefox_cache_buster);
 
+// Handle grid size parameter
+$selected_grid_size = intval($_GET['grid_size'] ?? 6);
+if ($selected_grid_size < 5 || $selected_grid_size > 8) {
+    $selected_grid_size = 6; // Default to 6x6
+}
+$inner_page->set("selected_grid_size", $selected_grid_size);
 
 if($is_logged_in->isLoggedIn()){
     $page->set("username", $is_logged_in->getLoggedInUsername());
