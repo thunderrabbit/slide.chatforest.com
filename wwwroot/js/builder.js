@@ -212,6 +212,7 @@ export class SlideBuilder extends SlideCore {
 
     if (this.isBarrierEditingMode) {
       const edge = this.edgeAt(x, y);
+      console.log('🔧 Barrier editing click at:', x, y, 'edge:', edge);
       if (edge) {
         // Check if this edge is part of the solution path
         const pathEdges = new Set();
@@ -220,6 +221,9 @@ export class SlideBuilder extends SlideCore {
         }
 
         const currentEdgeKey = this.edgeKey(edge.cell1.r, edge.cell1.c, edge.cell2.r, edge.cell2.c);
+        console.log('🔧 Current edge key:', currentEdgeKey);
+        console.log('🔧 Edge barriers before:', Array.from(this.edgeBarriers));
+        
         if (pathEdges.has(currentEdgeKey)) {
           this.updateBuilderHint('Cannot place a barrier on the solution path.');
           return;
@@ -227,11 +231,16 @@ export class SlideBuilder extends SlideCore {
 
         // Toggle the barrier
         if (this.edgeBarriers.has(currentEdgeKey)) {
+          console.log('🔧 Removing barrier:', currentEdgeKey);
           this.edgeBarriers.delete(currentEdgeKey);
         } else {
+          console.log('🔧 Adding barrier:', currentEdgeKey);
           this.edgeBarriers.add(currentEdgeKey);
         }
+        console.log('🔧 Edge barriers after:', Array.from(this.edgeBarriers));
         this.draw();
+      } else {
+        console.log('🔧 No edge detected at click position');
       }
       return; // Prevent other click actions
     }
