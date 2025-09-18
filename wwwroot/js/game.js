@@ -146,9 +146,6 @@ export class SlideGame extends SlideCore {
     this.solveTimeRecorded = false;
     this.puzzleAlreadySolvedByUser = false;
     
-    // Clear leaderboard scores
-    this.clearLeaderboards();
-    
     this.edgeBarriers.clear();
     this.numberHints.clear();
     this.nextRequiredNumber = 1; // Reset sequence tracker for new puzzle
@@ -296,9 +293,6 @@ export class SlideGame extends SlideCore {
         this.touchesBlocked = false;
         this.solveTimeRecorded = false;
         this.puzzleAlreadySolvedByUser = false;
-        
-        // Clear leaderboard scores
-        this.clearLeaderboards();
         
         // Start timing for new PHP-generated puzzle
         if (!this.puzzleStartTime) {
@@ -934,24 +928,6 @@ export class SlideGame extends SlideCore {
     `;
   }
 
-  clearLeaderboards() {
-    // Clear global leaderboard
-    const globalContainer = document.getElementById('global-times');
-    if (globalContainer) {
-      globalContainer.innerHTML = '<p class="no-times">Loading...</p>';
-    }
-    
-    // Clear anonymous times
-    const anonymousContainer = document.getElementById('anonymous-times');
-    if (anonymousContainer) {
-      anonymousContainer.innerHTML = `
-        <p class="no-times">No times recorded yet for this puzzle.</p>
-        <div class="register-prompt">
-          <p>🏆 <a href="/login/register.php">Create an account</a> or <a href="/login/">Log in</a> to permanently save your solve times and compete on global leaderboards!</p>
-        </div>
-      `;
-    }
-  }
 
   saveAnonymousTime(puzzleId, solveTimeMs) {
     console.log('💾 saveAnonymousTime called with puzzleId:', puzzleId, 'solveTime:', solveTimeMs);
