@@ -47,6 +47,7 @@
 
     <div class="stage">
       <canvas id="board" width="800" height="800" aria-label="Slide grid"></canvas>
+      <button id="escapeBtn" class="escape-button" title="Show menu">▲</button>
     </div>
 
     <div class="leaderboard-section">
@@ -108,32 +109,8 @@ import { SlideGame } from '/js/game.js';
 
   // Handle puzzle generation
   document.getElementById('puzzleBtn').addEventListener('click', () => {
-    if (puzzleCode || puzzleId) {
-      // If viewing a loaded puzzle, redirect to main page for new puzzle generation
-      window.location.href = '/';
-    } else {
-      // If on main page, generate new puzzle
-      const difficulty = document.getElementById('difficulty').value;
-      const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
-
-      // Update N to the selected grid size for new puzzle generation
-      game.N = selectedGridSize;
-
-      // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
-      if (game.N >= 7) {
-        console.log('🚀 Grid size', game.N + 'x' + game.N, '- using PHP generator');
-        game.generatePuzzleUsingPHP(difficulty);
-      } else {
-        console.log('🚀 Grid size', game.N + 'x' + game.N, '- using JavaScript generator');
-        game.generatePuzzle(difficulty);
-        game.clearAll();
-        game.draw();
-        game.savePuzzle(difficulty);
-      }
-
-      // Resize canvas for the new grid size
-      game.resize();
-    }
+    // Always refresh the page for a clean reset
+    window.location.href = '/';
   });
 
   // Handle solution toggle
@@ -194,6 +171,30 @@ import { SlideGame } from '/js/game.js';
   // Initialize the game
   game.resize();
   window.addEventListener('resize', () => game.resize());
+
+  // Handle escape button for experienced users
+  const escapeBtn = document.getElementById('escapeBtn');
+  if (escapeBtn && isExperienced) {
+    // Show escape button when UI is hidden
+    const observer = new MutationObserver(() => {
+      const header = document.querySelector('header');
+      if (header && header.style.display === 'none') {
+        escapeBtn.classList.add('visible');
+      } else {
+        escapeBtn.classList.remove('visible');
+      }
+    });
+    
+    observer.observe(document.querySelector('header'), { 
+      attributes: true, 
+      attributeFilter: ['style'] 
+    });
+
+    // Handle escape button click
+    escapeBtn.addEventListener('click', () => {
+      game.showUIForExperiencedUsers();
+    });
+  }
 
   // Check if user just registered or logged in and trigger migration
   const urlParams = new URLSearchParams(window.location.search);
@@ -264,5 +265,37 @@ import { SlideGame } from '/js/game.js';
 
 .builder-link:hover {
   background: #ffa726;
+}
+
+.escape-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(42, 49, 70, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.escape-button:hover {
+  background: rgba(42, 49, 70, 1);
+}
+
+.escape-button.visible {
+  opacity: 1;
+}
+
+.stage {
+  position: relative;
 }
 </style>
