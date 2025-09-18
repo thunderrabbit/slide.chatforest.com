@@ -480,6 +480,61 @@ export class SlideBuilder extends SlideCore {
     }
   }
 
+  addRandomBarriers() {
+    // Clear existing barriers
+    this.edgeBarriers.clear();
+    
+    // Generate random barriers without considering any path
+    const barriers = this.generateRandomBarriers();
+    
+    // Add barriers to the edgeBarriers set
+    barriers.forEach(barrier => {
+      const edgeId = this.edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
+      this.edgeBarriers.add(edgeId);
+    });
+    
+    this.updateBuilderHint(`Added ${barriers.length} random barriers. Now draw a path that avoids them!`);
+    this.draw();
+  }
+
+  generateRandomBarriers() {
+    const barriers = [];
+    const targetBarriers = this.builderBarrierCount;
+    let attempts = 0;
+
+    while (barriers.length < targetBarriers && attempts < 200) {
+      const r1 = Math.floor(Math.random() * this.N);
+      const c1 = Math.floor(Math.random() * this.N);
+
+      // Pick random adjacent cell
+      const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
+      const validDirections = directions.filter(dir =>
+        this.inBounds(r1 + dir.r, c1 + dir.c)
+      );
+
+      if (validDirections.length > 0) {
+        const dir = validDirections[Math.floor(Math.random() * validDirections.length)];
+        const r2 = r1 + dir.r;
+        const c2 = c1 + dir.c;
+        const edge = this.edgeKey(r1, c1, r2, c2);
+
+        // Only avoid duplicates (no path consideration for random barriers)
+        if (!barriers.some(b =>
+          this.edgeKey(b.y1, b.x1, b.y2, b.x2) === edge
+        )) {
+          barriers.push({
+            x1: c1, y1: r1,
+            x2: c2, y2: r2,
+            type: r1 === r2 ? 'horizontal' : 'vertical'
+          });
+        }
+      }
+      attempts++;
+    }
+
+    return barriers;
+  }
+
   addNumbers() {
     this.isNumberPlacementMode = !this.isNumberPlacementMode; // Toggle the mode
 
@@ -646,6 +701,7 @@ export class SlideBuilder extends SlideCore {
   setupBuilderEventListeners() {
     // Builder controls
     const clearPathBtn = document.getElementById('clearPathBtn');
+    const randomBarriersBtn = document.getElementById('randomBarriersBtn');
     const addBarriersBtn = document.getElementById('addBarriersBtn');
     const addNumbersBtn = document.getElementById('addNumbersBtn');
     const testPlayBtn = document.getElementById('testPlayBtn');
@@ -653,6 +709,10 @@ export class SlideBuilder extends SlideCore {
 
     if (clearPathBtn) {
       clearPathBtn.addEventListener('click', () => this.clearPath());
+    }
+
+    if (randomBarriersBtn) {
+      randomBarriersBtn.addEventListener('click', () => this.addRandomBarriers());
     }
 
     if (addBarriersBtn) {

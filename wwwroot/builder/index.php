@@ -50,6 +50,7 @@ if ($is_logged_in->isLoggedIn()) {
       <div class="lower_controls">
         <div class="builder-controls" id="builderControls">
           <button id="clearPathBtn">Clear Path</button>
+          <button id="randomBarriersBtn">Random Barriers</button>
           <div class="builder-option">
             <button id="addBarriersBtn">Add Barriers</button>
             <div class="density-control">
