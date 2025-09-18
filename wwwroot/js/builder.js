@@ -294,6 +294,7 @@ export class SlideBuilder extends SlideCore {
         this.solutionPath = this.builderPath.map(cell => ({r: cell.r, c: cell.c}));
         this.updateBuilderHint('Numbers placed! You can now test or save the puzzle.');
         document.getElementById('addNumbersBtn').textContent = 'Add Numbers';
+        document.getElementById('addBarriersBtn').disabled = false; // Re-enable barriers button
         this.canvas.classList.remove('number-placement-mode');
       }
 
