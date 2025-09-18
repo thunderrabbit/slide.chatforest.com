@@ -2,6 +2,11 @@
 require_once '../../prepend.php';
 
 // Check if user is admin
+$is_admin = false;
+if ($is_logged_in->isLoggedIn()) {
+    $is_admin = $is_logged_in->isAdmin();
+}
+
 if (!$is_admin) {
     header('Location: /');
     exit;
@@ -9,6 +14,19 @@ if (!$is_admin) {
 
 $page_title = 'Puzzle Builder';
 $page_description = 'Create custom slide puzzles';
+
+// Set up template variables
+$username = "";
+if ($is_logged_in->isLoggedIn()) {
+    $username = $is_logged_in->getLoggedInUsername();
+}
+
+// Check if user is experienced (3+ solved puzzles) for auto-hide UI feature
+$is_experienced = false;
+if ($is_logged_in->isLoggedIn()) {
+    $experienceChecker = new AreYouExperienced($mla_database);
+    $is_experienced = $experienceChecker->DesuKa($is_logged_in->loggedInID());
+}
 ?>
 
 <?php include '../../templates/layout/admin_base.tpl.php'; ?>
