@@ -178,22 +178,39 @@ import { SlideGame } from '/js/game.js';
     // Show escape button when UI is hidden
     const observer = new MutationObserver(() => {
       const header = document.querySelector('header');
-      if (header && header.style.display === 'none') {
+      const isHidden = header && (header.style.height === '0px' || header.style.height === '0');
+      console.log('🔍 Escape button check - header height:', header?.style.height, 'isHidden:', isHidden);
+      
+      if (isHidden) {
         escapeBtn.classList.add('visible');
+        console.log('🔍 Escape button made visible');
       } else {
         escapeBtn.classList.remove('visible');
+        console.log('🔍 Escape button hidden');
       }
     });
-    
-    observer.observe(document.querySelector('header'), { 
-      attributes: true, 
-      attributeFilter: ['style'] 
+
+    observer.observe(document.querySelector('header'), {
+      attributes: true,
+      attributeFilter: ['style']
     });
 
     // Handle escape button click
     escapeBtn.addEventListener('click', () => {
       game.showUIForExperiencedUsers();
     });
+
+    // Initial check in case UI is already hidden
+    setTimeout(() => {
+      const header = document.querySelector('header');
+      const isHidden = header && (header.style.height === '0px' || header.style.height === '0');
+      console.log('🔍 Initial escape button check - header height:', header?.style.height, 'isHidden:', isHidden);
+      
+      if (isHidden) {
+        escapeBtn.classList.add('visible');
+        console.log('🔍 Initial escape button made visible');
+      }
+    }, 100);
   }
 
   // Check if user just registered or logged in and trigger migration
