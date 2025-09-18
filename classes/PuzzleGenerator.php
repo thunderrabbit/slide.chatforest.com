@@ -85,30 +85,62 @@ class PuzzleGenerator
     private function generateHamiltonianPathFast(float $startTime): array
     {
         $totalCells = $this->gridSize * $this->gridSize;
+        
+        // Try multiple attempts with different strategies
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $path = $this->attemptHamiltonianPath($startTime, $attempt);
+            if (count($path) === $totalCells) {
+                error_log("Fast Hamiltonian path successful on attempt " . ($attempt + 1));
+                return $path;
+            }
+            error_log("Attempt " . ($attempt + 1) . " generated " . count($path) . " cells out of " . $totalCells);
+        }
+        
+        // If all attempts fail, fall back to backtracking
+        error_log("Fast algorithm failed, falling back to backtracking");
+        return $this->generateHamiltonianPathBacktrack($startTime);
+    }
+    
+    private function attemptHamiltonianPath(float $startTime, int $strategy): array
+    {
+        $totalCells = $this->gridSize * $this->gridSize;
         $path = [];
         $visited = [];
-
-        // Start from a random position
-        $r = random_int(0, $this->gridSize - 1);
-        $c = random_int(0, $this->gridSize - 1);
-
+        
+        // Different starting strategies
+        if ($strategy === 0) {
+            // Random start
+            $r = random_int(0, $this->gridSize - 1);
+            $c = random_int(0, $this->gridSize - 1);
+        } elseif ($strategy === 1) {
+            // Corner start
+            $r = 0;
+            $c = 0;
+        } else {
+            // Center start
+            $r = intval($this->gridSize / 2);
+            $c = intval($this->gridSize / 2);
+        }
+        
         $path[] = ['x' => $c, 'y' => $r];
         $visited[$this->key($r, $c)] = true;
-
-        // Generate snake-like path with random turns
+        
+        // Generate path with improved bridging
         while (count($path) < $totalCells) {
             if (microtime(true) - $startTime > $this->timeoutSeconds) {
                 break;
             }
-
+            
             $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
-
+            
             if (empty($neighbors)) {
-                // No more neighbors - try to connect to unvisited area
+                // Try multiple bridging strategies
+                $bridged = false;
+                
+                // Strategy 1: Find nearest unvisited
                 $unvisited = $this->findNearestUnvisited($r, $c, $visited);
                 if ($unvisited) {
-                    // Create a bridge to the unvisited area
-                    $bridge = $this->createBridge($r, $c, $unvisited['r'], $unvisited['c'], $visited);
+                    $bridge = $this->createBridgeImproved($r, $c, $unvisited['r'], $unvisited['c'], $visited);
                     if (!empty($bridge)) {
                         foreach ($bridge as $cell) {
                             $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
@@ -116,12 +148,29 @@ class PuzzleGenerator
                         }
                         $r = $bridge[count($bridge) - 1]['r'];
                         $c = $bridge[count($bridge) - 1]['c'];
-                    } else {
-                        // Bridge creation failed, break out
-                        break;
+                        $bridged = true;
                     }
-                } else {
-                    break; // Shouldn't happen in a valid Hamiltonian path
+                }
+                
+                // Strategy 2: If bridging failed, try to find any unvisited cell
+                if (!$bridged) {
+                    $unvisited = $this->findAnyUnvisited($visited);
+                    if ($unvisited) {
+                        $bridge = $this->createBridgeImproved($r, $c, $unvisited['r'], $unvisited['c'], $visited);
+                        if (!empty($bridge)) {
+                            foreach ($bridge as $cell) {
+                                $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
+                                $visited[$this->key($cell['r'], $cell['c'])] = true;
+                            }
+                            $r = $bridge[count($bridge) - 1]['r'];
+                            $c = $bridge[count($bridge) - 1]['c'];
+                            $bridged = true;
+                        }
+                    }
+                }
+                
+                if (!$bridged) {
+                    break; // Can't continue
                 }
             } else {
                 // Choose random neighbor
@@ -131,11 +180,6 @@ class PuzzleGenerator
                 $r = $next['r'];
                 $c = $next['c'];
             }
-        }
-        
-        error_log("Fast Hamiltonian path generated: " . count($path) . " cells out of " . $totalCells);
-        if (count($path) < $totalCells) {
-            error_log("Path incomplete - missing " . ($totalCells - count($path)) . " cells");
         }
         
         return $path;
@@ -173,6 +217,77 @@ class PuzzleGenerator
         }
 
         return null;
+    }
+
+    private function findAnyUnvisited(array $visited): ?array
+    {
+        // Find any unvisited cell (fallback when nearest search fails)
+        for ($r = 0; $r < $this->gridSize; $r++) {
+            for ($c = 0; $c < $this->gridSize; $c++) {
+                if (!isset($visited[$this->key($r, $c)])) {
+                    return ['r' => $r, 'c' => $c];
+                }
+            }
+        }
+        return null;
+    }
+    
+    private function createBridgeImproved(int $fromR, int $fromC, int $toR, int $toC, array $visited): array
+    {
+        // Improved bridge creation with multiple pathfinding strategies
+        $path = [];
+        $r = $fromR;
+        $c = $fromC;
+        $maxSteps = $this->gridSize * 2; // Prevent infinite loops
+        $steps = 0;
+        
+        while (($r !== $toR || $c !== $toC) && $steps < $maxSteps) {
+            $steps++;
+            
+            // Try direct path first
+            $dr = $toR > $r ? 1 : ($toR < $r ? -1 : 0);
+            $dc = $toC > $c ? 1 : ($toC < $c ? -1 : 0);
+            
+            $moved = false;
+            
+            // Try primary direction
+            if ($dr !== 0 && $this->inBounds($r + $dr, $c) && !isset($visited[$this->key($r + $dr, $c)])) {
+                $r += $dr;
+                $moved = true;
+            } elseif ($dc !== 0 && $this->inBounds($r, $c + $dc) && !isset($visited[$this->key($r, $c + $dc)])) {
+                $c += $dc;
+                $moved = true;
+            }
+            
+            // If primary direction failed, try alternative directions
+            if (!$moved) {
+                $directions = [
+                    ['r' => -1, 'c' => 0], ['r' => 1, 'c' => 0],
+                    ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
+                ];
+                shuffle($directions);
+                
+                foreach ($directions as $dir) {
+                    $nr = $r + $dir['r'];
+                    $nc = $c + $dir['c'];
+                    if ($this->inBounds($nr, $nc) && !isset($visited[$this->key($nr, $nc)])) {
+                        $r = $nr;
+                        $c = $nc;
+                        $moved = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!$moved) {
+                // Can't find a path, return what we have
+                break;
+            }
+            
+            $path[] = ['r' => $r, 'c' => $c];
+        }
+        
+        return $path;
     }
 
     private function createBridge(int $fromR, int $fromC, int $toR, int $toC, array $visited): array
