@@ -223,7 +223,7 @@ export class SlideBuilder extends SlideCore {
         const currentEdgeKey = this.edgeKey(edge.cell1.r, edge.cell1.c, edge.cell2.r, edge.cell2.c);
         console.log('🔧 Current edge key:', currentEdgeKey);
         console.log('🔧 Edge barriers before:', Array.from(this.edgeBarriers));
-        
+
         if (pathEdges.has(currentEdgeKey)) {
           this.updateBuilderHint('Cannot place a barrier on the solution path.');
           return;
@@ -352,12 +352,18 @@ export class SlideBuilder extends SlideCore {
     const barriers = [];
     const pathEdges = new Set();
 
+    console.log('🔧 Generating barriers for path:', customPath);
+
     // Create set of edges used in the solution path
     for (let i = 0; i < customPath.length - 1; i++) {
       const curr = customPath[i];
       const next = customPath[i + 1];
-      pathEdges.add(this.edgeKey(curr.r, curr.c, next.r, next.c));
+      const edgeKey = this.edgeKey(curr.r, curr.c, next.r, next.c);
+      pathEdges.add(edgeKey);
+      console.log('🔧 Path edge:', edgeKey, 'from', curr, 'to', next);
     }
+
+    console.log('🔧 All path edges:', Array.from(pathEdges));
 
     // Use adjustable barrier count
     const targetBarriers = this.builderBarrierCount;
@@ -380,14 +386,22 @@ export class SlideBuilder extends SlideCore {
         const edge = this.edgeKey(r1, c1, r2, c2);
 
         // Don't block solution path edges and avoid duplicates
-        if (!pathEdges.has(edge) && !barriers.some(b =>
+        const isPathEdge = pathEdges.has(edge);
+        const isDuplicate = barriers.some(b =>
           this.edgeKey(b.y1, b.x1, b.y2, b.x2) === edge
-        )) {
+        );
+
+        console.log('🔧 Generated edge:', edge, 'isPathEdge:', isPathEdge, 'isDuplicate:', isDuplicate);
+
+        if (!isPathEdge && !isDuplicate) {
           barriers.push({
             x1: c1, y1: r1,
             x2: c2, y2: r2,
             type: r1 === r2 ? 'horizontal' : 'vertical'
           });
+          console.log('🔧 Added barrier:', barriers[barriers.length - 1]);
+        } else {
+          console.log('🔧 Skipped edge (path or duplicate)');
         }
       }
       attempts++;
