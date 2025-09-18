@@ -78,6 +78,10 @@ import { SlideGame } from '/js/game.js';
   const username = '<?= $username ?>';
   const isExperienced = <?= $is_experienced ? 'true' : 'false' ?>;
 
+  // Show server version for debugging
+  console.log('🚀 Server Version:', '<?= SENTIMENTAL_VERSION ?>');
+  console.log('🚀 Cache Buster:', <?= $firefox_cache_buster ?>);
+
   // Initialize the game
   const game = new SlideGame('board', {
     puzzleData: puzzleData,

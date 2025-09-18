@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "We have a slippery mvp!";
+const SENTIMENTAL_VERSION = "8x8 Hamiltonian Path Fix v2.0";
 
 $firefox_cache_buster = 3;
 
