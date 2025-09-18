@@ -26,6 +26,14 @@ class PuzzleGenerator
 
         // Validate the solution path
         if (!$this->validateSolutionPath($this->solution)) {
+            $expectedCells = $this->gridSize * $this->gridSize;
+            $actualCells = count($this->solution);
+            error_log("Path validation failed: expected $expectedCells cells, got $actualCells");
+            error_log("Path length: " . count($this->solution));
+            if (!empty($this->solution)) {
+                error_log("First few path cells: " . json_encode(array_slice($this->solution, 0, 5)));
+                error_log("Last few path cells: " . json_encode(array_slice($this->solution, -5)));
+            }
             throw new \Exception("Generated path is invalid");
         }
 
@@ -79,22 +87,22 @@ class PuzzleGenerator
         $totalCells = $this->gridSize * $this->gridSize;
         $path = [];
         $visited = [];
-        
+
         // Start from a random position
         $r = random_int(0, $this->gridSize - 1);
         $c = random_int(0, $this->gridSize - 1);
-        
+
         $path[] = ['x' => $c, 'y' => $r];
         $visited[$this->key($r, $c)] = true;
-        
+
         // Generate snake-like path with random turns
         while (count($path) < $totalCells) {
             if (microtime(true) - $startTime > $this->timeoutSeconds) {
                 break;
             }
-            
+
             $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
-            
+
             if (empty($neighbors)) {
                 // No more neighbors - try to connect to unvisited area
                 $unvisited = $this->findNearestUnvisited($r, $c, $visited);
@@ -125,6 +133,11 @@ class PuzzleGenerator
             }
         }
         
+        error_log("Fast Hamiltonian path generated: " . count($path) . " cells out of " . $totalCells);
+        if (count($path) < $totalCells) {
+            error_log("Path incomplete - missing " . ($totalCells - count($path)) . " cells");
+        }
+        
         return $path;
     }
 
@@ -134,31 +147,31 @@ class PuzzleGenerator
         $queue = [['r' => $r, 'c' => $c, 'dist' => 0]];
         $seen = [];
         $seen[$this->key($r, $c)] = true;
-        
+
         while (!empty($queue)) {
             $current = array_shift($queue);
-            
+
             if (!isset($visited[$this->key($current['r'], $current['c'])])) {
                 return ['r' => $current['r'], 'c' => $current['c']];
             }
-            
+
             $directions = [
                 ['r' => -1, 'c' => 0], ['r' => 1, 'c' => 0],
                 ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
             ];
-            
+
             foreach ($directions as $dir) {
                 $nr = $current['r'] + $dir['r'];
                 $nc = $current['c'] + $dir['c'];
                 $key = $this->key($nr, $nc);
-                
+
                 if ($this->inBounds($nr, $nc) && !isset($seen[$key])) {
                     $seen[$key] = true;
                     $queue[] = ['r' => $nr, 'c' => $nc, 'dist' => $current['dist'] + 1];
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -168,11 +181,11 @@ class PuzzleGenerator
         $path = [];
         $r = $fromR;
         $c = $fromC;
-        
+
         while ($r !== $toR || $c !== $toC) {
             $dr = $toR > $r ? 1 : ($toR < $r ? -1 : 0);
             $dc = $toC > $c ? 1 : ($toC < $c ? -1 : 0);
-            
+
             // Try to move in the direction of the target
             if ($dr !== 0 && $this->inBounds($r + $dr, $c) && !isset($visited[$this->key($r + $dr, $c)])) {
                 $r += $dr;
@@ -185,7 +198,7 @@ class PuzzleGenerator
                     ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
                 ];
                 shuffle($directions);
-                
+
                 $moved = false;
                 foreach ($directions as $dir) {
                     $nr = $r + $dir['r'];
@@ -197,13 +210,13 @@ class PuzzleGenerator
                         break;
                     }
                 }
-                
+
                 if (!$moved) break; // Can't find a path
             }
-            
+
             $path[] = ['r' => $r, 'c' => $c];
         }
-        
+
         return $path;
     }
 
