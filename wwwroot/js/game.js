@@ -1,0 +1,779 @@
+/**
+ * Game module for slide puzzle game
+ * Contains puzzle solving, timing, and game logic
+ */
+
+import { SlideCore } from './core.js';
+
+export class SlideGame extends SlideCore {
+  constructor(canvasId, options = {}) {
+    super(canvasId);
+
+    // Game state
+    this.puzzleData = options.puzzleData || null;
+    this.puzzleId = options.puzzleId || null;
+    this.puzzleCode = options.puzzleCode || null;
+    this.username = options.username || null;
+    this.isExperienced = options.isExperienced || false;
+
+    // Timing for solve speed tracking
+    this.puzzleStartTime = null;
+    this.puzzleSolved = false;
+    this.solveTimeRecorded = false;
+    this.puzzleAlreadySolvedByUser = false;
+
+    // Auto-hide UI for experienced users
+    this.uiHidden = false;
+    this.inactivityTimer = null;
+    this.gameStarted = false;
+    this.touchesBlocked = false; // Block touches after puzzle is won
+
+    this.setupGameEventListeners();
+  }
+
+  // --- Puzzle Generation ---
+  generateHamiltonianPath() {
+    // Generate a random Hamiltonian path (visits every cell exactly once)
+    const visited = new Set();
+    const solution = [];
+    const totalCells = this.N * this.N;
+
+    // Start from a random cell
+    const start = {r: Math.floor(Math.random() * this.N), c: Math.floor(Math.random() * this.N)};
+    solution.push(start);
+    visited.add(this.key(start.r, start.c));
+
+    // Recursive backtracking algorithm
+    const backtrack = (currentPos) => {
+      if (solution.length === totalCells) return true;
+
+      // Try neighbors in random order
+      const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
+      this.shuffleArray(directions);
+
+      for (const dir of directions) {
+        const next = {r: currentPos.r + dir.r, c: currentPos.c + dir.c};
+        const nextKey = this.key(next.r, next.c);
+
+        if (this.inBounds(next.r, next.c) && !visited.has(nextKey)) {
+          visited.add(nextKey);
+          solution.push(next);
+
+          if (backtrack(next)) return true;
+
+          // Backtrack - remove the cell we just added
+          solution.pop();
+          visited.delete(nextKey);
+        }
+      }
+      return false;
+    };
+
+    if (backtrack(start)) {
+      return solution;
+    }
+
+    // Fallback: simple spiral pattern if backtracking fails
+    return this.generateSpiralPath();
+  }
+
+  shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  generateSpiralPath() {
+    // Simple spiral fallback
+    const solution = [];
+    let r = 0, c = 0;
+    let dr = 0, dc = 1;
+
+    for (let i = 0; i < this.N * this.N; i++) {
+      solution.push({r, c});
+
+      // Calculate next position
+      let nr = r + dr, nc = c + dc;
+
+      // If next position is out of bounds or already visited, turn right
+      if (!this.inBounds(nr, nc) || solution.some(p => p.r === nr && p.c === nc)) {
+        [dr, dc] = [-dc, dr]; // Turn right
+        nr = r + dr;
+        nc = c + dc;
+      }
+
+      // Update position only if we're not at the last cell
+      if (i < this.N * this.N - 1) {
+        r = nr;
+        c = nc;
+      }
+    }
+    return solution;
+  }
+
+  validateSolutionPath(path) {
+    // Check that path visits exactly N*N cells
+    if (path.length !== this.N * this.N) return false;
+
+    // Check that all cells are within bounds
+    for (const cell of path) {
+      if (!this.inBounds(cell.r, cell.c)) return false;
+    }
+
+    // Check that each cell is visited exactly once
+    const visited = new Set();
+    for (const cell of path) {
+      const cellKey = this.key(cell.r, cell.c);
+      if (visited.has(cellKey)) return false; // Duplicate cell
+      visited.add(cellKey);
+    }
+
+    // Check that consecutive cells are adjacent
+    for (let i = 1; i < path.length; i++) {
+      const prev = path[i - 1];
+      const curr = path[i];
+      if (!this.neighbors(prev, curr)) return false; // Not adjacent
+    }
+
+    return true;
+  }
+
+  generatePuzzle(difficulty = 'medium') {
+    this.edgeBarriers.clear();
+    this.numberHints.clear();
+    this.nextRequiredNumber = 1; // Reset sequence tracker for new puzzle
+    this.showingSolution = false; // Hide solution for new puzzle
+
+    // Generate solution path with validation
+    let attempts = 0;
+    do {
+      this.solutionPath = this.generateHamiltonianPath();
+      attempts++;
+      if (attempts > 10) {
+        // Force use spiral if backtracking keeps failing
+        this.solutionPath = this.generateSpiralPath();
+        break;
+      }
+    } while (!this.validateSolutionPath(this.solutionPath));
+
+    // Double-check we have a valid solution
+    if (!this.validateSolutionPath(this.solutionPath)) {
+      console.error("Failed to generate valid solution path");
+      return;
+    }
+
+    // Place number hints at random positions along the solution path
+    const minHints = difficulty === 'easy' ? 6 : difficulty === 'medium' ? 4 : 3;
+    const maxHints = Math.floor(this.solutionPath.length / 3); // At most 1/3 of cells
+    const hintCount = Math.max(minHints, Math.min(maxHints, Math.floor(Math.random() * 4) + minHints));
+
+    // Always include position 0 (start) and final position (end)
+    const hintPositions = [0, this.solutionPath.length - 1];
+
+    // Add random positions in between
+    while (hintPositions.length < hintCount) {
+      const randomPos = Math.floor(Math.random() * (this.solutionPath.length - 2)) + 1; // Exclude 0 and final
+      if (!hintPositions.includes(randomPos)) {
+        hintPositions.push(randomPos);
+      }
+    }
+
+    // Sort positions to ensure correct numbering order
+    hintPositions.sort((a, b) => a - b);
+
+    // Place consecutive numbers at these positions
+    let hintNumber = 1;
+    for (const position of hintPositions) {
+      const cell = this.solutionPath[position];
+      // Safety check: ensure cell is within bounds
+      if (this.inBounds(cell.r, cell.c)) {
+        this.numberHints.set(this.key(cell.r, cell.c), hintNumber);
+        hintNumber++;
+      }
+    }
+
+    // Create set of solution edges (edges used in the solution path)
+    const solutionEdges = new Set();
+    for (let i = 0; i < this.solutionPath.length - 1; i++) {
+      const curr = this.solutionPath[i];
+      const next = this.solutionPath[i + 1];
+      solutionEdges.add(this.edgeKey(curr.r, curr.c, next.r, next.c));
+    }
+
+    // Add edge barriers (don't block solution path edges)
+    const barrierCount = Math.floor((this.N * this.N - 1) * (difficulty === 'easy' ? 0.1 : difficulty === 'medium' ? 0.15 : 0.2));
+    let barrierAttempts = 0;
+    while (this.edgeBarriers.size < barrierCount && barrierAttempts < 200) {
+      // Pick random adjacent cells
+      const r1 = Math.floor(Math.random() * this.N);
+      const c1 = Math.floor(Math.random() * this.N);
+
+      // Pick a random direction (horizontal or vertical)
+      const directions = [];
+      if (r1 > 0) directions.push({r: r1 - 1, c: c1}); // up
+      if (r1 < this.N - 1) directions.push({r: r1 + 1, c: c1}); // down
+      if (c1 > 0) directions.push({r: r1, c: c1 - 1}); // left
+      if (c1 < this.N - 1) directions.push({r: r1, c: c1 + 1}); // right
+
+      if (directions.length > 0) {
+        const neighbor = directions[Math.floor(Math.random() * directions.length)];
+        const r2 = neighbor.r, c2 = neighbor.c;
+        const edgeId = this.edgeKey(r1, c1, r2, c2);
+
+        // Don't block solution path edges
+        if (!solutionEdges.has(edgeId)) {
+          this.edgeBarriers.add(edgeId);
+        }
+      }
+      barrierAttempts++;
+    }
+
+    this.puzzleMode = true;
+
+    // Start timing for new puzzle
+    if (!this.puzzleStartTime) {
+      this.puzzleStartTime = Date.now();
+      console.log('⏰ Started timing for new generated puzzle at:', this.puzzleStartTime);
+      this.gameStarted = true;
+      this.hideUIForExperiencedUsers();
+    }
+  }
+
+  generatePuzzleUsingPHP(difficulty) {
+    console.log('🚀 Using PHP generator for', this.N + 'x' + this.N, 'puzzle with difficulty:', difficulty);
+
+    // Send request to PHP generator
+    fetch('/generate_puzzle.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        grid_size: this.N,
+        difficulty: difficulty
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('✅ PHP puzzle generated with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
+
+        // Load the generated puzzle data into the game
+        this.loadPuzzleData({
+          puzzle_id: data.puzzle_id,
+          puzzle_code: data.puzzle_code,
+          grid_size: data.puzzle_data.grid_size,
+          barriers: data.puzzle_data.barriers,
+          numbered_positions: data.puzzle_data.numbered_positions,
+          solution_path: data.puzzle_data.solution_path,
+          difficulty: data.puzzle_data.difficulty
+        });
+
+        // Update global puzzleData
+        this.puzzleData = {
+          puzzle_id: data.puzzle_id,
+          puzzle_code: data.puzzle_code
+        };
+
+        // Store last played puzzle
+        localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
+
+        // Show the puzzle code in the UI
+        this.showPuzzleCode(data.puzzle_id, data.puzzle_code);
+
+        // Start timing for new PHP-generated puzzle
+        if (!this.puzzleStartTime) {
+          this.puzzleStartTime = Date.now();
+          console.log('⏰ Started timing for new PHP-generated puzzle at:', this.puzzleStartTime);
+          this.gameStarted = true;
+          this.hideUIForExperiencedUsers();
+        }
+
+        // Clear any existing path and redraw
+        this.clearAll();
+        this.draw();
+
+      } else {
+        console.error('❌ Failed to generate PHP puzzle:', data.error);
+        alert('Failed to generate puzzle: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error generating PHP puzzle:', error);
+      alert('Error generating puzzle. Please try again.');
+    });
+  }
+
+  // --- Game Logic ---
+  tryAddCell(r, c) {
+    if (!this.inBounds(r, c)) return;
+    const k = this.key(r, c);
+
+    if (this.path.length === 0) {
+      // Timer already started when puzzle loaded - no need to restart here
+
+      // Check if first cell is accessible (only matters for numbered cells)
+      if (!this.isNumberedCellAccessible(r, c)) return;
+
+      // If first cell has a number, update the next required number
+      const cellNumber = this.numberHints.get(k);
+      if (cellNumber && cellNumber === this.nextRequiredNumber) {
+        this.nextRequiredNumber++;
+      } else {
+        // Path length is 0, so if the check above failed,
+        // user did not start with the anchor cell [1]
+        // Ignore the touch
+        return;
+      }
+
+      this.path.push({r, c});
+      this.occupied.add(k);
+
+      this.haptic();
+      this.clearLongPress();
+      this.draw();
+      return;
+    }
+
+    const prev = this.path[this.path.length - 1];
+    if (this.path.length > 1 && this.equal({r, c}, this.path[this.path.length - 2])) {
+      this.undo();
+      this.clearLongPress();
+      return;
+    }
+    if (!this.neighbors(prev, {r, c})) return;
+    if (this.occupied.has(k)) return;
+
+    // Check for edge barriers between previous cell and this cell
+    if (this.isEdgeBlocked(prev.r, prev.c, r, c)) return;
+
+    // Check if numbered cell is accessible in sequence
+    if (!this.isNumberedCellAccessible(r, c)) return;
+
+    this.path.push({r, c});
+    this.occupied.add(k);
+
+    // If this cell has a number, update the next required number
+    const cellNumber = this.numberHints.get(k);
+    if (cellNumber && cellNumber === this.nextRequiredNumber) {
+      this.nextRequiredNumber++;
+    }
+
+    this.haptic();
+    this.clearLongPress();
+    this.draw();
+
+    console.log('🔍 Path completed! path.length:', this.path.length, 'N*N:', this.N * this.N, 'puzzleMode:', this.puzzleMode);
+
+    if (this.path.length === this.N * this.N) {
+      if (this.puzzleMode) {
+        // Check if solution is correct
+        console.log('🔍 Checking solution...');
+        const solutionCorrect = this.checkSolution();
+        console.log('🔍 Solution correct?', solutionCorrect);
+
+        if (solutionCorrect) {
+          this.puzzleSolved = true;
+          this.touchesBlocked = true; // Block touches after win
+          this.flash('#1dd1a1'); // Success green
+          this.showUIForExperiencedUsers(); // Show UI when puzzle is completed
+
+          if (this.puzzleAlreadySolvedByUser) {
+            console.log('🎉 PUZZLE COMPLETED AGAIN! (But time not recorded - already solved before)');
+            const solveTimeMs = Date.now() - this.puzzleStartTime;
+            const seconds = (solveTimeMs / 1000).toFixed(2);
+            // Show completion message but no timing
+            this.showCompletionMessage('🎉 Solved again in ' + seconds + 's!  But only your first solve time counts.');
+          } else {
+            console.log('🎉 PUZZLE SOLVED FOR FIRST TIME!');
+
+            // Record solve time (only once per solve)
+            if (this.puzzleStartTime && !this.solveTimeRecorded) {
+              const solveTimeMs = Date.now() - this.puzzleStartTime;
+              console.log('⏱️ Puzzle solved! Time:', solveTimeMs + 'ms');
+              console.log('⏱️ Recording solve time');
+              this.recordSolveTime(solveTimeMs);
+              this.solveTimeRecorded = true; // Prevent duplicate recordings
+            } else if (this.solveTimeRecorded) {
+              console.log('⏱️ Time already recorded for this solve');
+            } else {
+              console.log('⏱️ No puzzleStartTime, cannot record');
+              this.showCompletionMessage('🎉 Solved!');
+            }
+          }
+        } else {
+          console.log('❌ Solution incorrect');
+          this.flash('#ff6b6b'); // Error red
+        }
+      } else {
+        this.flash('#1dd1a1');
+      }
+    }
+  }
+
+  checkSolution() {
+    console.log('🔍 checkSolution: path.length =', this.path.length, 'expected:', this.N * this.N);
+
+    // Must visit all squares
+    if (this.path.length !== this.N * this.N) {
+      console.log('❌ Length mismatch - need to visit all', this.N * this.N, 'squares');
+      return false;
+    }
+
+    // Check if path visits all numbered cells in correct order
+    const numberedCells = Array.from(this.numberHints.entries()).sort((a, b) => a[1] - b[1]);
+    console.log('🔍 Numbered cells to check:', numberedCells);
+
+    // Find the highest number (last cell we must end on)
+    const maxNumber = numberedCells.length;
+    const lastNumberedCell = numberedCells.find(([cellKey, number]) => number === maxNumber);
+    const lastCell = this.path[this.path.length - 1];
+    const lastCellKey = this.key(lastCell.r, lastCell.c);
+
+    console.log('🔍 Must end on cell with number', maxNumber, 'at key:', lastNumberedCell[0]);
+    console.log('🔍 Actually ended on key:', lastCellKey);
+
+    // Must end on the highest numbered cell
+    if (lastCellKey !== lastNumberedCell[0]) {
+      console.log('❌ Must end on the highest numbered cell (', maxNumber, ')');
+      return false;
+    }
+
+    let expectedNumber = 1;
+
+    for (let i = 0; i < this.path.length; i++) {
+      const cell = this.path[i];
+      const cellKey = this.key(cell.r, cell.c);
+
+      if (this.numberHints.has(cellKey)) {
+        const cellNumber = this.numberHints.get(cellKey);
+        console.log('🔍 At path index', i, 'found numbered cell', cellNumber, 'expected', expectedNumber);
+
+        if (cellNumber !== expectedNumber) {
+          console.log('❌ Wrong sequence - found number', cellNumber, 'but expected', expectedNumber);
+          return false;
+        }
+        expectedNumber++;
+      }
+    }
+
+    // Must have visited all numbered cells
+    if (expectedNumber !== numberedCells.length + 1) {
+      console.log('❌ Missing numbered cells - only visited up to', expectedNumber - 1, 'of', numberedCells.length);
+      return false;
+    }
+
+    console.log('✅ Solution valid - visited all squares in correct numbered sequence and ended on final number!');
+    return true;
+  }
+
+  // --- Timing and Leaderboards ---
+  recordSolveTime(solveTimeMs) {
+    console.log('🎯 recordSolveTime called with:', solveTimeMs + 'ms');
+    console.log('🎯 puzzleData:', this.puzzleData);
+    console.log('🎯 puzzleData.puzzle_id:', this.puzzleData?.puzzle_id);
+
+    if (!this.puzzleData || !this.puzzleData.puzzle_id) {
+      console.log('❌ Early return: puzzleData missing or no puzzle_id');
+      return;
+    }
+
+    console.log('🎯 username:', this.username);
+    console.log('🎯 username truthy?:', !!this.username);
+
+    if (this.username) {
+      // Logged-in user: save to database
+      fetch('/save_solve_time.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          puzzle_id: this.puzzleData.puzzle_id,
+          puzzle_code: this.puzzleData.puzzle_code,
+          solve_time_ms: solveTimeMs
+        })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Solve time recorded:', solveTimeMs + 'ms');
+            this.showCompletionMessage(`🎉 First solve! Time: ${(solveTimeMs / 1000).toFixed(2)}s`);
+            this.loadGlobalTimes(); // Refresh times after recording
+          } else if (data.already_solved) {
+            console.log('User already solved this puzzle previously');
+            this.showCompletionMessage('🎉 Solved! (But your first time already counts)');
+            this.puzzleAlreadySolvedByUser = true; // Update status
+          } else {
+            console.error('Failed to record solve time:', data.error);
+            this.showCompletionMessage('🎉 Solved! (Error saving time)');
+          }
+        })
+        .catch(error => {
+          console.error('Error recording solve time:', error);
+          this.showCompletionMessage('🎉 Solved! (Error saving time)');
+        });
+    } else {
+      console.log('📱 Anonymous user branch - calling saveAnonymousTime');
+
+      // Check if we have a temporary puzzle_id (puzzle not saved to server yet)
+      if (typeof this.puzzleData.puzzle_id === 'string' && this.puzzleData.puzzle_id.startsWith('temp_')) {
+        console.log('📱 Temporary puzzle detected, will save time later when puzzle is saved');
+
+        // Store the solve time temporarily until the puzzle gets saved
+        window.pendingSolveTime = solveTimeMs;
+        console.log('📱 Stored pendingSolveTime:', window.pendingSolveTime);
+
+        this.loadGlobalTimes(); // Still load global times
+      } else {
+        // Anonymous user: save to localStorage and refresh displays
+        this.saveAnonymousTime(this.puzzleData.puzzle_id, solveTimeMs);
+        console.log('📱 Anonymous user branch - calling loadAnonymousTimes');
+        this.loadAnonymousTimes();
+        console.log('📱 Anonymous user branch - calling loadGlobalTimes');
+        this.loadGlobalTimes();
+      }
+    }
+  }
+
+  // --- UI Management ---
+  showCompletionMessage(message) {
+    // Show a temporary message overlay
+    const hint = document.querySelector('.hint');
+    if (hint) {
+      const originalText = hint.innerHTML;
+      const originalColor = hint.style.color;
+
+      hint.innerHTML = message;
+      hint.style.color = 'var(--good)';
+
+      // Revert after 3 seconds
+      setTimeout(() => {
+        hint.innerHTML = originalText;
+        hint.style.color = originalColor;
+      }, 3000);
+    }
+  }
+
+  hideUIForExperiencedUsers() {
+    if (!this.isExperienced || this.uiHidden) return;
+
+    const header = document.querySelector('header');
+    const hint = document.querySelector('.hint');
+    const leaderboard = document.querySelector('.leaderboard-section');
+
+    if (header) {
+      header.style.height = '0';
+      header.style.overflow = 'hidden';
+      header.style.padding = '0';
+      header.style.border = 'none';
+    }
+    if (hint) {
+      hint.style.height = '0';
+      hint.style.overflow = 'hidden';
+      hint.style.padding = '0';
+    }
+    if (leaderboard) {
+      leaderboard.style.height = '0';
+      leaderboard.style.overflow = 'hidden';
+      leaderboard.style.padding = '0';
+      leaderboard.style.border = 'none';
+    }
+
+    this.uiHidden = true;
+    this.startInactivityTimer();
+  }
+
+  showUIForExperiencedUsers() {
+    if (!this.uiHidden) return;
+
+    const restoreUI = () => {
+      const header = document.querySelector('header');
+      const hint = document.querySelector('.hint');
+      const leaderboard = document.querySelector('.leaderboard-section');
+
+      if (header) {
+        header.style.height = '';
+        header.style.overflow = '';
+        header.style.padding = '';
+        header.style.border = '';
+      }
+      if (hint) {
+        hint.style.height = '';
+        hint.style.overflow = '';
+        hint.style.padding = '';
+      }
+      if (leaderboard) {
+        leaderboard.style.height = '';
+        leaderboard.style.overflow = '';
+        leaderboard.style.padding = '';
+        leaderboard.style.border = '';
+      }
+
+      this.uiHidden = false;
+      this.clearInactivityTimer();
+    };
+
+    if (this.puzzleSolved) {
+      // When puzzle is solved, add delay before restoring UI to prevent grid movement affecting touches
+      setTimeout(restoreUI, 500); // 0.5 second delay
+    } else {
+      // For other cases (inactivity timeout), restore immediately
+      restoreUI();
+    }
+  }
+
+  startInactivityTimer() {
+    this.clearInactivityTimer();
+    this.inactivityTimer = setTimeout(() => {
+      this.showUIForExperiencedUsers();
+    }, 60000); // 1 minute
+  }
+
+  clearInactivityTimer() {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+      this.inactivityTimer = null;
+    }
+  }
+
+  resetInactivityTimer() {
+    if (this.uiHidden) {
+      this.startInactivityTimer();
+    }
+  }
+
+  // --- Event Handlers ---
+  onPointerDown(e) {
+    e.preventDefault();
+
+    // Block touches if puzzle is won and touches are disabled
+    if (this.touchesBlocked) return;
+
+    this.canvas.setPointerCapture(e.pointerId);
+    this.drawing = true;
+    this.isDragging = false; // Track if we're actually dragging
+    const rect = this.canvas.getBoundingClientRect();
+    this.downPos = { x: (e.clientX - rect.left) * this.dpi, y: (e.clientY - rect.top) * this.dpi };
+
+    // Reset inactivity timer on user interaction
+    this.resetInactivityTimer();
+
+    // Handle initial click directly (not as drag)
+    this.handleInitialClick(e);
+    this.startLongPress();
+  }
+
+  onPointerMove(e) {
+    if (!this.drawing) return;
+
+    // Block touches if puzzle is won and touches are disabled
+    if (this.touchesBlocked) return;
+
+    // Reset inactivity timer on user interaction
+    this.resetInactivityTimer();
+
+    // Check if we've moved enough to start dragging
+    if (!this.isDragging && this.downPos) {
+      const rect = this.canvas.getBoundingClientRect();
+      const currentX = (e.clientX - rect.left) * this.dpi;
+      const currentY = (e.clientY - rect.top) * this.dpi;
+
+      const dx = Math.abs(currentX - this.downPos.x);
+      const dy = Math.abs(currentY - this.downPos.y);
+      const moveThresh = Math.max(8 * this.dpi, this.cell * 0.15);
+
+      if (dx > moveThresh || dy > moveThresh) {
+        this.isDragging = true;
+        this.clearLongPress(); // Cancel long press when dragging starts
+      }
+    }
+
+    // Only use stepThrough when actually dragging
+    if (this.isDragging) {
+      this.handleDragMove(e);
+    }
+  }
+
+  setupGameEventListeners() {
+    // Override the core event listeners to add game-specific behavior
+    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
+    this.canvas.removeEventListener('pointermove', this.onPointerMove);
+    this.canvas.removeEventListener('pointerup', this.onPointerUp);
+    this.canvas.removeEventListener('pointercancel', this.onPointerUp);
+
+    this.canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+    this.canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
+    this.canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
+    this.canvas.addEventListener('pointercancel', (e) => this.onPointerUp(e));
+  }
+
+  // --- Public API ---
+  loadPuzzleData(data) {
+    super.loadPuzzleData(data);
+
+    if (data) {
+      // Store last played puzzle for potential restoration after login/registration
+      if (data.puzzle_code) {
+        localStorage.setItem('lastPlayedPuzzle', data.puzzle_code);
+      }
+
+      // Set grid size
+      this.N = data.grid_size;
+      const gridSizeSelect = document.getElementById('gridSize');
+      if (gridSizeSelect) {
+        gridSizeSelect.value = this.N.toString();
+      }
+      const difficultySelect = document.getElementById('difficulty');
+      if (difficultySelect) {
+        difficultySelect.value = data.difficulty || 'medium';
+      }
+
+      // Start timing for existing puzzle and hide UI for experienced users
+      if (!this.puzzleStartTime) {
+        this.puzzleStartTime = Date.now();
+        console.log('⏰ Started timing for existing puzzle at:', this.puzzleStartTime);
+        this.gameStarted = true;
+        this.hideUIForExperiencedUsers();
+      }
+
+      // Check if user already solved this puzzle (logged-in or anonymous)
+      this.checkIfAlreadySolved();
+    }
+  }
+
+  showPuzzleCode(puzzleId, puzzleCode) {
+    // Find the lower_controls div and add/update puzzle info
+    const lowerControls = document.querySelector('.lower_controls');
+    if (!lowerControls) return;
+
+    let puzzleInfo = lowerControls.querySelector('.puzzle-info');
+
+    if (!puzzleInfo) {
+      // Create puzzle info link if it doesn't exist
+      puzzleInfo = document.createElement('a');
+      puzzleInfo.className = 'puzzle-info';
+      lowerControls.appendChild(puzzleInfo);
+    }
+
+    puzzleInfo.href = `/puzzle/${puzzleCode}`;
+    puzzleInfo.textContent = `Puzzle #${puzzleId}`;
+  }
+
+  // Placeholder methods for leaderboard functionality
+  checkIfAlreadySolved() {
+    // Implementation would go here
+  }
+
+  loadGlobalTimes() {
+    // Implementation would go here
+  }
+
+  loadAnonymousTimes() {
+    // Implementation would go here
+  }
+
+  saveAnonymousTime(puzzleId, solveTimeMs) {
+    // Implementation would go here
+  }
+}
