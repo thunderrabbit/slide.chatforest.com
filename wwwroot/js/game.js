@@ -33,7 +33,60 @@ export class SlideGame extends SlideCore {
 
   // --- Puzzle Generation ---
   generateHamiltonianPath() {
-    // Generate a random Hamiltonian path (visits every cell exactly once)
+    // Use faster algorithm for larger grids
+    if (this.N >= 7) {
+      return this.generateHamiltonianPathFast();
+    }
+    
+    // Use original backtracking for smaller grids (5x5, 6x6)
+    return this.generateHamiltonianPathBacktrack();
+  }
+
+  generateHamiltonianPathFast() {
+    // Fast Hamiltonian path generation using snake-like patterns with randomization
+    const totalCells = this.N * this.N;
+    const path = [];
+    const visited = new Set();
+    
+    // Start from a random position
+    let r = Math.floor(Math.random() * this.N);
+    let c = Math.floor(Math.random() * this.N);
+    
+    path.push({r, c});
+    visited.add(this.key(r, c));
+    
+    // Generate snake-like path with random turns
+    while (path.length < totalCells) {
+      const neighbors = this.getUnvisitedNeighbors(r, c, visited);
+      
+      if (neighbors.length === 0) {
+        // No more neighbors - try to connect to unvisited area
+        const unvisited = this.findNearestUnvisited(r, c, visited);
+        if (unvisited) {
+          // Create a bridge to the unvisited area
+          const bridge = this.createBridge({r, c}, unvisited, visited);
+          path.push(...bridge);
+          bridge.forEach(cell => visited.add(this.key(cell.r, cell.c)));
+          r = bridge[bridge.length - 1].r;
+          c = bridge[bridge.length - 1].c;
+        } else {
+          break; // Shouldn't happen in a valid Hamiltonian path
+        }
+      } else {
+        // Choose random neighbor
+        const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+        path.push(next);
+        visited.add(this.key(next.r, next.c));
+        r = next.r;
+        c = next.c;
+      }
+    }
+    
+    return path;
+  }
+
+  generateHamiltonianPathBacktrack() {
+    // Original backtracking algorithm for smaller grids
     const visited = new Set();
     const solution = [];
     const totalCells = this.N * this.N;
@@ -75,6 +128,91 @@ export class SlideGame extends SlideCore {
 
     // Fallback: simple spiral pattern if backtracking fails
     return this.generateSpiralPath();
+  }
+
+  getUnvisitedNeighbors(r, c, visited) {
+    const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
+    const neighbors = [];
+    
+    for (const dir of directions) {
+      const nr = r + dir.r;
+      const nc = c + dir.c;
+      if (this.inBounds(nr, nc) && !visited.has(this.key(nr, nc))) {
+        neighbors.push({r: nr, c: nc});
+      }
+    }
+    
+    return neighbors;
+  }
+
+  findNearestUnvisited(r, c, visited) {
+    // Find the nearest unvisited cell using BFS
+    const queue = [{r, c, dist: 0}];
+    const seen = new Set();
+    seen.add(this.key(r, c));
+    
+    while (queue.length > 0) {
+      const current = queue.shift();
+      
+      if (!visited.has(this.key(current.r, current.c))) {
+        return {r: current.r, c: current.c};
+      }
+      
+      const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
+      for (const dir of directions) {
+        const nr = current.r + dir.r;
+        const nc = current.c + dir.c;
+        const key = this.key(nr, nc);
+        
+        if (this.inBounds(nr, nc) && !seen.has(key)) {
+          seen.add(key);
+          queue.push({r: nr, c: nc, dist: current.dist + 1});
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  createBridge(from, to, visited) {
+    // Create a simple path from 'from' to 'to' avoiding visited cells
+    const path = [];
+    let r = from.r;
+    let c = from.c;
+    
+    while (r !== to.r || c !== to.c) {
+      const dr = Math.sign(to.r - r);
+      const dc = Math.sign(to.c - c);
+      
+      // Try to move in the direction of the target
+      if (dr !== 0 && this.inBounds(r + dr, c) && !visited.has(this.key(r + dr, c))) {
+        r += dr;
+      } else if (dc !== 0 && this.inBounds(r, c + dc) && !visited.has(this.key(r, c + dc))) {
+        c += dc;
+      } else {
+        // Try alternative directions
+        const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
+        this.shuffleArray(directions);
+        
+        let moved = false;
+        for (const dir of directions) {
+          const nr = r + dir.r;
+          const nc = c + dir.c;
+          if (this.inBounds(nr, nc) && !visited.has(this.key(nr, nc))) {
+            r = nr;
+            c = nc;
+            moved = true;
+            break;
+          }
+        }
+        
+        if (!moved) break; // Can't find a path
+      }
+      
+      path.push({r, c});
+    }
+    
+    return path;
   }
 
   shuffleArray(array) {

@@ -48,7 +48,12 @@ class PuzzleGenerator
     {
         $totalCells = $this->gridSize * $this->gridSize;
 
-        // Try multiple starting positions
+        // Use faster algorithm for larger grids
+        if ($this->gridSize >= 7) {
+            return $this->generateHamiltonianPathFast($startTime);
+        }
+
+        // Use backtracking for smaller grids
         for ($attempt = 0; $attempt < $this->maxAttempts; $attempt++) {
             if (microtime(true) - $startTime > $this->timeoutSeconds) {
                 break;
@@ -67,6 +72,134 @@ class PuzzleGenerator
 
         // Fallback: use spiral pattern if backtracking fails
         return $this->generateSpiralPath();
+    }
+
+    private function generateHamiltonianPathFast(float $startTime): array
+    {
+        $totalCells = $this->gridSize * $this->gridSize;
+        $path = [];
+        $visited = [];
+        
+        // Start from a random position
+        $r = random_int(0, $this->gridSize - 1);
+        $c = random_int(0, $this->gridSize - 1);
+        
+        $path[] = ['x' => $c, 'y' => $r];
+        $visited[$this->key($r, $c)] = true;
+        
+        // Generate snake-like path with random turns
+        while (count($path) < $totalCells) {
+            if (microtime(true) - $startTime > $this->timeoutSeconds) {
+                break;
+            }
+            
+            $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
+            
+            if (empty($neighbors)) {
+                // No more neighbors - try to connect to unvisited area
+                $unvisited = $this->findNearestUnvisited($r, $c, $visited);
+                if ($unvisited) {
+                    // Create a bridge to the unvisited area
+                    $bridge = $this->createBridge($r, $c, $unvisited['r'], $unvisited['c'], $visited);
+                    foreach ($bridge as $cell) {
+                        $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
+                        $visited[$this->key($cell['r'], $cell['c'])] = true;
+                    }
+                    $r = $bridge[count($bridge) - 1]['r'];
+                    $c = $bridge[count($bridge) - 1]['c'];
+                } else {
+                    break; // Shouldn't happen in a valid Hamiltonian path
+                }
+            } else {
+                // Choose random neighbor
+                $next = $neighbors[array_rand($neighbors)];
+                $path[] = ['x' => $next['c'], 'y' => $next['r']];
+                $visited[$this->key($next['r'], $next['c'])] = true;
+                $r = $next['r'];
+                $c = $next['c'];
+            }
+        }
+        
+        return $path;
+    }
+
+    private function findNearestUnvisited(int $r, int $c, array $visited): ?array
+    {
+        // Find the nearest unvisited cell using BFS
+        $queue = [['r' => $r, 'c' => $c, 'dist' => 0]];
+        $seen = [];
+        $seen[$this->key($r, $c)] = true;
+        
+        while (!empty($queue)) {
+            $current = array_shift($queue);
+            
+            if (!isset($visited[$this->key($current['r'], $current['c'])])) {
+                return ['r' => $current['r'], 'c' => $current['c']];
+            }
+            
+            $directions = [
+                ['r' => -1, 'c' => 0], ['r' => 1, 'c' => 0],
+                ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
+            ];
+            
+            foreach ($directions as $dir) {
+                $nr = $current['r'] + $dir['r'];
+                $nc = $current['c'] + $dir['c'];
+                $key = $this->key($nr, $nc);
+                
+                if ($this->inBounds($nr, $nc) && !isset($seen[$key])) {
+                    $seen[$key] = true;
+                    $queue[] = ['r' => $nr, 'c' => $nc, 'dist' => $current['dist'] + 1];
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    private function createBridge(int $fromR, int $fromC, int $toR, int $toC, array $visited): array
+    {
+        // Create a simple path from 'from' to 'to' avoiding visited cells
+        $path = [];
+        $r = $fromR;
+        $c = $fromC;
+        
+        while ($r !== $toR || $c !== $toC) {
+            $dr = $toR > $r ? 1 : ($toR < $r ? -1 : 0);
+            $dc = $toC > $c ? 1 : ($toC < $c ? -1 : 0);
+            
+            // Try to move in the direction of the target
+            if ($dr !== 0 && $this->inBounds($r + $dr, $c) && !isset($visited[$this->key($r + $dr, $c)])) {
+                $r += $dr;
+            } elseif ($dc !== 0 && $this->inBounds($r, $c + $dc) && !isset($visited[$this->key($r, $c + $dc)])) {
+                $c += $dc;
+            } else {
+                // Try alternative directions
+                $directions = [
+                    ['r' => -1, 'c' => 0], ['r' => 1, 'c' => 0],
+                    ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
+                ];
+                shuffle($directions);
+                
+                $moved = false;
+                foreach ($directions as $dir) {
+                    $nr = $r + $dir['r'];
+                    $nc = $c + $dir['c'];
+                    if ($this->inBounds($nr, $nc) && !isset($visited[$this->key($nr, $nc)])) {
+                        $r = $nr;
+                        $c = $nc;
+                        $moved = true;
+                        break;
+                    }
+                }
+                
+                if (!$moved) break; // Can't find a path
+            }
+            
+            $path[] = ['r' => $r, 'c' => $c];
+        }
+        
+        return $path;
     }
 
     private function backtrackPath(int $startR, int $startC, float $startTime): array
