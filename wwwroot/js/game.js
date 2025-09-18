@@ -398,9 +398,18 @@ export class SlideGame extends SlideCore {
         difficulty: difficulty
       })
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
+    .then(response => {
+      console.log('🔍 PHP response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.text();
+    })
+    .then(text => {
+      console.log('🔍 PHP response text:', text.substring(0, 200) + '...');
+      try {
+        const data = JSON.parse(text);
+        if (data.success) {
         console.log('✅ PHP puzzle generated with code:', data.puzzle_code, 'and ID:', data.puzzle_id);
 
         // Load the generated puzzle data into the game
@@ -444,9 +453,14 @@ export class SlideGame extends SlideCore {
         this.clearAll();
         this.draw();
 
-      } else {
-        console.error('❌ Failed to generate PHP puzzle:', data.error);
-        alert('Failed to generate puzzle: ' + data.error);
+        } else {
+          console.error('❌ Failed to generate PHP puzzle:', data.error);
+          alert('Failed to generate puzzle: ' + data.error);
+        }
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        console.error('❌ Raw response text:', text);
+        alert('Error parsing puzzle response. Check console for details.');
       }
     })
     .catch(error => {
