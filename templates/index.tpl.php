@@ -43,7 +43,7 @@
         </div>
     </header>
 
-    <div class="hint">Drag one finger to draw; slide back to erase (backtrack). Long‑press anywhere to clear. Visit numbers 1, 2, 3... in order and END on the highest number.</div>
+    <div class="hint">Start with 1; drag one finger to draw; slide back to erase (backtrack). Long‑press to clear. Fill the entire board, visiting 1, 2, 3... in order and END on the highest number.</div>
 
     <div class="stage">
       <canvas id="board" width="800" height="800" aria-label="Slide grid"></canvas>
