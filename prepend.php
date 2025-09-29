@@ -1,6 +1,6 @@
 <?php
 
-const SENTIMENTAL_VERSION = "8x8 Hamiltonian Path Fix v2.0";
+const SENTIMENTAL_VERSION = "Tryna test login UX";
 
 $firefox_cache_buster = 3;
 
