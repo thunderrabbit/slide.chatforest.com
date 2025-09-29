@@ -75,14 +75,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($is_logged_in->isLoggedIn()) {
             // Check if user has a last played puzzle to return to
-            echo "<script>
-                const lastPuzzle = localStorage.getItem('lastPlayedPuzzle');
-                if (lastPuzzle) {
-                    window.location.href = '/puzzle/' + lastPuzzle + '?newuser=1';
-                } else {
-                    window.location.href = '/?newuser=1';
-                }
-            </script>";
+            $lastPuzzleCode = $_GET['return_to_puzzle'] ?? $_POST['return_to_puzzle'] ?? null;
+            
+            if ($lastPuzzleCode) {
+                header("Location: /puzzle/$lastPuzzleCode?newuser=1");
+                exit;
+            }
+            
+            // Fallback: redirect to main page
+            header("Location: /?newuser=1");
+            exit;
         } else {
             echo "<p>User created but auto-login failed. Please <a href='/login'>log in</a> with your new credentials.</p>";
         }
