@@ -1,0 +1,25 @@
+{
+    "name": "slide-practice/codeception-tests",
+    "description": "Codeception tests for Slide Practice Game",
+    "type": "project",
+    "require-dev": {
+        "codeception/codeception": "^5.0",
+        "codeception/module-webdriver": "^3.0",
+        "codeception/module-asserts": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tests\\": "Tests/"
+        }
+    },
+    "scripts": {
+        "test": "./run_tests.sh",
+        "test-canvas": "vendor/bin/codecept run Tests/WebDriver/CanvasInteractionCest.php --verbose",
+        "test-puzzle": "vendor/bin/codecept run Tests/WebDriver/PuzzleSolvingCest.php --verbose",
+        "test-all": "vendor/bin/codecept run Tests/WebDriver --verbose"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
