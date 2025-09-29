@@ -1,0 +1,33 @@
+namespace: Tests
+support:
+    - Tests\Support
+paths:
+    tests: Tests
+    output: Tests/_output
+    data: Tests/_data
+    support: Tests/_support
+    envs: Tests/_envs
+actor_suffix: Tester
+extensions:
+    enabled:
+        - Codeception\Extension\RunFailed
+settings:
+    bootstrap: _bootstrap.php
+    colors: true
+    memory_limit: 1024M
+modules:
+    config:
+        WebDriver:
+            url: 'http://localhost'
+            browser: 'chrome'
+            window_size: '1920x1080'  # Fixed window size for consistent coordinate calculations
+            capabilities:
+                chromeOptions:
+                    args: ['--headless', '--no-sandbox', '--disable-dev-shm-usage']
+        Db:
+            dsn: 'mysql:host=localhost;dbname=test_db'
+            user: 'test_user'
+            password: 'test_password'
+            dump: Tests/_data/dump.sql
+            cleanup: true
+            reconnect: true
