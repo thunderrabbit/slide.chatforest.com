@@ -10,18 +10,33 @@ try {
     if ($is_logged_in->isLoggedIn()) {
         // For logged-in users: find earliest puzzle they haven't solved
         $user_id = $is_logged_in->loggedInID();
-        
-        $query = "SELECT p.puzzle_id, p.puzzle_code, p.grid_size, p.difficulty, p.created_date
-                  FROM puzzles p
-                  LEFT JOIN solve_times st ON p.puzzle_id = st.puzzle_id AND st.user_id = ?
-                  WHERE st.puzzle_id IS NULL
-                  ORDER BY p.puzzle_id ASC
-                  LIMIT 1";
-        
-        $stmt = $mla_database->prepare($query);
-        $stmt->execute([$user_id]);
+
+        // Get grid size from URL parameter to maintain consistency
+        $grid_size = intval($_GET['grid_size'] ?? 0);
+
+        if ($grid_size >= 5 && $grid_size <= 8) {
+            $query = "SELECT p.puzzle_id, p.puzzle_code, p.grid_size, p.difficulty, p.created_date
+                      FROM puzzles p
+                      LEFT JOIN solve_times st ON p.puzzle_id = st.puzzle_id AND st.user_id = ?
+                      WHERE st.puzzle_id IS NULL AND p.grid_size = ?
+                      ORDER BY p.puzzle_id ASC
+                      LIMIT 1";
+            $stmt = $mla_database->prepare($query);
+            $stmt->execute([$user_id, $grid_size]);
+        } else {
+            // Fallback to original behavior if no valid grid size specified
+            $query = "SELECT p.puzzle_id, p.puzzle_code, p.grid_size, p.difficulty, p.created_date
+                      FROM puzzles p
+                      LEFT JOIN solve_times st ON p.puzzle_id = st.puzzle_id AND st.user_id = ?
+                      WHERE st.puzzle_id IS NULL
+                      ORDER BY p.puzzle_id ASC
+                      LIMIT 1";
+            $stmt = $mla_database->prepare($query);
+            $stmt->execute([$user_id]);
+        }
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($result) {
             echo json_encode([
                 "success" => true,
@@ -39,18 +54,30 @@ try {
             ]);
         }
     } else {
-        // For anonymous users: find earliest puzzle not in localStorage
-        // We'll handle this via JavaScript since we can't access localStorage server-side
-        // Just return the earliest puzzle by ID
-        $query = "SELECT puzzle_id, puzzle_code, grid_size, difficulty, created_date
-                  FROM puzzles
-                  ORDER BY puzzle_id ASC
-                  LIMIT 1";
-        
-        $stmt = $mla_database->prepare($query);
-        $stmt->execute();
+        // For anonymous users: find earliest puzzle not in localStorage (same grid size)
+        // Get grid size from URL parameter to maintain consistency
+        $grid_size = intval($_GET['grid_size'] ?? 0);
+
+        if ($grid_size >= 5 && $grid_size <= 8) {
+            $query = "SELECT puzzle_id, puzzle_code, grid_size, difficulty, created_date
+                      FROM puzzles
+                      WHERE grid_size = ?
+                      ORDER BY puzzle_id ASC
+                      LIMIT 1";
+            $stmt = $mla_database->prepare($query);
+            $stmt->execute([$grid_size]);
+        } else {
+            // Fallback to original behavior if no valid grid size specified
+            $query = "SELECT puzzle_id, puzzle_code, grid_size, difficulty, created_date
+                      FROM puzzles
+                      ORDER BY puzzle_id ASC
+                      LIMIT 1";
+            $stmt = $mla_database->prepare($query);
+            $stmt->execute();
+        }
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($result) {
             echo json_encode([
                 "success" => true,

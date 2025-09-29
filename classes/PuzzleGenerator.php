@@ -56,89 +56,92 @@ class PuzzleGenerator
     {
         $totalCells = $this->gridSize * $this->gridSize;
 
-        // Use faster algorithm for larger grids
-        if ($this->gridSize >= 7) {
-            return $this->generateHamiltonianPathFast($startTime);
+        // Try multiple strategies for all grid sizes
+        $strategies = [
+            'fast' => [$this, 'generateHamiltonianPathFast'],
+            'backtrack' => [$this, 'generateHamiltonianPathBacktrack'],
+            'improved_backtrack' => [$this, 'generateImprovedBacktrack']
+        ];
+
+        foreach ($strategies as $strategyName => $strategyMethod) {
+            error_log("Trying $strategyName strategy for {$this->gridSize}x{$this->gridSize} grid");
+
+            for ($attempt = 0; $attempt < 3; $attempt++) {
+                if (microtime(true) - $startTime > $this->timeoutSeconds) {
+                    break 2; // Break out of both loops
+                }
+
+                $path = $strategyMethod($startTime);
+
+                if (count($path) === $totalCells) {
+                    error_log("$strategyName strategy succeeded on attempt " . ($attempt + 1));
+                    return $path;
+                }
+
+                error_log("$strategyName attempt " . ($attempt + 1) . " generated " . count($path) . " cells out of $totalCells");
+            }
         }
 
-        // Use backtracking for smaller grids
-        for ($attempt = 0; $attempt < $this->maxAttempts; $attempt++) {
-            if (microtime(true) - $startTime > $this->timeoutSeconds) {
-                break;
-            }
-
-            // Random starting position
-            $startR = random_int(0, $this->gridSize - 1);
-            $startC = random_int(0, $this->gridSize - 1);
-
-            $path = $this->backtrackPath($startR, $startC, $startTime);
-
-            if (count($path) === $totalCells) {
-                return $path;
-            }
-        }
-
-        // Fallback: use spiral pattern if backtracking fails
-        return $this->generateSpiralPath();
+        // Last resort: use improved spiral pattern
+        error_log("All strategies failed, using improved spiral pattern");
+        return $this->generateImprovedSpiralPath();
     }
 
     private function generateHamiltonianPathFast(float $startTime): array
     {
         $totalCells = $this->gridSize * $this->gridSize;
-        
+
         // Try multiple attempts with different strategies
-        for ($attempt = 0; $attempt < 3; $attempt++) {
-            $path = $this->attemptHamiltonianPath($startTime, $attempt);
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $path = $this->attemptHamiltonianPathImproved($startTime, $attempt);
             if (count($path) === $totalCells) {
                 error_log("Fast Hamiltonian path successful on attempt " . ($attempt + 1));
                 return $path;
             }
             error_log("Attempt " . ($attempt + 1) . " generated " . count($path) . " cells out of " . $totalCells);
         }
-        
+
         // If all attempts fail, fall back to backtracking
         error_log("Fast algorithm failed, falling back to backtracking");
         return $this->generateHamiltonianPathBacktrack($startTime);
     }
-    
-    private function attemptHamiltonianPath(float $startTime, int $strategy): array
+
+    private function attemptHamiltonianPathImproved(float $startTime, int $strategy): array
     {
         $totalCells = $this->gridSize * $this->gridSize;
         $path = [];
         $visited = [];
-        
-        // Different starting strategies
-        if ($strategy === 0) {
-            // Random start
-            $r = random_int(0, $this->gridSize - 1);
-            $c = random_int(0, $this->gridSize - 1);
-        } elseif ($strategy === 1) {
-            // Corner start
-            $r = 0;
-            $c = 0;
-        } else {
-            // Center start
-            $r = intval($this->gridSize / 2);
-            $c = intval($this->gridSize / 2);
-        }
-        
+
+        // Different starting strategies with better distribution
+        $startingPositions = [
+            [0, 0], // Corner
+            [intval($this->gridSize / 2), intval($this->gridSize / 2)], // Center
+            [0, intval($this->gridSize / 2)], // Edge
+            [intval($this->gridSize / 2), 0], // Edge
+            [random_int(0, $this->gridSize - 1), random_int(0, $this->gridSize - 1)] // Random
+        ];
+
+        $startPos = $startingPositions[$strategy % count($startingPositions)];
+        $r = $startPos[0];
+        $c = $startPos[1];
+
         $path[] = ['x' => $c, 'y' => $r];
         $visited[$this->key($r, $c)] = true;
-        
-        // Generate path with improved bridging
+
+        // Generate path with improved bridging and less spiral-like movement
         while (count($path) < $totalCells) {
             if (microtime(true) - $startTime > $this->timeoutSeconds) {
                 break;
             }
-            
-            $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
-            
+
+            $neighbors = $this->getUnvisitedNeighborsImproved($r, $c, $visited);
+
             if (empty($neighbors)) {
                 // Try multiple bridging strategies
                 $bridged = false;
-                
-                // Strategy 1: Find nearest unvisited
-                $unvisited = $this->findNearestUnvisited($r, $c, $visited);
+
+                // Strategy 1: Find nearest unvisited with better heuristics
+                $unvisited = $this->findNearestUnvisitedImproved($r, $c, $visited);
                 if ($unvisited) {
                     $bridge = $this->createBridgeImproved($r, $c, $unvisited['r'], $unvisited['c'], $visited);
                     if (!empty($bridge)) {
@@ -151,7 +154,7 @@ class PuzzleGenerator
                         $bridged = true;
                     }
                 }
-                
+
                 // Strategy 2: If bridging failed, try to find any unvisited cell
                 if (!$bridged) {
                     $unvisited = $this->findAnyUnvisited($visited);
@@ -168,7 +171,91 @@ class PuzzleGenerator
                         }
                     }
                 }
-                
+
+                if (!$bridged) {
+                    break; // Can't continue
+                }
+            } else {
+                // Choose best neighbor based on improved heuristics
+                $next = $neighbors[0]; // Already sorted by getUnvisitedNeighborsImproved
+                $path[] = ['x' => $next['c'], 'y' => $next['r']];
+                $visited[$this->key($next['r'], $next['c'])] = true;
+                $r = $next['r'];
+                $c = $next['c'];
+            }
+        }
+
+        return $path;
+    }
+
+    private function attemptHamiltonianPath(float $startTime, int $strategy): array
+    {
+        $totalCells = $this->gridSize * $this->gridSize;
+        $path = [];
+        $visited = [];
+
+        // Different starting strategies
+        if ($strategy === 0) {
+            // Random start
+            $r = random_int(0, $this->gridSize - 1);
+            $c = random_int(0, $this->gridSize - 1);
+        } elseif ($strategy === 1) {
+            // Corner start
+            $r = 0;
+            $c = 0;
+        } else {
+            // Center start
+            $r = intval($this->gridSize / 2);
+            $c = intval($this->gridSize / 2);
+        }
+
+        $path[] = ['x' => $c, 'y' => $r];
+        $visited[$this->key($r, $c)] = true;
+
+        // Generate path with improved bridging
+        while (count($path) < $totalCells) {
+            if (microtime(true) - $startTime > $this->timeoutSeconds) {
+                break;
+            }
+
+            $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
+
+            if (empty($neighbors)) {
+                // Try multiple bridging strategies
+                $bridged = false;
+
+                // Strategy 1: Find nearest unvisited
+                $unvisited = $this->findNearestUnvisited($r, $c, $visited);
+                if ($unvisited) {
+                    $bridge = $this->createBridgeImproved($r, $c, $unvisited['r'], $unvisited['c'], $visited);
+                    if (!empty($bridge)) {
+                        foreach ($bridge as $cell) {
+                            $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
+                            $visited[$this->key($cell['r'], $cell['c'])] = true;
+                        }
+                        $r = $bridge[count($bridge) - 1]['r'];
+                        $c = $bridge[count($bridge) - 1]['c'];
+                        $bridged = true;
+                    }
+                }
+
+                // Strategy 2: If bridging failed, try to find any unvisited cell
+                if (!$bridged) {
+                    $unvisited = $this->findAnyUnvisited($visited);
+                    if ($unvisited) {
+                        $bridge = $this->createBridgeImproved($r, $c, $unvisited['r'], $unvisited['c'], $visited);
+                        if (!empty($bridge)) {
+                            foreach ($bridge as $cell) {
+                                $path[] = ['x' => $cell['c'], 'y' => $cell['r']];
+                                $visited[$this->key($cell['r'], $cell['c'])] = true;
+                            }
+                            $r = $bridge[count($bridge) - 1]['r'];
+                            $c = $bridge[count($bridge) - 1]['c'];
+                            $bridged = true;
+                        }
+                    }
+                }
+
                 if (!$bridged) {
                     break; // Can't continue
                 }
@@ -181,7 +268,7 @@ class PuzzleGenerator
                 $c = $next['c'];
             }
         }
-        
+
         return $path;
     }
 
@@ -191,55 +278,106 @@ class PuzzleGenerator
         $totalCells = $this->gridSize * $this->gridSize;
         $path = [];
         $visited = [];
-        
+
         // Start from a random position
         $r = random_int(0, $this->gridSize - 1);
         $c = random_int(0, $this->gridSize - 1);
-        
+
         $path[] = ['x' => $c, 'y' => $r];
         $visited[$this->key($r, $c)] = true;
-        
+
         // Backtracking algorithm
         if ($this->backtrack($r, $c, $path, $visited, $startTime)) {
             return $path;
         }
-        
+
         // If backtracking fails, return spiral
         return $this->generateSpiralPath();
     }
-    
+
     private function backtrack(int $r, int $c, array &$path, array &$visited, float $startTime): bool
     {
         if (count($path) === $this->gridSize * $this->gridSize) {
             return true; // Complete path found
         }
-        
+
         if (microtime(true) - $startTime > $this->timeoutSeconds) {
             return false; // Timeout
         }
-        
+
         $neighbors = $this->getUnvisitedNeighbors($r, $c, $visited);
-        
+
         // Shuffle neighbors for randomness
         shuffle($neighbors);
-        
+
         foreach ($neighbors as $neighbor) {
             $nr = $neighbor['r'];
             $nc = $neighbor['c'];
-            
+
             $path[] = ['x' => $nc, 'y' => $nr];
             $visited[$this->key($nr, $nc)] = true;
-            
+
             if ($this->backtrack($nr, $nc, $path, $visited, $startTime)) {
                 return true;
             }
-            
+
             // Backtrack
             array_pop($path);
             unset($visited[$this->key($nr, $nc)]);
         }
-        
+
         return false;
+    }
+
+    private function findNearestUnvisitedImproved(int $r, int $c, array $visited): ?array
+    {
+        // Find the nearest unvisited cell using BFS with better heuristics
+        $queue = [['r' => $r, 'c' => $c, 'dist' => 0]];
+        $seen = [];
+        $seen[$this->key($r, $c)] = true;
+        $candidates = [];
+
+        while (!empty($queue)) {
+            $current = array_shift($queue);
+
+            if (!isset($visited[$this->key($current['r'], $current['c'])])) {
+                $candidates[] = ['r' => $current['r'], 'c' => $current['c'], 'dist' => $current['dist']];
+                // Continue searching for more candidates within same distance
+                if (count($candidates) >= 3) break;
+            }
+
+            $directions = [
+                ['r' => -1, 'c' => 0], ['r' => 1, 'c' => 0],
+                ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
+            ];
+
+            foreach ($directions as $dir) {
+                $nr = $current['r'] + $dir['r'];
+                $nc = $current['c'] + $dir['c'];
+                $key = $this->key($nr, $nc);
+
+                if ($this->inBounds($nr, $nc) && !isset($seen[$key])) {
+                    $seen[$key] = true;
+                    $queue[] = ['r' => $nr, 'c' => $nc, 'dist' => $current['dist'] + 1];
+                }
+            }
+        }
+
+        if (empty($candidates)) return null;
+
+        // Choose candidate that's least likely to create spiral patterns
+        // Prefer candidates that are not in corners or edges
+        usort($candidates, function($a, $b) {
+            $centerR = intval($this->gridSize / 2);
+            $centerC = intval($this->gridSize / 2);
+
+            $distA = abs($a['r'] - $centerR) + abs($a['c'] - $centerC);
+            $distB = abs($b['r'] - $centerR) + abs($b['c'] - $centerC);
+
+            return $distA - $distB;
+        });
+
+        return ['r' => $candidates[0]['r'], 'c' => $candidates[0]['c']];
     }
 
     private function findNearestUnvisited(int $r, int $c, array $visited): ?array
@@ -288,7 +426,7 @@ class PuzzleGenerator
         }
         return null;
     }
-    
+
     private function createBridgeImproved(int $fromR, int $fromC, int $toR, int $toC, array $visited): array
     {
         // Improved bridge creation with multiple pathfinding strategies
@@ -297,16 +435,16 @@ class PuzzleGenerator
         $c = $fromC;
         $maxSteps = $this->gridSize * 2; // Prevent infinite loops
         $steps = 0;
-        
+
         while (($r !== $toR || $c !== $toC) && $steps < $maxSteps) {
             $steps++;
-            
+
             // Try direct path first
             $dr = $toR > $r ? 1 : ($toR < $r ? -1 : 0);
             $dc = $toC > $c ? 1 : ($toC < $c ? -1 : 0);
-            
+
             $moved = false;
-            
+
             // Try primary direction
             if ($dr !== 0 && $this->inBounds($r + $dr, $c) && !isset($visited[$this->key($r + $dr, $c)])) {
                 $r += $dr;
@@ -315,7 +453,7 @@ class PuzzleGenerator
                 $c += $dc;
                 $moved = true;
             }
-            
+
             // If primary direction failed, try alternative directions
             if (!$moved) {
                 $directions = [
@@ -323,7 +461,7 @@ class PuzzleGenerator
                     ['r' => 0, 'c' => -1], ['r' => 0, 'c' => 1]
                 ];
                 shuffle($directions);
-                
+
                 foreach ($directions as $dir) {
                     $nr = $r + $dir['r'];
                     $nc = $c + $dir['c'];
@@ -335,15 +473,15 @@ class PuzzleGenerator
                     }
                 }
             }
-            
+
             if (!$moved) {
                 // Can't find a path, return what we have
                 break;
             }
-            
+
             $path[] = ['r' => $r, 'c' => $c];
         }
-        
+
         return $path;
     }
 
@@ -471,6 +609,175 @@ class PuzzleGenerator
         shuffle($neighbors);
 
         return $neighbors;
+    }
+
+    private function generateImprovedBacktrack(float $startTime): array
+    {
+        $totalCells = $this->gridSize * $this->gridSize;
+
+        // Try multiple starting positions with improved backtracking
+        $startingPositions = [
+            [0, 0], // Corner
+            [intval($this->gridSize / 2), intval($this->gridSize / 2)], // Center
+            [0, intval($this->gridSize / 2)], // Edge
+            [intval($this->gridSize / 2), 0], // Edge
+        ];
+
+        foreach ($startingPositions as $pos) {
+            $path = $this->backtrackPathImproved($pos[0], $pos[1], $startTime);
+            if (count($path) === $totalCells) {
+                return $path;
+            }
+        }
+
+        return [];
+    }
+
+    private function backtrackPathImproved(int $startR, int $startC, float $startTime): array
+    {
+        $path = [];
+        $visited = [];
+        $totalCells = $this->gridSize * $this->gridSize;
+
+        // Use iterative approach with better heuristics
+        $stack = [['r' => $startR, 'c' => $startC, 'pathIndex' => 0]];
+        $path[] = ['x' => $startC, 'y' => $startR];
+        $visited[$this->key($startR, $startC)] = true;
+
+        while (!empty($stack)) {
+            // Check timeout
+            if (microtime(true) - $startTime > $this->timeoutSeconds) {
+                return [];
+            }
+
+            if (count($path) === $totalCells) {
+                return $path; // Found complete path
+            }
+
+            $current = array_pop($stack);
+            $r = $current['r'];
+            $c = $current['c'];
+
+            // Get unvisited neighbors with improved ordering
+            $neighbors = $this->getUnvisitedNeighborsImproved($r, $c, $visited);
+
+            if (empty($neighbors)) {
+                // Backtrack: remove current cell from path and visited
+                if (count($path) > 1) {
+                    $removed = array_pop($path);
+                    unset($visited[$this->key($removed['y'], $removed['x'])]);
+                }
+                continue;
+            }
+
+            // Try first neighbor (best heuristic)
+            $next = $neighbors[0];
+            $nextKey = $this->key($next['r'], $next['c']);
+
+            // Add to path and mark as visited
+            $path[] = ['x' => $next['c'], 'y' => $next['r']];
+            $visited[$nextKey] = true;
+
+            // Push current position back to stack for potential backtracking
+            $stack[] = $current;
+
+            // Push next position to stack
+            $stack[] = ['r' => $next['r'], 'c' => $next['c'], 'pathIndex' => count($path) - 1];
+        }
+
+        return $path;
+    }
+
+    private function getUnvisitedNeighborsImproved(int $r, int $c, array $visited): array
+    {
+        $directions = [
+            ['r' => -1, 'c' => 0], // up
+            ['r' => 1, 'c' => 0],  // down
+            ['r' => 0, 'c' => -1], // left
+            ['r' => 0, 'c' => 1]   // right
+        ];
+
+        $neighbors = [];
+
+        foreach ($directions as $dir) {
+            $newR = $r + $dir['r'];
+            $newC = $c + $dir['c'];
+
+            if ($this->inBounds($newR, $newC) && !isset($visited[$this->key($newR, $newC)])) {
+                $neighbors[] = ['r' => $newR, 'c' => $newC];
+            }
+        }
+
+        // Sort neighbors by distance from center (prefer center moves)
+        $centerR = intval($this->gridSize / 2);
+        $centerC = intval($this->gridSize / 2);
+
+        usort($neighbors, function($a, $b) use ($centerR, $centerC) {
+            $distA = abs($a['r'] - $centerR) + abs($a['c'] - $centerC);
+            $distB = abs($b['r'] - $centerR) + abs($b['c'] - $centerC);
+            return $distA - $distB;
+        });
+
+        return $neighbors;
+    }
+
+    private function generateImprovedSpiralPath(): array
+    {
+        // Create a more natural-looking spiral that's less obvious
+        $path = [];
+        $visited = [];
+        $totalCells = $this->gridSize * $this->gridSize;
+
+        // Start from a random position instead of corner
+        $startR = random_int(0, $this->gridSize - 1);
+        $startC = random_int(0, $this->gridSize - 1);
+
+        $path[] = ['x' => $startC, 'y' => $startR];
+        $visited[$this->key($startR, $startC)] = true;
+
+        $currentR = $startR;
+        $currentC = $startC;
+
+        // Use a more complex pattern that's less spiral-like
+        $directions = [
+            ['r' => 0, 'c' => 1],   // right
+            ['r' => 1, 'c' => 0],   // down
+            ['r' => 0, 'c' => -1],  // left
+            ['r' => -1, 'c' => 0]   // up
+        ];
+
+        $directionIndex = 0;
+        $stepsInDirection = 1;
+        $stepsTaken = 0;
+
+        while (count($path) < $totalCells) {
+            $direction = $directions[$directionIndex];
+
+            for ($i = 0; $i < $stepsInDirection && count($path) < $totalCells; $i++) {
+                $newR = $currentR + $direction['r'];
+                $newC = $currentC + $direction['c'];
+
+                if ($this->inBounds($newR, $newC) && !isset($visited[$this->key($newR, $newC)])) {
+                    $currentR = $newR;
+                    $currentC = $newC;
+                    $path[] = ['x' => $currentC, 'y' => $currentR];
+                    $visited[$this->key($currentR, $currentC)] = true;
+                } else {
+                    break;
+                }
+            }
+
+            // Change direction
+            $directionIndex = ($directionIndex + 1) % 4;
+
+            // Increase steps every two direction changes
+            if ($stepsTaken % 2 === 1) {
+                $stepsInDirection++;
+            }
+            $stepsTaken++;
+        }
+
+        return $path;
     }
 
     private function generateSpiralPath(): array

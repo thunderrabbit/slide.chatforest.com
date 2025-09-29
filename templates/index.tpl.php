@@ -113,9 +113,16 @@ import { SlideGame } from '/js/game.js';
 
   // Handle puzzle generation
   document.getElementById('puzzleBtn').addEventListener('click', () => {
-    // Get selected grid size and pass it as URL parameter
+    // Get selected grid size and difficulty, then generate new puzzle via PHP
     const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
-    window.location.href = '/?grid_size=' + selectedGridSize;
+    const difficulty = document.getElementById('difficulty').value;
+
+    // Update N to the selected grid size
+    game.N = selectedGridSize;
+
+    // Always use PHP generator for new puzzles
+    console.log('🎲 Generating new', selectedGridSize + 'x' + selectedGridSize, 'puzzle with difficulty:', difficulty);
+    game.generatePuzzleUsingPHP(difficulty);
   });
 
   // Handle solution toggle
@@ -126,7 +133,8 @@ import { SlideGame } from '/js/game.js';
   // Handle earliest unplayed puzzle
   document.getElementById('earliestUnplayedBtn').addEventListener('click', async () => {
     try {
-      const response = await fetch('/earliest_unplayed.php');
+      const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
+      const response = await fetch('/earliest_unplayed.php?grid_size=' + selectedGridSize);
       const data = await response.json();
 
       if (data.success) {
@@ -249,25 +257,9 @@ import { SlideGame } from '/js/game.js';
     // Update N to the selected grid size for initial puzzle generation
     game.N = selectedGridSize;
 
-    // Use PHP generator for 7x7 puzzles, JavaScript for smaller ones
-    if (game.N >= 7) {
-      console.log('🎲 Grid size', game.N + 'x' + game.N, '- using PHP generator for initial puzzle');
-      game.generatePuzzleUsingPHP(difficulty);
-    } else {
-      console.log('🎲 Grid size', game.N + 'x' + game.N, '- using JavaScript generator for initial puzzle');
-
-      // Set temporary puzzleData immediately so recordSolveTime() won't fail
-      game.puzzleData = {
-        puzzle_id: 'temp_' + Date.now(), // temporary ID until server responds
-        puzzle_code: 'temp'
-      };
-      console.log('🎲 Set temporary puzzleData:', game.puzzleData);
-
-      game.generatePuzzle(difficulty);
-      game.clearAll();
-      game.draw();
-      game.savePuzzle(difficulty);
-    }
+    // Always use PHP generator for all puzzle sizes
+    console.log('🎲 Grid size', game.N + 'x' + game.N, '- using PHP generator for initial puzzle');
+    game.generatePuzzleUsingPHP(difficulty);
   }
 
 })();

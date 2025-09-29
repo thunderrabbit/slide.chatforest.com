@@ -47,23 +47,25 @@ $inner_page->set("puzzle_id", $puzzle_data['puzzle_id'] ?? null);
 $inner_page->set("puzzle_code", $puzzle_data['puzzle_code'] ?? null);
 $inner_page->set("puzzle_data", $puzzle_data ? json_encode($puzzle_data) : 'null');
 
-// Get adjacent puzzles for navigation
+// Get adjacent puzzles for navigation (same grid size only)
 $prev_puzzle_code = null;
 $next_puzzle_code = null;
 
 if ($puzzle_data) {
     try {
-        // Get previous puzzle (highest puzzle_id less than current)
-        $stmt = $mla_database->prepare("SELECT puzzle_code FROM puzzles WHERE puzzle_id < ? ORDER BY puzzle_id DESC LIMIT 1");
-        $stmt->execute([$puzzle_data['puzzle_id']]);
+        $current_grid_size = $puzzle_data['grid_size'];
+
+        // Get previous puzzle (highest puzzle_id less than current, same grid size)
+        $stmt = $mla_database->prepare("SELECT puzzle_code FROM puzzles WHERE puzzle_id < ? AND grid_size = ? ORDER BY puzzle_id DESC LIMIT 1");
+        $stmt->execute([$puzzle_data['puzzle_id'], $current_grid_size]);
         $prev_result = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($prev_result) {
             $prev_puzzle_code = $prev_result['puzzle_code'];
         }
 
-        // Get next puzzle (lowest puzzle_id greater than current)
-        $stmt = $mla_database->prepare("SELECT puzzle_code FROM puzzles WHERE puzzle_id > ? ORDER BY puzzle_id ASC LIMIT 1");
-        $stmt->execute([$puzzle_data['puzzle_id']]);
+        // Get next puzzle (lowest puzzle_id greater than current, same grid size)
+        $stmt = $mla_database->prepare("SELECT puzzle_code FROM puzzles WHERE puzzle_id > ? AND grid_size = ? ORDER BY puzzle_id ASC LIMIT 1");
+        $stmt->execute([$puzzle_data['puzzle_id'], $current_grid_size]);
         $next_result = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($next_result) {
             $next_puzzle_code = $next_result['puzzle_code'];
