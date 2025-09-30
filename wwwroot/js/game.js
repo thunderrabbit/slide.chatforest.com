@@ -31,6 +31,16 @@ export class SlideGame extends SlideCore {
     this.setupGameEventListeners();
   }
 
+  /**
+   * Set the grid size for the game
+   * @param {number} newSize - The new grid size (e.g., 5 for 5x5)
+   */
+  setGridSize(newSize) {
+    this.N = newSize;
+    this.resize(); // Resize canvas to match new grid size
+    console.log('🔧 Grid size set to', newSize + 'x' + newSize);
+  }
+
   // --- Puzzle Generation ---
   generateHamiltonianPath() {
     // Use faster algorithm for larger grids

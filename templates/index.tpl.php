@@ -117,8 +117,9 @@ import { SlideGame } from '/js/game.js';
     const selectedGridSize = parseInt(document.getElementById('gridSize').value, 10);
     const difficulty = document.getElementById('difficulty').value;
 
-    // Update N to the selected grid size
+    // Update N to the selected grid size and resize canvas
     game.N = selectedGridSize;
+    game.resize();
 
     // Always use PHP generator for new puzzles
     console.log('🎲 Generating new', selectedGridSize + 'x' + selectedGridSize, 'puzzle with difficulty:', difficulty);
