@@ -99,15 +99,6 @@ import { SlideGame } from '/js/game.js?v=<?= time() ?>';
   // Handle grid size changes
   document.getElementById('gridSize').addEventListener('change', (e) => {
     const newSize = parseInt(e.target.value, 10);
-
-    // If we have an active puzzle loaded, don't change the grid size immediately
-    // The new size will be used when generating the next puzzle
-    if (game.puzzleMode && (game.puzzleData || game.edgeBarriers.size > 0 || game.numberHints.size > 0)) {
-      console.log('🔒 Grid size will change on next puzzle generation (current puzzle preserved)');
-      return;
-    }
-
-    // Safe to change grid size for practice mode or empty state
     game.justSetNewPlannedGridSize(newSize);
   });
 
