@@ -2,14 +2,13 @@ actor: WebDriverTester
 modules:
     enabled:
         - WebDriver:
-            url: 'http://localhost'
+            url: 'http://slide.chatforest.com'
             browser: 'chrome'
             window_size: '1920x1080'  # Fixed window size for coordinate calculations
             capabilities:
                 chromeOptions:
                     args: ['--headless', '--no-sandbox', '--disable-dev-shm-usage']
         - Asserts
-        - \Helper\WebDriver
     config:
         WebDriver:
             wait: 3

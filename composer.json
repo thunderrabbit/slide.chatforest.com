@@ -4,8 +4,8 @@
     "type": "project",
     "require-dev": {
         "codeception/codeception": "^5.0",
-        "codeception/module-webdriver": "^3.0",
-        "codeception/module-asserts": "^3.0"
+        "codeception/module-asserts": "^3.2",
+        "codeception/module-webdriver": "^3.0"
     },
     "autoload": {
         "psr-4": {

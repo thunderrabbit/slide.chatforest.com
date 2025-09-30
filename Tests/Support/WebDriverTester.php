@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Tests\Support\CanvasCoordinateHelper;
+use Tests\WebDriverTester as BaseWebDriverTester;
 
 /**
  * Enhanced WebDriverTester with canvas interaction capabilities
  * Based on successful approaches from the codec branch
  */
-class WebDriverTester extends \Codeception\Actor
+class WebDriverTester extends BaseWebDriverTester
 {
-    use _generated\WebDriverTesterActions;
-
     private $canvasHelper;
     private $currentGridSize = 5; // Default to 5x5
 

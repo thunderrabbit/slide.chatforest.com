@@ -1,0 +1,3 @@
+Tests/WebDriver/PuzzleSolvingCest.php:testSolvePuzzleByClickingSolutionPath
+Tests/WebDriver/PuzzleSolvingCest.php:testSolveTimeTracking
+Tests/WebDriver/PuzzleSolvingCest.php:testPuzzleDifficultyAndGridSize
