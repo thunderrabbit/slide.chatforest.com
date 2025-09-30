@@ -2,7 +2,7 @@
 
 const SENTIMENTAL_VERSION = "Tryna test login UX";
 
-$firefox_cache_buster = 3;
+$firefox_cache_buster = 4;
 
 # write errors to screen
 ini_set('display_errors', 1);
