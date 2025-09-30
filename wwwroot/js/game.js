@@ -3,7 +3,7 @@
  * Contains puzzle solving, timing, and game logic
  */
 
-import { SlideCore } from './core.js?v=' + Date.now();
+import { SlideCore } from './core.js';
 
 export class SlideGame extends SlideCore {
   constructor(canvasId, options = {}) {
