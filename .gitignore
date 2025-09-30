@@ -3,3 +3,4 @@
 .env
 scp_files_to_dh.sh
 classes/Config.php
+Tests/_output/
