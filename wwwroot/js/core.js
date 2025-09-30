@@ -439,7 +439,7 @@ export class SlideCore {
 
   justSetNewPlannedGridSize(plannedSize) {
     this.selectedGridSize = plannedSize;
-    console.log('🔧 Grid size will be', plannedSize + 'x' + plannedSize, 'on next puzzle');
+    console.log('🔧 Planned grid size set to', plannedSize + 'x' + plannedSize, 'for next puzzle');
   }
 
   loadPuzzleData(data) {
