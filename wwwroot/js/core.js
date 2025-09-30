@@ -437,6 +437,11 @@ export class SlideCore {
     this.resize();
   }
 
+  justSetNewPlannedGridSize(plannedSize) {
+    this.selectedGridSize = plannedSize;
+    console.log('🔧 Grid size will be', plannedSize + 'x' + plannedSize, 'on next puzzle');
+  }
+
   loadPuzzleData(data) {
     if (!data) {
       this.puzzleMode = false;

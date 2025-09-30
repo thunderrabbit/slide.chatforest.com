@@ -108,7 +108,7 @@ import { SlideGame } from '/js/game.js';
     }
 
     // Safe to change grid size for practice mode or empty state
-    game.setGridSize(newSize);
+    game.justSetNewPlannedGridSize(newSize);
   });
 
   // Handle puzzle generation
