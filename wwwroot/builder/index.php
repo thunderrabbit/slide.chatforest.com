@@ -83,7 +83,7 @@ if ($is_logged_in->isLoggedIn()) {
 </div>
 
 <script type="module">
-import { SlideBuilder } from '../js/builder.js?v=' + Date.now();
+import { SlideBuilder } from '../js/builder.js?v=<?= time() ?>';
 
 (function(){
   const builder = new SlideBuilder('board');
