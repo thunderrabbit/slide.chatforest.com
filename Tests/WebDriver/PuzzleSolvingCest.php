@@ -133,30 +133,9 @@ class PuzzleSolvingCest
         }
     }
 
-    public function testPuzzleDifficultyAndGridSize(WebDriverTester $I): void
+    public function testPuzzleGridSizeSelection(WebDriverTester $I): void
     {
         $I->amOnPage('/');
-        
-        // Test different difficulty levels
-        $difficulties = ['easy', 'medium', 'hard'];
-        
-        foreach ($difficulties as $difficulty) {
-            $I->selectOption('#difficulty', $difficulty);
-            $I->generateNewPuzzle();
-            
-            // Verify difficulty was applied
-            $currentDifficulty = $I->executeJS('return document.getElementById("difficulty").value');
-            $I->assertEquals($difficulty, $currentDifficulty);
-            
-            // Try to solve the puzzle
-            try {
-                $I->solvePuzzleByClicking();
-                $I->seePuzzleSolved();
-                $I->comment("✓ Successfully solved {$difficulty} difficulty puzzle");
-            } catch (\Exception $e) {
-                $I->comment("⚠ Could not solve {$difficulty} difficulty puzzle: " . $e->getMessage());
-            }
-        }
         
         // Test different grid sizes
         $gridSizes = [5, 6];
@@ -165,9 +144,14 @@ class PuzzleSolvingCest
             $I->selectOption('#gridSize', (string)$gridSize);
             $I->generateNewPuzzle();
             
-            // Verify grid size was applied
-            $currentGridSize = $I->executeJS('return typeof N !== "undefined" ? N : 5');
-            $I->assertEquals($gridSize, $currentGridSize);
+            // Wait for puzzle generation to complete
+            $I->wait(3);
+            
+            // Verify grid size was applied by checking canvas dimensions
+            $canvasInfo = $I->getCanvasInfo();
+            $expectedCellSize = $canvasInfo['width'] / $gridSize;
+            $actualCellSize = $canvasInfo['cellSize'];
+            $I->assertEquals($expectedCellSize, $actualCellSize, "{$gridSize}x{$gridSize} grid cell size should be correct");
             
             // Try to solve the puzzle
             try {

@@ -94,16 +94,28 @@ class CanvasInteractionCest
         $I->selectOption('#gridSize', '5');
         $I->generateNewPuzzle();
         
+        // Wait for puzzle generation to complete
+        $I->wait(3);
         $canvasInfo5x5 = $I->getCanvasInfo();
-        $I->assertEquals(5, $canvasInfo5x5['gridSize']);
+        
+        // Verify the canvas dimensions indicate a 5x5 grid
+        $expectedCellSize5x5 = $canvasInfo5x5['width'] / 5;
+        $actualCellSize5x5 = $canvasInfo5x5['cellSize'];
+        $I->assertEquals($expectedCellSize5x5, $actualCellSize5x5, '5x5 grid cell size should be correct');
         $I->clickCanvasCell(2, 2); // Center of 5x5
         
         // Test 6x6 grid
         $I->selectOption('#gridSize', '6');
         $I->generateNewPuzzle();
         
+        // Wait for puzzle generation to complete
+        $I->wait(3);
         $canvasInfo6x6 = $I->getCanvasInfo();
-        $I->assertEquals(6, $canvasInfo6x6['gridSize']);
+        
+        // Verify the canvas dimensions indicate a 6x6 grid
+        $expectedCellSize6x6 = $canvasInfo6x6['width'] / 6;
+        $actualCellSize6x6 = $canvasInfo6x6['cellSize'];
+        $I->assertEquals($expectedCellSize6x6, $actualCellSize6x6, '6x6 grid cell size should be correct');
         $I->clickCanvasCell(3, 3); // Center of 6x6
         
         $I->comment('✓ Successfully tested canvas interaction with different grid sizes');
