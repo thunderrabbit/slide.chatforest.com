@@ -80,3 +80,24 @@ After login/registration, users are redirected to a new puzzle instead of stayin
 7. Simple fallback to `/` for edge cases
 
 **Key Principle:** Keep it simple - don't over-engineer the solution.
+
+## Grid Size Functionality
+
+### Grid Size Selection Behavior
+**Question:** How should grid size selection work when a user changes the dropdown?
+
+**Answer:**
+- **Grid size dropdown change:** Should NOT immediately affect the current puzzle
+- **Function used:** `justSetNewPlannedGridSize(plannedSize)` - stores the selected size for next puzzle
+- **Current puzzle:** Remains unchanged and solvable
+- **Next puzzle generation:** Uses the planned grid size
+- **Function used:** `actuallyUpdateTheGridSize(newSize)` - updates `this.N` and recalculates everything
+
+**Intended Behavior:**
+1. User is playing a 5x5 puzzle
+2. User changes dropdown to 6x6
+3. Current 5x5 puzzle remains unchanged and solvable
+4. When user clicks "New" puzzle, a 6x6 puzzle is generated
+5. The 6x6 puzzle uses the new grid size
+
+**Key Principle:** Grid size changes take effect on the next puzzle generation, not immediately.
