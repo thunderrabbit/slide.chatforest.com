@@ -3,7 +3,7 @@
  * Contains builder-specific functionality for creating custom puzzles
  */
 
-import { SlideCore } from './core.js';
+import { SlideCore } from './core.js?v=' + Date.now();
 
 export class SlideBuilder extends SlideCore {
   constructor(canvasId) {

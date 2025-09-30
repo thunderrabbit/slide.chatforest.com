@@ -68,7 +68,7 @@
 </div>
 
 <script type="module">
-import { SlideGame } from '/js/game.js';
+import { SlideGame } from '/js/game.js?v=' + Date.now();
 
 (function(){
   // Puzzle data from server (for loading existing puzzles)
