@@ -12,8 +12,8 @@ if (!$is_admin) {
     exit;
 }
 
-$page_title = 'Puzzle Builder';
-$page_description = 'Create custom slide puzzles';
+$page_title = $edit_mode ? "Edit Puzzle #{$edit_puzzle_data['puzzle_id']}" : 'Puzzle Builder';
+$page_description = $edit_mode ? 'Edit existing slide puzzle' : 'Create custom slide puzzles';
 
 // Set up template variables
 $username = "";
@@ -27,6 +27,31 @@ if ($is_logged_in->isLoggedIn()) {
     $experienceChecker = new AreYouExperienced($mla_database);
     $is_experienced = $experienceChecker->DesuKa($is_logged_in->loggedInID());
 }
+
+// Check for edit mode
+$edit_mode = false;
+$edit_puzzle_data = null;
+
+if (isset($mla_request->get['edit']) && !empty($mla_request->get['edit'])) {
+    $edit_mode = true;
+    try {
+        $puzzleManager = new PuzzleManager($mla_database);
+        $edit_puzzle_data = $puzzleManager->getPuzzleByCode($mla_request->get['edit']);
+        
+        if (!$edit_puzzle_data) {
+            // Puzzle not found, redirect to builder
+            header('Location: /builder/');
+            exit;
+        }
+    } catch (\Exception $e) {
+        error_log("Error loading puzzle for editing: " . $e->getMessage());
+        header('Location: /builder/');
+        exit;
+    }
+}
+
+// Pass edit data to template
+$edit_mode_data = $edit_mode ? json_encode($edit_puzzle_data) : 'null';
 ?>
 
 <?php include '../../templates/layout/admin_base.tpl.php'; ?>
@@ -73,6 +98,14 @@ if ($is_logged_in->isLoggedIn()) {
       </div>
     </header>
 
+    <?php if ($edit_mode && $edit_puzzle_data): ?>
+    <div class="edit-mode-nav">
+      <a href="/puzzle/<?= $edit_puzzle_data['puzzle_code'] ?>" class="back-to-puzzle">
+        ← Back to Puzzle #<?= $edit_puzzle_data['puzzle_id'] ?>
+      </a>
+    </div>
+    <?php endif; ?>
+
     <div class="hint">Draw a path that visits all 49 cells exactly once. Click path ends to switch between extending start or end.</div>
 
     <div class="stage">
@@ -86,10 +119,18 @@ if ($is_logged_in->isLoggedIn()) {
 import { SlideBuilder } from '../js/builder.js?v=<?= time() ?>';
 
 (function(){
+  const editMode = <?= $edit_mode ? 'true' : 'false' ?>;
+  const editPuzzleData = <?= $edit_mode_data ?>;
+  
   const builder = new SlideBuilder('board');
 
   // Initialize builder
   builder.initializeBuilder();
+
+  // Load existing puzzle if in edit mode
+  if (editMode && editPuzzleData) {
+    builder.loadExistingPuzzle(editPuzzleData);
+  }
 
   // Handle grid size changes
   document.getElementById('gridSize').addEventListener('change', (e) => {
@@ -150,5 +191,35 @@ import { SlideBuilder } from '../js/builder.js?v=<?= time() ?>';
   min-width: 20px;
   text-align: center;
   font-weight: bold;
+}
+
+.edit-mode .builder-controls {
+  border: 2px solid #ff6b35;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.edit-mode .hint {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.edit-mode-nav {
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 5px;
+}
+
+.back-to-puzzle {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.back-to-puzzle:hover {
+  text-decoration: underline;
 }
 </style>

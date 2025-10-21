@@ -23,7 +23,62 @@ export class SlideBuilder extends SlideCore {
     this.spotPlacements = new Set(); // Using a Set to store keys of cells with spots
     this.chosenStartEnd = null; // To determine which end of the path is #1
 
+    // Edit mode state
+    this.editMode = false;
+    this.originalPuzzleData = null;
+
     this.setupBuilderEventListeners();
+  }
+
+  // --- Edit Mode Methods ---
+  loadExistingPuzzle(puzzleData) {
+    this.editMode = true;
+    this.originalPuzzleData = puzzleData;
+    
+    // Set grid size
+    this.setGridSize(puzzleData.grid_size);
+    
+    // Load the solution path
+    this.path = puzzleData.solution_path.map(coord => ({
+      r: coord[0],
+      c: coord[1]
+    }));
+    
+    // Load barriers
+    this.barriers = new Set(puzzleData.barriers.map(barrier => 
+      this.key(barrier[0], barrier[1])
+    ));
+    
+    // Load numbered positions
+    this.spotPlacements = new Set(puzzleData.numbered_positions.map(pos => 
+      this.key(pos[0], pos[1])
+    ));
+    
+    // Set difficulty
+    document.getElementById('difficulty').value = puzzleData.difficulty;
+    
+    // Update UI to show we're in edit mode
+    this.updateEditModeUI();
+    
+    // Redraw
+    this.draw();
+  }
+
+  updateEditModeUI() {
+    // Change page title or add indicator
+    const title = document.querySelector('h1') || document.querySelector('.page-title');
+    if (title) {
+      title.textContent = `Edit Puzzle #${this.originalPuzzleData.puzzle_id}`;
+    }
+    
+    // Update save button text
+    const saveBtn = document.getElementById('saveBuilderBtn');
+    if (saveBtn) {
+      saveBtn.textContent = 'Update Puzzle';
+    }
+    
+    // Add edit mode class to body
+    document.body.classList.add('edit-mode');
   }
 
   // --- Builder-specific Drawing ---
