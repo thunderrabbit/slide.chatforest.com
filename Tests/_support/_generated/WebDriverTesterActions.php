@@ -12,7 +12,7 @@ trait WebDriverTesterActions
      */
     abstract protected function getScenario();
 
-    
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -23,7 +23,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('debugWebDriverLogs', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -47,7 +47,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amOnSubdomain', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -67,7 +67,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('makeScreenshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -89,7 +89,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('makeElementScreenshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -108,7 +108,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('makeHtmlSnapshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -125,7 +125,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('resizeWindow', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -162,7 +162,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -189,7 +189,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -208,7 +208,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('setCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -222,7 +222,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('resetCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -235,7 +235,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -249,7 +249,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabPageSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -266,7 +266,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amOnUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -285,7 +285,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amOnPage', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -360,7 +360,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('see', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -431,7 +431,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSee', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -464,7 +464,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -497,7 +497,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -528,7 +528,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInPageSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -549,7 +549,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInPageSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -585,7 +585,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('click', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -620,7 +620,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeLink', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -655,7 +655,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeLink', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -692,7 +692,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInCurrentUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -727,7 +727,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeCurrentUrlEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -760,7 +760,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeCurrentUrlMatches', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -791,7 +791,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInCurrentUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -826,7 +826,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeCurrentUrlEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -859,7 +859,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeCurrentUrlMatches', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -877,7 +877,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabFromCurrentUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -912,7 +912,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeCheckboxIsChecked', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -945,7 +945,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeCheckboxIsChecked', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -992,7 +992,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1037,7 +1037,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1160,7 +1160,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInFormFields', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1245,7 +1245,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInFormFields', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1278,7 +1278,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('selectOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1292,7 +1292,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('unselectOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1308,7 +1308,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('checkOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1324,7 +1324,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('uncheckOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1341,7 +1341,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('fillField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1359,7 +1359,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('clearField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1388,7 +1388,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('type', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1405,7 +1405,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('attachFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1425,7 +1425,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabTextFrom', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1442,7 +1442,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabAttributeFrom', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1462,7 +1462,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabValueFrom', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1491,7 +1491,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabMultiple', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1538,7 +1538,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeElement', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1577,7 +1577,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeElement', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1612,7 +1612,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeElementInDOM', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1637,7 +1637,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeElementInDOM', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1674,7 +1674,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeNumberOfElements', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1699,7 +1699,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeNumberOfElementsInDOM', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1734,7 +1734,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeOptionIsSelected', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1769,7 +1769,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeOptionIsSelected', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1804,7 +1804,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInTitle', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1829,7 +1829,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInTitle', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1842,7 +1842,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('acceptPopup', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1853,7 +1853,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('cancelPopup', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1880,7 +1880,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeInPopup', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1907,7 +1907,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('dontSeeInPopup', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1920,7 +1920,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('typeInPopup', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1931,7 +1931,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('reloadPage', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1942,7 +1942,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('moveBack', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1953,7 +1953,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('moveForward', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2117,7 +2117,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('submitForm', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2141,7 +2141,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForElementChange', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2163,7 +2163,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForElement', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2185,7 +2185,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForElementVisible', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2206,7 +2206,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForElementNotVisible', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2228,7 +2228,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForElementClickable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2253,7 +2253,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForText', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2267,7 +2267,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('wait', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2293,7 +2293,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('executeInSelenium', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2333,7 +2333,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('switchToWindow', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2363,7 +2363,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('switchToIFrame', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2393,7 +2393,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('switchToFrame', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2413,7 +2413,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForJS', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2438,7 +2438,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('executeJS', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2463,7 +2463,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('executeAsyncJS', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2474,7 +2474,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('maximizeWindow', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2493,7 +2493,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dragAndDrop', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2518,7 +2518,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('moveMouseOver', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2544,7 +2544,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('clickWithLeftButton', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2569,7 +2569,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('clickWithRightButton', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2583,7 +2583,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('doubleClick', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2611,7 +2611,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('pressKey', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2633,7 +2633,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('appendField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2669,7 +2669,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('saveSessionSnapshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2685,7 +2685,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('loadSessionSnapshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2700,7 +2700,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('deleteSessionSnapshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2720,7 +2720,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('scrollTo', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2739,7 +2739,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('openNewTab', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2770,7 +2770,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\ConditionalAssertion('seeNumberOfTabs', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2786,7 +2786,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('closeTab', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2806,7 +2806,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('switchToNextTab', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2826,7 +2826,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('switchToPreviousTab', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2876,7 +2876,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('performOn', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2908,7 +2908,7 @@ trait WebDriverTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('expectThrowable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2919,7 +2919,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileNotExists', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2933,7 +2933,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertGreaterOrEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2946,7 +2946,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsEmpty', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2960,7 +2960,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertLessOrEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2971,7 +2971,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotRegExp', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2982,7 +2982,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertRegExp', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -2995,7 +2995,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertThatItsNot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3009,7 +3009,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertArrayHasKey', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3023,7 +3023,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertArrayNotHasKey', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3034,7 +3034,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertClassHasAttribute', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3045,7 +3045,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertClassHasStaticAttribute', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3056,7 +3056,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertClassNotHasAttribute', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3067,7 +3067,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertClassNotHasStaticAttribute', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3080,7 +3080,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertContains', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3091,7 +3091,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertContainsEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3102,7 +3102,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertContainsOnly', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3113,7 +3113,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertContainsOnlyInstancesOf', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3126,7 +3126,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertCount', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3137,7 +3137,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDirectoryDoesNotExist', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3148,7 +3148,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDirectoryExists', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3159,7 +3159,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDirectoryIsNotReadable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3170,7 +3170,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDirectoryIsNotWritable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3181,7 +3181,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDirectoryIsReadable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3192,7 +3192,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDirectoryIsWritable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3203,7 +3203,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertDoesNotMatchRegularExpression', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3218,7 +3218,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertEmpty', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3232,7 +3232,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3246,7 +3246,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertEqualsCanonicalizing', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3260,7 +3260,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertEqualsIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3274,7 +3274,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertEqualsWithDelta', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3289,7 +3289,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFalse', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3300,7 +3300,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileDoesNotExist', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3311,7 +3311,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3322,7 +3322,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileEqualsCanonicalizing', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3333,7 +3333,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileEqualsIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3344,7 +3344,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileExists', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3355,7 +3355,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileIsNotReadable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3366,7 +3366,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileIsNotWritable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3377,7 +3377,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileIsReadable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3388,7 +3388,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileIsWritable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3399,7 +3399,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileNotEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3410,7 +3410,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileNotEqualsCanonicalizing', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3421,7 +3421,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFileNotEqualsIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3434,7 +3434,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertFinite', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3448,7 +3448,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertGreaterThan', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3462,7 +3462,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertGreaterThanOrEqual', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3475,7 +3475,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertInfinite', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3493,7 +3493,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertInstanceOf', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3508,7 +3508,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsArray', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3523,7 +3523,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsBool', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3538,7 +3538,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsCallable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3553,7 +3553,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsClosedResource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3568,7 +3568,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsFloat', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3583,7 +3583,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsInt', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3598,7 +3598,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsIterable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3613,7 +3613,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotArray', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3628,7 +3628,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotBool', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3643,7 +3643,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotCallable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3658,7 +3658,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotClosedResource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3673,7 +3673,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotFloat', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3688,7 +3688,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotInt', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3703,7 +3703,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotIterable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3718,7 +3718,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotNumeric', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3733,7 +3733,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotObject', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3744,7 +3744,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotReadable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3759,7 +3759,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotResource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3774,7 +3774,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotScalar', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3789,7 +3789,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3800,7 +3800,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNotWritable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3815,7 +3815,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsNumeric', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3830,7 +3830,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsObject', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3841,7 +3841,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsReadable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3856,7 +3856,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsResource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3871,7 +3871,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsScalar', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3886,7 +3886,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3897,7 +3897,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertIsWritable', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3908,7 +3908,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJson', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3919,7 +3919,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJsonFileEqualsJsonFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3930,7 +3930,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJsonFileNotEqualsJsonFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3941,7 +3941,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJsonStringEqualsJsonFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3952,7 +3952,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJsonStringEqualsJsonString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3963,7 +3963,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJsonStringNotEqualsJsonFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3974,7 +3974,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertJsonStringNotEqualsJsonString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -3988,7 +3988,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertLessThan', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4002,7 +4002,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertLessThanOrEqual', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4013,7 +4013,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertMatchesRegularExpression', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4026,7 +4026,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNan', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4039,7 +4039,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotContains', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4050,7 +4050,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotContainsEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4061,7 +4061,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotContainsOnly', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4074,7 +4074,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotCount', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4089,7 +4089,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotEmpty', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4103,7 +4103,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4117,7 +4117,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotEqualsCanonicalizing', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4131,7 +4131,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotEqualsIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4145,7 +4145,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotEqualsWithDelta', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4160,7 +4160,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotFalse', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4178,7 +4178,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotInstanceOf', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4193,7 +4193,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotNull', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4207,7 +4207,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotSame', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4221,7 +4221,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotSameSize', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4236,7 +4236,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNotTrue', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4251,7 +4251,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertNull', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4262,7 +4262,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertObjectHasAttribute', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4273,7 +4273,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertObjectNotHasAttribute', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4293,7 +4293,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertSame', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4307,7 +4307,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertSameSize', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4318,7 +4318,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringContainsString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4329,7 +4329,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringContainsStringIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4340,7 +4340,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringEndsNotWith', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4351,7 +4351,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringEndsWith', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4362,7 +4362,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringEqualsFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4373,7 +4373,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringEqualsFileCanonicalizing', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4384,7 +4384,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringEqualsFileIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4395,7 +4395,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringMatchesFormat', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4406,7 +4406,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringMatchesFormatFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4417,7 +4417,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotContainsString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4428,7 +4428,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotContainsStringIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4439,7 +4439,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotEqualsFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4450,7 +4450,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotEqualsFileCanonicalizing', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4461,7 +4461,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotEqualsFileIgnoringCase', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4472,7 +4472,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotMatchesFormat', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4483,7 +4483,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringNotMatchesFormatFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4494,7 +4494,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringStartsNotWith', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4505,7 +4505,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertStringStartsWith', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4518,7 +4518,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertThat', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4533,7 +4533,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertTrue', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4544,7 +4544,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertXmlFileEqualsXmlFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4555,7 +4555,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertXmlFileNotEqualsXmlFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4568,7 +4568,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertXmlStringEqualsXmlFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4582,7 +4582,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertXmlStringEqualsXmlString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4595,7 +4595,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertXmlStringNotEqualsXmlFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4609,7 +4609,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('assertXmlStringNotEqualsXmlString', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4620,7 +4620,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('fail', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -4631,7 +4631,7 @@ trait WebDriverTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('markTestIncomplete', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *

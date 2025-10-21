@@ -37,7 +37,7 @@ if (isset($mla_request->get['edit']) && !empty($mla_request->get['edit'])) {
     try {
         $puzzleManager = new PuzzleManager($mla_database);
         $edit_puzzle_data = $puzzleManager->getPuzzleByCode($mla_request->get['edit']);
-        
+
         if (!$edit_puzzle_data) {
             // Puzzle not found, redirect to builder
             header('Location: /builder/');
@@ -121,7 +121,7 @@ import { SlideBuilder } from '../js/builder.js?v=<?= time() ?>';
 (function(){
   const editMode = <?= $edit_mode ? 'true' : 'false' ?>;
   const editPuzzleData = <?= $edit_mode_data ?>;
-  
+
   const builder = new SlideBuilder('board');
 
   // Initialize builder

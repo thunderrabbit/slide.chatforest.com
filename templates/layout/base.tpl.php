@@ -20,18 +20,18 @@
         <a href="/logout/">Logout</a>
 <?php endif; // if(empty($username)): ?>
     </div>
-    
+
     <script>
     // Preserve current puzzle when clicking login/signup links
     document.addEventListener('DOMContentLoaded', function() {
         const loginLink = document.getElementById('login-link');
         const signupLink = document.getElementById('signup-link');
         const currentPuzzle = localStorage.getItem('lastPlayedPuzzle');
-        
+
         if (currentPuzzle && loginLink) {
             loginLink.href = '/login/?return_to_puzzle=' + currentPuzzle;
         }
-        
+
         if (currentPuzzle && signupLink) {
             signupLink.href = '/login/register.php?return_to_puzzle=' + currentPuzzle;
         }

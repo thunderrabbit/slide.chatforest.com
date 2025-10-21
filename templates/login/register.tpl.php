@@ -37,13 +37,13 @@
                         </div>
                     </fieldset>
                 </form>
-                
+
                 <script>
                 // Capture current puzzle for post-registration redirect
                 document.addEventListener('DOMContentLoaded', function() {
                     const form = document.getElementById('valid');
                     const currentPuzzle = localStorage.getItem('lastPlayedPuzzle');
-                    
+
                     if (currentPuzzle) {
                         // Add hidden field to preserve puzzle
                         const hiddenInput = document.createElement('input');
@@ -52,7 +52,7 @@
                         hiddenInput.value = currentPuzzle;
                         form.appendChild(hiddenInput);
                     }
-                    
+
                     // Also try to detect current puzzle from URL
                     const urlParams = new URLSearchParams(window.location.search);
                     const returnToPuzzle = urlParams.get('return_to_puzzle');

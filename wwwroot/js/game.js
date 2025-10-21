@@ -47,7 +47,7 @@ export class SlideGame extends SlideCore {
     if (this.N >= 7) {
       return this.generateHamiltonianPathFast();
     }
-    
+
     // Use original backtracking for smaller grids (5x5, 6x6)
     return this.generateHamiltonianPathBacktrack();
   }
@@ -57,18 +57,18 @@ export class SlideGame extends SlideCore {
     const totalCells = this.N * this.N;
     const path = [];
     const visited = new Set();
-    
+
     // Start from a random position
     let r = Math.floor(Math.random() * this.N);
     let c = Math.floor(Math.random() * this.N);
-    
+
     path.push({r, c});
     visited.add(this.key(r, c));
-    
+
     // Generate snake-like path with random turns
     while (path.length < totalCells) {
       const neighbors = this.getUnvisitedNeighbors(r, c, visited);
-      
+
       if (neighbors.length === 0) {
         // No more neighbors - try to connect to unvisited area
         const unvisited = this.findNearestUnvisited(r, c, visited);
@@ -91,7 +91,7 @@ export class SlideGame extends SlideCore {
         c = next.c;
       }
     }
-    
+
     return path;
   }
 
@@ -143,7 +143,7 @@ export class SlideGame extends SlideCore {
   getUnvisitedNeighbors(r, c, visited) {
     const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
     const neighbors = [];
-    
+
     for (const dir of directions) {
       const nr = r + dir.r;
       const nc = c + dir.c;
@@ -151,7 +151,7 @@ export class SlideGame extends SlideCore {
         neighbors.push({r: nr, c: nc});
       }
     }
-    
+
     return neighbors;
   }
 
@@ -160,27 +160,27 @@ export class SlideGame extends SlideCore {
     const queue = [{r, c, dist: 0}];
     const seen = new Set();
     seen.add(this.key(r, c));
-    
+
     while (queue.length > 0) {
       const current = queue.shift();
-      
+
       if (!visited.has(this.key(current.r, current.c))) {
         return {r: current.r, c: current.c};
       }
-      
+
       const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
       for (const dir of directions) {
         const nr = current.r + dir.r;
         const nc = current.c + dir.c;
         const key = this.key(nr, nc);
-        
+
         if (this.inBounds(nr, nc) && !seen.has(key)) {
           seen.add(key);
           queue.push({r: nr, c: nc, dist: current.dist + 1});
         }
       }
     }
-    
+
     return null;
   }
 
@@ -189,11 +189,11 @@ export class SlideGame extends SlideCore {
     const path = [];
     let r = from.r;
     let c = from.c;
-    
+
     while (r !== to.r || c !== to.c) {
       const dr = Math.sign(to.r - r);
       const dc = Math.sign(to.c - c);
-      
+
       // Try to move in the direction of the target
       if (dr !== 0 && this.inBounds(r + dr, c) && !visited.has(this.key(r + dr, c))) {
         r += dr;
@@ -203,7 +203,7 @@ export class SlideGame extends SlideCore {
         // Try alternative directions
         const directions = [{r: -1, c: 0}, {r: 1, c: 0}, {r: 0, c: -1}, {r: 0, c: 1}];
         this.shuffleArray(directions);
-        
+
         let moved = false;
         for (const dir of directions) {
           const nr = r + dir.r;
@@ -215,13 +215,13 @@ export class SlideGame extends SlideCore {
             break;
           }
         }
-        
+
         if (!moved) break; // Can't find a path
       }
-      
+
       path.push({r, c});
     }
-    
+
     return path;
   }
 
@@ -293,7 +293,7 @@ export class SlideGame extends SlideCore {
     this.touchesBlocked = false;
     this.solveTimeRecorded = false;
     this.puzzleAlreadySolvedByUser = false;
-    
+
     this.edgeBarriers.clear();
     this.numberHints.clear();
     this.nextRequiredNumber = 1; // Reset sequence tracker for new puzzle
@@ -450,7 +450,7 @@ export class SlideGame extends SlideCore {
         this.touchesBlocked = false;
         this.solveTimeRecorded = false;
         this.puzzleAlreadySolvedByUser = false;
-        
+
         // Start timing for new PHP-generated puzzle
         if (!this.puzzleStartTime) {
           this.puzzleStartTime = Date.now();

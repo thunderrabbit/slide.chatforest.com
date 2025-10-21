@@ -16,13 +16,13 @@ class PuzzleSolvingCest
     {
         $I->amOnPage('/');
         $I->generateNewPuzzle();
-        
+
         // Solve the puzzle by clicking the actual solution path
         $I->solvePuzzleByClicking();
-        
+
         // Verify the puzzle is solved
         $I->seePuzzleSolved();
-        
+
         $I->comment('✓ Successfully solved puzzle by clicking solution path');
     }
 
@@ -30,7 +30,7 @@ class PuzzleSolvingCest
     {
         $I->amOnPage('/');
         $I->generateNewPuzzle();
-        
+
         // Create a wrong path (not the solution)
         $wrongPath = [
             ['row' => 0, 'col' => 0],
@@ -39,12 +39,12 @@ class PuzzleSolvingCest
             ['row' => 1, 'col' => 2],
             ['row' => 1, 'col' => 1]
         ];
-        
+
         $I->clickCanvasPath($wrongPath);
-        
+
         // Verify the puzzle is NOT solved
         $I->seePuzzleNotSolved();
-        
+
         $I->comment('✓ Correctly failed to solve puzzle with wrong path');
     }
 
@@ -52,19 +52,19 @@ class PuzzleSolvingCest
     {
         $I->amOnPage('/');
         $I->generateNewPuzzle();
-        
+
         // Record start time
         $startTime = microtime(true);
-        
+
         // Solve the puzzle
         $I->solvePuzzleByClicking();
-        
+
         // Record end time
         $endTime = microtime(true);
         $solveTime = $endTime - $startTime;
-        
+
         $I->comment("Puzzle solved in {$solveTime} seconds");
-        
+
         // Verify solve time was recorded
         $solveTimeData = $I->executeJS('
             return {
@@ -73,9 +73,9 @@ class PuzzleSolvingCest
                 hasLocalStorage: localStorage.getItem("solve_time") !== null
             };
         ');
-        
+
         $I->comment("Solve time tracking: " . json_encode($solveTimeData));
-        
+
         // Verify puzzle is solved
         $I->seePuzzleSolved();
     }
@@ -84,13 +84,13 @@ class PuzzleSolvingCest
     {
         // Test with a specific puzzle code (if it exists)
         $puzzleCode = 'abc12345'; // This might not exist, but we can test the flow
-        
+
         $I->amOnPage("/puzzle/{$puzzleCode}");
         $I->waitForPuzzleToLoad();
-        
+
         // Verify we're on the puzzle page
         $I->seeIAmOnPuzzlePage();
-        
+
         // Try to solve it
         try {
             $I->solvePuzzleByClicking();
@@ -106,26 +106,26 @@ class PuzzleSolvingCest
     {
         $I->amOnPage('/');
         $I->generateNewPuzzle();
-        
+
         // Click the solution button
         $I->waitAndClick('#solutionBtn');
         $I->wait(1); // Allow solution animation to start
-        
+
         // Check if solution is being shown
         $showingSolution = $I->executeJS('return typeof showingSolution !== "undefined" ? showingSolution : false');
-        
+
         if ($showingSolution) {
             $I->comment('✓ Solution button correctly shows solution');
         } else {
             $I->comment('⚠ Solution button may not be working as expected');
         }
-        
+
         // Click it again to hide solution
         $I->waitAndClick('#solutionBtn');
         $I->wait(1);
-        
+
         $showingSolutionAfter = $I->executeJS('return typeof showingSolution !== "undefined" ? showingSolution : false');
-        
+
         if (!$showingSolutionAfter) {
             $I->comment('✓ Solution button correctly hides solution');
         } else {
@@ -136,23 +136,23 @@ class PuzzleSolvingCest
     public function testPuzzleGridSizeSelection(WebDriverTester $I): void
     {
         $I->amOnPage('/');
-        
+
         // Test different grid sizes
         $gridSizes = [5, 6];
-        
+
         foreach ($gridSizes as $gridSize) {
             $I->selectOption('#gridSize', (string)$gridSize);
             $I->generateNewPuzzle();
-            
+
             // Wait for puzzle generation to complete
             $I->wait(3);
-            
+
             // Verify grid size was applied by checking canvas dimensions
             $canvasInfo = $I->getCanvasInfo();
             $expectedCellSize = $canvasInfo['width'] / $gridSize;
             $actualCellSize = $canvasInfo['cellSize'];
             $I->assertEquals($expectedCellSize, $actualCellSize, "{$gridSize}x{$gridSize} grid cell size should be correct");
-            
+
             // Try to solve the puzzle
             try {
                 $I->solvePuzzleByClicking();

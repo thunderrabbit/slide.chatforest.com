@@ -76,12 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($is_logged_in->isLoggedIn()) {
             // Check if user has a last played puzzle to return to
             $lastPuzzleCode = $_GET['return_to_puzzle'] ?? $_POST['return_to_puzzle'] ?? null;
-            
+
             if ($lastPuzzleCode) {
                 header("Location: /puzzle/$lastPuzzleCode?newuser=1");
                 exit;
             }
-            
+
             // Fallback: redirect to main page
             header("Location: /?newuser=1");
             exit;

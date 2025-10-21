@@ -34,32 +34,32 @@ export class SlideBuilder extends SlideCore {
   loadExistingPuzzle(puzzleData) {
     this.editMode = true;
     this.originalPuzzleData = puzzleData;
-    
+
     // Set grid size
     this.setGridSize(puzzleData.grid_size);
-    
+
     // Load the solution path
     this.path = puzzleData.solution_path.map(coord => ({
       r: coord[0],
       c: coord[1]
     }));
-    
+
     // Load barriers
-    this.barriers = new Set(puzzleData.barriers.map(barrier => 
+    this.barriers = new Set(puzzleData.barriers.map(barrier =>
       this.key(barrier[0], barrier[1])
     ));
-    
+
     // Load numbered positions
-    this.spotPlacements = new Set(puzzleData.numbered_positions.map(pos => 
+    this.spotPlacements = new Set(puzzleData.numbered_positions.map(pos =>
       this.key(pos[0], pos[1])
     ));
-    
+
     // Set difficulty
     document.getElementById('difficulty').value = puzzleData.difficulty;
-    
+
     // Update UI to show we're in edit mode
     this.updateEditModeUI();
-    
+
     // Redraw
     this.draw();
   }
@@ -70,13 +70,13 @@ export class SlideBuilder extends SlideCore {
     if (title) {
       title.textContent = `Edit Puzzle #${this.originalPuzzleData.puzzle_id}`;
     }
-    
+
     // Update save button text
     const saveBtn = document.getElementById('saveBuilderBtn');
     if (saveBtn) {
       saveBtn.textContent = 'Update Puzzle';
     }
-    
+
     // Add edit mode class to body
     document.body.classList.add('edit-mode');
   }
@@ -538,16 +538,16 @@ export class SlideBuilder extends SlideCore {
   addRandomBarriers() {
     // Clear existing barriers
     this.edgeBarriers.clear();
-    
+
     // Generate random barriers without considering any path
     const barriers = this.generateRandomBarriers();
-    
+
     // Add barriers to the edgeBarriers set
     barriers.forEach(barrier => {
       const edgeId = this.edgeKey(barrier.y1, barrier.x1, barrier.y2, barrier.x2);
       this.edgeBarriers.add(edgeId);
     });
-    
+
     this.updateBuilderHint(`Added ${barriers.length} random barriers. Now draw a path that avoids them!`);
     this.draw();
   }

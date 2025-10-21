@@ -43,7 +43,7 @@ if (!in_array($difficulty, ['easy', 'medium', 'hard'])) {
 
 try {
     error_log("Generating puzzle: grid_size=$gridSize, difficulty=$difficulty");
-    
+
     // For 7x7 puzzles, try to use pre-generated puzzles first
     if ($gridSize === 7) {
         $backgroundGen = new BackgroundPuzzleGenerator($mla_database);
@@ -68,7 +68,7 @@ try {
     // Generate the puzzle using PHP (fallback or non-7x7)
     error_log("Creating PuzzleGenerator for grid_size=$gridSize");
     $generator = new PuzzleGenerator($gridSize);
-    
+
     error_log("Generating puzzle data");
     $puzzleData = $generator->generatePuzzle($difficulty);
     error_log("Puzzle data generated successfully");
@@ -87,14 +87,14 @@ try {
         "puzzle_data" => $puzzleData,
         "generated_by" => "php_server"
     ];
-    
+
     error_log("Sending response");
     echo json_encode($response);
 
 } catch (\Exception $e) {
     error_log("Error generating puzzle: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
-    
+
     http_response_code(500);
     echo json_encode([
         "error" => $e->getMessage(),

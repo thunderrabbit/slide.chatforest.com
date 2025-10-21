@@ -8,7 +8,7 @@ This document captures the intended user experience for the login flow and puzzl
 ### Q1: Login Flow Entry Point
 **Question:** When a user is currently playing a puzzle and wants to log in, how should they initiate the login process?
 
-**Answer:** 
+**Answer:**
 - Login link location in navigation bar is fine - no changes needed
 - Login and register pages themselves are fine - no changes needed
 - The problem is what happens *after* they log in (or register)
@@ -33,7 +33,7 @@ After login/registration, users are redirected to a new puzzle instead of stayin
 
 **Answer:**
 - **If they solved the puzzle:** Their path (solution) should be displayed as well as their solve time
-- **If they were in the middle of solving it:** 
+- **If they were in the middle of solving it:**
   - If it's trivial to store the half-done state, then preserve their progress
   - If not trivial, then show them the same puzzle without any path/progress (fresh start)
   - Priority: Keep it simple - don't over-engineer the partial state preservation
@@ -70,7 +70,7 @@ After login/registration, users are redirected to a new puzzle instead of stayin
 
 **Core Problem:** After login/registration, users are redirected to a new puzzle instead of staying on the puzzle they were just playing.
 
-**Required Solution:** 
+**Required Solution:**
 1. Preserve puzzle state during login/registration
 2. Redirect back to the exact same puzzle after successful login
 3. Show solved puzzle with path + solve time if already completed

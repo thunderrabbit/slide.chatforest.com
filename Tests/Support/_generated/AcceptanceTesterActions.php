@@ -12,7 +12,7 @@ trait AcceptanceTesterActions
      */
     abstract protected function getScenario();
 
-    
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -23,7 +23,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('generateTestPuzzleCode', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -34,7 +34,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('waitForTextWithRetry', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -45,7 +45,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('setHeader', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -56,7 +56,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amHttpAuthenticated', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -73,7 +73,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amOnUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -97,7 +97,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amOnSubdomain', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -123,7 +123,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('executeInGuzzle', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -156,7 +156,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('haveHttpHeader', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -180,7 +180,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('unsetHttpHeader', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -191,7 +191,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('deleteHeader', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -210,7 +210,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Condition('amOnPage', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -246,7 +246,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('click', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -284,7 +284,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('see', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -320,7 +320,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSee', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -337,7 +337,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeInSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -354,7 +354,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeInSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -372,7 +372,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeLink', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -390,7 +390,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeLink', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -409,7 +409,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeInCurrentUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -425,7 +425,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeInCurrentUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -443,7 +443,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeCurrentUrlEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -461,7 +461,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeCurrentUrlEquals', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -478,7 +478,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeCurrentUrlMatches', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -495,7 +495,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeCurrentUrlMatches', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -513,7 +513,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabFromCurrentUrl', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -531,7 +531,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeCheckboxIsChecked', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -548,7 +548,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeCheckboxIsChecked', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -572,7 +572,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeInField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -595,7 +595,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeInField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -657,7 +657,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeInFormFields', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -700,7 +700,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeInFormFields', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -880,7 +880,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('submitForm', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -897,7 +897,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('fillField', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -930,7 +930,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('selectOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -946,7 +946,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('checkOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -962,7 +962,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('uncheckOption', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -979,7 +979,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('attachFile', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -991,7 +991,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('sendAjaxGetRequest', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1019,7 +1019,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('sendAjaxPostRequest', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1036,7 +1036,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('sendAjaxRequest', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1055,7 +1055,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('makeHtmlSnapshot', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1075,7 +1075,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabTextFrom', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1092,7 +1092,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabAttributeFrom', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1121,7 +1121,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabMultiple', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1141,7 +1141,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabValueFrom', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1160,7 +1160,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('setCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1173,7 +1173,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1187,7 +1187,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('grabPageSource', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1206,7 +1206,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1220,7 +1220,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1234,7 +1234,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('resetCookie', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1258,7 +1258,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeElement', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1278,7 +1278,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeElement', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1297,7 +1297,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeNumberOfElements', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1315,7 +1315,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeOptionIsSelected', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1333,7 +1333,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeOptionIsSelected', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1344,7 +1344,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seePageNotFound', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1363,7 +1363,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeResponseCodeIs', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1374,7 +1374,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeResponseCodeIsBetween', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1393,7 +1393,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeResponseCodeIs', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1404,7 +1404,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeResponseCodeIsSuccessful', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1415,7 +1415,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeResponseCodeIsRedirection', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1426,7 +1426,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeResponseCodeIsClientError', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1437,7 +1437,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeResponseCodeIsServerError', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1455,7 +1455,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Assertion('seeInTitle', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1468,7 +1468,7 @@ trait AcceptanceTesterActions
         return $this->getScenario()->runStep(new \Codeception\Step\Action('dontSeeInTitle', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1490,7 +1490,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('switchToIframe', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1503,7 +1503,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('moveBack', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1519,7 +1519,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('setServerParameters', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1534,7 +1534,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('haveServerParameter', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1550,7 +1550,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('stopFollowingRedirects', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1566,7 +1566,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('startFollowingRedirects', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
@@ -1582,7 +1582,7 @@ trait AcceptanceTesterActions
         $this->getScenario()->runStep(new \Codeception\Step\Action('followRedirect', func_get_args()));
     }
 
- 
+
     /**
      * [!] Method is generated. Documentation taken from corresponding module.
      *
