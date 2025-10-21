@@ -38,6 +38,9 @@
             <?php endif; ?>
 
             <button id="nextUnplayedBtn" class="puzzle-nav-btn next-unplayed" title="Next unplayed puzzle">Next Unplayed →</button>
+            <?php if($is_admin): ?>
+            <button id="editPuzzleBtn" class="puzzle-nav-btn edit" title="Edit this puzzle">Edit</button>
+            <?php endif; ?>
           </div>
           <?php endif; ?>
         </div>
@@ -251,6 +254,16 @@ import { SlideGame } from '/js/game.js?v=<?= time() ?>';
     // Always use PHP generator for all puzzle sizes
     console.log('🎲 Grid size', game.N + 'x' + game.N, '- using PHP generator for initial puzzle');
     game.generatePuzzleUsingPHP(difficulty);
+  }
+
+  // Handle edit puzzle button (only exists for admin users on puzzle pages)
+  const editPuzzleBtn = document.getElementById('editPuzzleBtn');
+  if (editPuzzleBtn) {
+    editPuzzleBtn.addEventListener('click', () => {
+      if (puzzleId && puzzleCode) {
+        window.location.href = `/builder/?edit=${puzzleCode}`;
+      }
+    });
   }
 
 })();

@@ -331,6 +331,17 @@
     pointer-events: none;
 }
 
+.slide-practice .puzzle-nav-btn.edit {
+    background: #ff6b35;
+    color: white;
+    border: 1px solid #e55a2b;
+}
+
+.slide-practice .puzzle-nav-btn.edit:hover {
+    background: #e55a2b;
+    color: white;
+}
+
 .slide-practice .puzzle-info {
     color: var(--fg);
     text-decoration: none;
